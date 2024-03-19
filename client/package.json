@@ -10,6 +10,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@aurowallet/mina-provider": "^1.0.2",
     "@t3-oss/env-nextjs": "^0.9.2",
     "@tanstack/react-query": "^5.25.0",
     "@trpc/client": "next",
