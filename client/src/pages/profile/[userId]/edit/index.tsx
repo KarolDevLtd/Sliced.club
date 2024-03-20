@@ -5,5 +5,10 @@ export default function EditProfile() {
 
   const userId = router.query.userId;
 
-  return <div>Edit Profile with User ID {userId}</div>;
+  return (
+    <div>
+      <h1>Edit My Profile</h1>
+      <p>User ID: {userId}</p>
+    </div>
+  );
 }
