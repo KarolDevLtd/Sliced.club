@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { TRPCReactProvider } from "~/trpc/react";
+import { WalletProvider } from "./WalletProvider";
 
 interface Props {
   children?: ReactNode;
@@ -7,7 +8,11 @@ interface Props {
 }
 
 function Providers({ children, ...props }: Props) {
-  return <TRPCReactProvider>{children}</TRPCReactProvider>;
+  return (
+    <WalletProvider>
+      <TRPCReactProvider>{children}</TRPCReactProvider>;
+    </WalletProvider>
+  );
 }
 
 export default Providers;
