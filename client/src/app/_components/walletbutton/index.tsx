@@ -4,7 +4,8 @@ import { useWallet } from "../../../providers/walletprovider";
 import "react-toastify/dist/ReactToastify.css";
 
 export const WalletButton = () => {
-  const { walletAddress, connectWallet, disconnectWallet } = useWallet();
+  const { walletAddress, isConnected, connectWallet, disconnectWallet } =
+    useWallet();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export const WalletButton = () => {
     <>
       {isClient && (
         <div className="flex items-center md:ml-12">
-          {walletAddress ? (
+          {isConnected && walletAddress ? (
             <button
               onClick={() => hanldeWalletDisconnect()}
               className="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-3 text-base font-medium text-white hover:bg-indigo-700 md:px-5 md:py-2 "
