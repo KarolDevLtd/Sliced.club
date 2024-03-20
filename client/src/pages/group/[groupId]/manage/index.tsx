@@ -5,5 +5,10 @@ export default function ManageGroup() {
 
   const groupId = router.query.groupId;
 
-  return <div>Manage Group ID: {groupId}</div>;
+  return (
+    <div>
+      <h1>Manage Group</h1>
+      <p>Group ID: {groupId}</p>
+    </div>
+  );
 }

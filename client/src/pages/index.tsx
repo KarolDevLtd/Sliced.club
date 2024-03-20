@@ -7,7 +7,7 @@ export default function Home() {
     <div>
       <h1>Home</h1>
       <Link href="/login">Login</Link>
-      <Link href="/signup">Register</Link>
+      <Link href="/register">Register</Link>
       <Link href={`/profile/${exampleUserId}`}>My Profile</Link>
       <Link href="/explore">Explore</Link>
       <Link href="/group/create">Create Croup</Link>

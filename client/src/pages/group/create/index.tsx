@@ -1,3 +1,7 @@
 export default function CreateGroup() {
-  return <div>Create Group</div>;
+  return (
+    <div>
+      <h1>Create Group</h1>
+    </div>
+  );
 }

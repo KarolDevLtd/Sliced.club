@@ -7,7 +7,7 @@ export default function GroupClaim() {
 
   return (
     <div>
-      <p>Claim</p>
+      <h1>Claim</h1>
       <p>Group ID: {groupId}</p>
     </div>
   );
