@@ -10,7 +10,11 @@ export default function Profile() {
     <div>
       <h1>My Profile</h1>
       <p>User ID: {userId}</p>
-      <Link href={`/profile/${userId?.toString()}/edit`}>Edit</Link>
+      <ul>
+        <li>
+          <Link href={`/profile/${userId?.toString()}/edit`}>Edit</Link>
+        </li>
+      </ul>
     </div>
   );
 }

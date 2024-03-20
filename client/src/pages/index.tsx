@@ -6,11 +6,23 @@ export default function Home() {
   return (
     <div>
       <h1>Home</h1>
-      <Link href="/login">Login</Link>
-      <Link href="/register">Register</Link>
-      <Link href={`/profile/${exampleUserId}`}>My Profile</Link>
-      <Link href="/explore">Explore</Link>
-      <Link href="/group/create">Create Croup</Link>
+      <ul>
+        <li>
+          <Link href="/login">Login</Link>
+        </li>
+        <li>
+          <Link href="/register">Register</Link>
+        </li>
+        <li>
+          <Link href={`/profile/${exampleUserId}`}>My Profile</Link>
+        </li>
+        <li>
+          <Link href="/explore">Explore</Link>
+        </li>
+        <li>
+          <Link href="/group/create">Create Croup</Link>
+        </li>
+      </ul>
     </div>
   );
 }

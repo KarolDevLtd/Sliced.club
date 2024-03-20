@@ -10,8 +10,14 @@ export default function Group() {
     <div>
       <h1>Group</h1>
       <p>Group ID: {groupId}</p>
-      <Link href={`${groupId?.toString()}/manage`}>Manage</Link>
-      <Link href={`${groupId?.toString()}/claim`}>Claim</Link>
+      <ul>
+        <li>
+          <Link href={`${groupId?.toString()}/manage`}>Manage</Link>
+        </li>
+        <li>
+          <Link href={`${groupId?.toString()}/claim`}>Claim</Link>
+        </li>
+      </ul>
     </div>
   );
 }

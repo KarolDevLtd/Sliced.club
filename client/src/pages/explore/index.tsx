@@ -6,7 +6,11 @@ export default function Explore() {
   return (
     <div>
       <h1>Explore</h1>
-      <Link href={`group/${groupId}`}>Group 69</Link>
+      <ul>
+        <li>
+          <Link href={`group/${groupId}`}>Group 69</Link>
+        </li>
+      </ul>
     </div>
   );
 }
