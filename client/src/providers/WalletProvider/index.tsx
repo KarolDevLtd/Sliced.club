@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -14,9 +15,10 @@ import React, {
 
 // Define the type for the context value
 interface WalletContextType {
-  walletAddress: string | null;
+  walletDisplayAddress: string | null;
   isConnected: boolean;
   connectWallet: () => Promise<void>;
+  tryConnectWallet: () => Promise<void>;
   disconnectWallet: () => void;
 }
 
@@ -53,15 +55,31 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletDisplayAddress, setWalletDisplayAddress] = useState<
+    string | null
+  >(null);
+
+  const tryConnectWallet = async () => {
+    try {
+      window.mina?.on("accountsChanged", async (accounts: string[]) => {
+        if (accounts.length != 0) {
+          await connectWallet();
+          return;
+        } else {
+          disconnectWallet();
+        }
+      });
+      await connectWallet();
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   // Function to connect wallet
   const connectWallet = async () => {
     try {
-      const accounts = await window.mina.requestAccounts();
-      const displayAddress = `${accounts[0].slice(0, 6)}...${accounts[0].slice(
-        -4,
-      )}`;
-      updateWalletUI(displayAddress);
+      const account = await window.mina.requestAccounts();
+      updateWalletUI(account);
     } catch (err) {
       throw err;
     }
@@ -77,24 +95,23 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
 
   // Function to update wallet UI
-  const updateWalletUI = (address: string | null) => {
-    if (address !== null) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(address));
+  const updateWalletUI = (account: string | null) => {
+    if (account !== null) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(account));
+      setWalletDisplayAddress(
+        `${account[0].slice(0, 6)}...${account[0].slice(-4)}`,
+      );
       setIsConnected(true);
     } else {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
+      setWalletDisplayAddress(null);
       setIsConnected(false);
     }
-    setWalletAddress(address);
+    setWalletAddress(account);
   };
 
-  // useEffect to initialize wallet address
-  useEffect(() => {
-    const address = getWalletAddress();
-    setWalletAddress(address);
-  }, [isConnected]);
-
-  // Function to get wallet address from local storage
+  //Function to get wallet address from local storage
+  //simply so user does not have to manually click wallet button to see if already connected
   const getWalletAddress = (): string | null => {
     try {
       if (typeof window !== "undefined") {
@@ -109,10 +126,18 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
+  // useEffect to initialize wallet address
+  useEffect(() => {
+    const address = getWalletAddress();
+    setWalletAddress(address);
+    updateWalletUI(address);
+  }, [isConnected]);
+
   // Value to be provided by the context
   const value: WalletContextType = {
-    walletAddress,
+    walletDisplayAddress,
     isConnected,
+    tryConnectWallet,
     connectWallet,
     disconnectWallet,
   };
