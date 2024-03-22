@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "deployAliases": {
+    "lightnet1": {
+      "networkId": "testnet",
+      "url": "http://localhost:8080/graphql",
+      "keyPath": "keys/lightnet1.json",
+      "feepayerKeyPath": "/home/karol/.cache/zkapp-cli/keys/lightnet1.json",
+      "feepayerAlias": "lightnet1",
+      "fee": "0.01",
+      "smartContract": "Add"
+    }
+  }
+}
