@@ -1,14 +1,14 @@
-import { useRouter } from "next/router";
+import { useRouter } from 'next/router';
 
 export default function ManageGroup() {
-  const router = useRouter();
+	const router = useRouter();
 
-  const groupId = router.query.groupId;
+	const groupId = router.query.groupId;
 
-  return (
-    <div>
-      <h1>Manage Group</h1>
-      <p>Group ID: {groupId}</p>
-    </div>
-  );
+	return (
+		<div>
+			<h1>Manage Group</h1>
+			<p>Group ID: {groupId}</p>
+		</div>
+	)
 }

@@ -1,23 +1,23 @@
-import { useRouter } from "next/router";
-import Link from "next/link";
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function Group() {
-  const router = useRouter();
+	const router = useRouter();
 
-  const groupId = router.query.groupId;
+	const groupId = router.query.groupId;
 
-  return (
-    <div>
-      <h1>Group</h1>
-      <p>Group ID: {groupId}</p>
-      <ul>
-        <li>
-          <Link href={`${groupId?.toString()}/manage`}>Manage</Link>
-        </li>
-        <li>
-          <Link href={`${groupId?.toString()}/claim`}>Claim</Link>
-        </li>
-      </ul>
-    </div>
-  );
+	return (
+		<div>
+			<h1>Group</h1>
+			<p>Group ID: {groupId}</p>
+			<ul>
+				<li>
+					<Link href={`${groupId?.toString()}/manage`}>Manage</Link>
+				</li>
+				<li>
+					<Link href={`${groupId?.toString()}/claim`}>Claim</Link>
+				</li>
+			</ul>
+		</div>
+	);
 }

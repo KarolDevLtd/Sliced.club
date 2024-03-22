@@ -1,16 +1,12 @@
 export const metadata = {
-  title: "Sliced",
-  description: "",
+	title: 'Sliced',
+	description: '',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+	return (
+		<html lang="en">
+			<body>{children}</body>
+		</html>
+	);
 }
