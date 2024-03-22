@@ -5,6 +5,8 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import { ProviderError, SendTransactionResult } from '@aurowallet/mina-provider';
 import { ReactNode, createContext, useContext } from 'react';
+import { useWallet } from '../walletprovider';
+import { number } from 'zod';
 
 interface MinaContextType {}
 
@@ -29,6 +31,40 @@ interface MinaProviderProps {
 }
 
 export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
+	const { walletAddress, isConnected } = useWallet();
+
+	interface SignedData {
+		publicKey: string;
+		data: string;
+		signature: {
+			field: string;
+			scalar: string;
+		};
+	}
+
+	interface ProviderError extends Error {
+		message: string;
+		code: number;
+		data?: unknown;
+	}
+	type SignMessageArgs = {
+		message: string;
+	};
+
+	const content = `Click "Sign" to sign in. No password needed!
+    This request will not trigger a blockchain transaction or cost any gas fees.
+    I accept the Auro Test zkApp Terms of Service: ${window.location.href}
+    address: ${walletAddress}
+    iat: ${new Date().getTime()}`;
+
+	const signContent: SignMessageArgs = {
+		message: content,
+	};
+
+	const signTransaction = async () => {
+		await window.mina?.signMessage(signContent).catch((err: string) => console.log(err));
+	};
+
 	const sendTransaction = async (
 		amount: number,
 		address: string,
