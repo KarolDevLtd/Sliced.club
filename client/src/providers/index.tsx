@@ -10,7 +10,7 @@ interface Props {
 const Providers = ({ children, ...props }: Props) => {
 	return (
 		<WalletProvider>
-			<TRPCReactProvider>{children}</TRPCReactProvider>;
+			<TRPCReactProvider>{children}</TRPCReactProvider>
 		</WalletProvider>
 	);
 };

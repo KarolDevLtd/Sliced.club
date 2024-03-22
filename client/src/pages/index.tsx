@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Navbar } from '~/app/_components/navbar';
 
 export default function Home() {
 	const exampleUserId = '69e8f4d1';
@@ -7,7 +6,6 @@ export default function Home() {
 	return (
 		<div>
 			<h1>Home</h1>
-			<Navbar />
 			<ul>
 				<li>
 					<Link href="/login">Login</Link>
