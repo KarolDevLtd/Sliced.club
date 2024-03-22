@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useWallet } from "../../../providers/walletprovider";
+import { useWallet } from "../../../providers/WalletProvider";
 import "react-toastify/dist/ReactToastify.css";
 
 export const WalletButton = () => {

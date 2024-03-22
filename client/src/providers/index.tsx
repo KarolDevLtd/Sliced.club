@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { TRPCReactProvider } from "~/trpc/react";
-import { WalletProvider } from "./walletprovider";
+import { WalletProvider } from "../providers/WalletProvider";
 
 interface Props {
   children?: ReactNode;
