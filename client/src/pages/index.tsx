@@ -6,7 +6,7 @@ export default function Home() {
 
 	return (
 		<div>
-			<h1>Home</h1>
+			<h1 className="flex text-lime-400 bg-red-200">Home</h1>
 			<Navbar />
 			<ul>
 				<li>
