@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-// providers/WalletProvider.tsx
+// providers/walletprovider.tsx
 'use client';
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
