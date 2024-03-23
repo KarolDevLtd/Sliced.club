@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // providers/walletprovider.tsx
 'use client';
+import { ChainInfoArgs, ProviderError } from '@aurowallet/mina-provider';
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 // Define the type for the context value
@@ -12,8 +13,10 @@ interface WalletContextType {
 	walletDisplayAddress: string | null;
 	walletAddress: string | null;
 	isConnected: boolean;
+	chainType: string | null;
 	connectWallet: () => Promise<void>;
 	tryConnectWallet: () => Promise<void>;
+	tryChainChange: (chain: string) => Promise<void>;
 	disconnectWallet: () => void;
 }
 
@@ -51,6 +54,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const [isConnected, setIsConnected] = useState(false);
 	const [walletAddress, setWalletAddress] = useState<string | null>(null);
 	const [walletDisplayAddress, setWalletDisplayAddress] = useState<string | null>(null);
+	const [chainType, setChainType] = useState('devnet');
 
 	const tryConnectWallet = async () => {
 		try {
@@ -63,6 +67,24 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 				}
 			});
 			await connectWallet();
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
+	const tryChainChange = async (chain: string) => {
+		try {
+			const switchResult: ChainInfoArgs | ProviderError = await (window as any)?.mina
+				?.switchChain({
+					chainId: chain,
+				})
+				.catch((err: any) => err);
+			if ((switchResult as ProviderError).message) {
+				console.log(switchResult);
+			} else {
+				setChainType(chain);
+			}
+			setChainType(chain);
 		} catch (err) {
 			console.log(err);
 		}
@@ -129,7 +151,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 		walletDisplayAddress,
 		walletAddress,
 		isConnected,
+		chainType,
 		tryConnectWallet,
+		tryChainChange,
 		connectWallet,
 		disconnectWallet,
 	};
