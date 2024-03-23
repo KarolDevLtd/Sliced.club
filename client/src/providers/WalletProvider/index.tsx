@@ -10,6 +10,7 @@ import React, { createContext, useContext, useEffect, useState, type ReactNode }
 // Define the type for the context value
 interface WalletContextType {
 	walletDisplayAddress: string | null;
+	walletAddress: string | null;
 	isConnected: boolean;
 	connectWallet: () => Promise<void>;
 	tryConnectWallet: () => Promise<void>;
@@ -126,6 +127,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	// Value to be provided by the context
 	const value: WalletContextType = {
 		walletDisplayAddress,
+		walletAddress,
 		isConnected,
 		tryConnectWallet,
 		connectWallet,
