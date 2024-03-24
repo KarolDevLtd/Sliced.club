@@ -4,6 +4,7 @@ import { WalletButton } from '~/app/_components/walletbutton';
 
 import Link from 'next/link';
 import { BasicButton } from '../ui/basic-button';
+import { InlineLink } from '../ui/inline-link';
 
 export const Navbar = () => {
 	const exampleUserId = '69e8f4d1';
@@ -28,7 +29,7 @@ export const Navbar = () => {
 							<BasicButton type="primary">Register</BasicButton>
 						</Link>
 					</div>
-					<Link href={`/profile/${exampleUserId}`}>My Profile</Link>
+					<InlineLink href={`/profile/${exampleUserId}`}>My Profile</InlineLink>
 				</div>
 			</div>
 		</header>
