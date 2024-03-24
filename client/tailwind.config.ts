@@ -12,6 +12,14 @@ export default {
 				body: ['Open Sans'],
 			},
 		},
+		colors: {
+			white: '#ffffff',
+			'purple-light': '#d4d8f2',
+			purple: '#5362c8',
+			'purple-dark': '#3543a7',
+			orange: '#ff603b',
+			'orange-dark': '#ff451a',
+		},
 		container: {
 			center: true,
 			padding: {
