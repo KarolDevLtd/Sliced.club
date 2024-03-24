@@ -4,7 +4,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	return (
 		<>
 			<Navbar />
-			<div>{children}</div>
+			<div className="container py-6">{children}</div>
 		</>
 	);
 }

@@ -13,7 +13,7 @@ export const WalletButton = () => {
 	return (
 		<>
 			{isClient && (
-				<div className="flex items-center md:ml-12">
+				<div className="flex items-center">
 					<button
 						onClick={() => tryConnectWallet()}
 						className="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-500 px-4 py-3 text-base font-medium text-white hover:bg-indigo-700 md:px-5 md:py-2 "
