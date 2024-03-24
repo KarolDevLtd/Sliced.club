@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import Link from 'next/link';
+import { InlineLink } from '~/app/_components/ui/inline-link';
 
 export default function Profile() {
 	const router = useRouter();
@@ -12,7 +12,7 @@ export default function Profile() {
 			<p>User ID: {userId}</p>
 			<ul>
 				<li>
-					<Link href={`/profile/${userId?.toString()}/edit`}>Edit</Link>
+					<InlineLink href={`/profile/${userId?.toString()}/edit`}>Edit</InlineLink>
 				</li>
 			</ul>
 		</div>

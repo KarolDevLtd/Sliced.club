@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { InlineLink } from '~/app/_components/ui/inline-link';
 
 export default function Home() {
 	return (
@@ -6,10 +6,10 @@ export default function Home() {
 			<h1>Sliced</h1>
 			<ul>
 				<li>
-					<Link href="/explore">Explore</Link>
+					<InlineLink href="/explore">Explore</InlineLink>
 				</li>
 				<li>
-					<Link href="/group/create">Create Croup</Link>
+					<InlineLink href="/group/create">Create Croup</InlineLink>
 				</li>
 			</ul>
 		</div>
