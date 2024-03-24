@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 
 export const BasicButton = ({
 	children,
 	onClick,
 	type,
+	icon,
 }: {
 	children: React.ReactNode;
 	onClick?: () => void;
 	type: 'primary' | 'secondary' | 'tertiary';
+	icon?: ReactElement;
 }) => {
 	const bgColour = {
 		primary: 'bg-purple',
@@ -41,6 +43,7 @@ export const BasicButton = ({
 			onClick={onClick}
 		>
 			{children}
+			{icon ? <span className="ms-2">{icon}</span> : null}
 		</button>
 	);
 };
