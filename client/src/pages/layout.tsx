@@ -1,12 +1,10 @@
-export const metadata = {
-	title: 'Sliced',
-	description: '',
-};
+import { Navbar } from '~/app/_components/navbar';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
-			<body>{children}</body>
-		</html>
+		<>
+			<Navbar />
+			<div className="container py-6">{children}</div>
+		</>
 	);
 }
