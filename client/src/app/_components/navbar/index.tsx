@@ -11,11 +11,15 @@ export const Navbar = () => {
 	return (
 		<header className="border-b">
 			<div className="container flex justify-between items-center py-3">
-				<WalletButton />
-				<Link href="/">
-					<h1 className="text-2xl">Sliced</h1>
-				</Link>
-				<div className="flex items-center">
+				<div className="flex-1">
+					<WalletButton />
+				</div>
+				<div className="flex-1">
+					<Link href="/">
+						<h1 className="text-2xl text-center">Sliced</h1>
+					</Link>
+				</div>
+				<div className="flex-1 flex items-center justify-end">
 					<div className="flex gap-2 me-5">
 						<Link href="/login">
 							<BasicButton type="secondary">Login</BasicButton>
