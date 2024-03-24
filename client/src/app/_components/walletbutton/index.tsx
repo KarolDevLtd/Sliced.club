@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useWallet } from '../../../providers/WalletProvider';
 import { BasicButton } from '../ui/basic-button';
+import { FaWallet } from 'react-icons/fa';
 
 export const WalletButton = () => {
 	const { walletDisplayAddress, isConnected, tryConnectWallet } = useWallet();
@@ -14,7 +15,7 @@ export const WalletButton = () => {
 	return (
 		<>
 			{isClient && (
-				<BasicButton type="tertiary" onClick={() => tryConnectWallet()}>
+				<BasicButton type="tertiary" icon={<FaWallet />} onClick={() => tryConnectWallet()}>
 					{isConnected && walletDisplayAddress ? walletDisplayAddress : 'Connect Wallet'}
 				</BasicButton>
 			)}

@@ -14,6 +14,11 @@ export default function Profile() {
 				<li>
 					<InlineLink href={`/profile/${userId?.toString()}/edit`}>Edit</InlineLink>
 				</li>
+				<li>
+					<InlineLink href="https://create.t3.gg/" target="_blank" external={true}>
+						External Link
+					</InlineLink>
+				</li>
 			</ul>
 		</div>
 	);

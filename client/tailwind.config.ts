@@ -14,6 +14,7 @@ export default {
 		},
 		colors: {
 			white: '#ffffff',
+			black: '#000000',
 			'purple-light': '#d4d8f2',
 			purple: '#5362c8',
 			'purple-dark': '#3543a7',
