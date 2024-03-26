@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import Link from 'next/link';
-import { Navbar } from '~/app/_components/navbar';
 import { api } from '~/trpc/react';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 
