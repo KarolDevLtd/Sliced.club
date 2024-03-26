@@ -1,57 +1,65 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 'use client';
-import React, { useEffect, useState } from 'react';
-
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BasicButton } from '../ui/basic-button';
 import { InlineLink } from '../ui/inline-link';
 import { useWallet } from '~/providers/walletprovider';
-import { MinaButton } from '../minabutton';
+import { MinaButton } from '../ui/mina-button';
 
 export const Navbar = () => {
 	const exampleUserId = '69e8f4d1';
-	const { walletDisplayAddress, isConnected, tryConnectWallet, tryChainChange } = useWallet();
+	const { walletDisplayAddress, isConnected, tryConnectWallet, tryChainChange, chainType } = useWallet();
 	const [isClient, setIsClient] = useState(false);
 	const [selectedValue, setSelectedValue] = useState('');
 
-	useEffect(() => {
-		setIsClient(true);
-	}, []);
-
-	const onClickConnect = async () => {
+	const onClickConnect = useCallback(async () => {
 		await tryConnectWallet();
-	};
+	}, []);
 
 	const onClickChain = async () => {
 		console.log(selectedValue);
 		await tryChainChange(selectedValue);
 	};
 
-	const handleSelectChange = (event) => {
+	const handleSelectChange = (event: any) => {
+		console.log('handleSelectChange');
+		console.log(event);
 		setSelectedValue(event.target.value);
 	};
+
+	useEffect(() => {
+		setIsClient(true);
+		onClickConnect;
+		setSelectedValue(chainType);
+	}, [onClickConnect, chainType]);
 
 	return (
 		<header className="border-b">
 			<div className="container flex justify-between items-center py-3">
-				<div className="flex-1">
-				<MinaButton
-				children={isConnected ? walletDisplayAddress : 'Connect'}
-				disabled={false}
-				onClick={onClickConnect}
-				checkInstall={true}
-			/>
-			{isConnected == true && (
-				<div>
-					<MinaButton children={'Switch Chain'} disabled={false} onClick={onClickChain} checkInstall={true} />
-					<select value={selectedValue} onChange={handleSelectChange}>
-						<option value="mainnet">mainnet</option>
-						<option value="devnet">devnet</option>
-						<option value="berkeley">berkeley</option>
-					</select>
-				</div>
-			)}
+				<div className="flex flex-1">
+					<MinaButton
+						children={isConnected ? walletDisplayAddress : 'Connect'}
+						disabled={false}
+						onClick={onClickConnect}
+						checkInstall={true}
+					/>
+					{isConnected == true && (
+						<div>
+							<MinaButton
+								children={'Switch Chain'}
+								disabled={false}
+								onClick={onClickChain}
+								checkInstall={true}
+							/>
+							<select value={selectedValue} onChange={(e) => handleSelectChange(e)}>
+								<option value="mainnet">mainnet</option>
+								<option value="devnet">devnet</option>
+								<option value="berkeley">berkeley</option>
+							</select>
+						</div>
+					)}
 				</div>
 				<div className="flex-1">
 					<Link href="/">
@@ -71,6 +79,5 @@ export const Navbar = () => {
 				</div>
 			</div>
 		</header>
->>>>>>> 74e91beea530a323123e30624a3bd1e2976850c7
 	);
 };
