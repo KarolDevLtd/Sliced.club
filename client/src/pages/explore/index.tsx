@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { InlineLink } from '~/app/_components/ui/inline-link';
 
 export default function Explore() {
 	const groupId = '69';
@@ -8,7 +8,7 @@ export default function Explore() {
 			<h1>Explore</h1>
 			<ul>
 				<li>
-					<Link href={`group/${groupId}`}>Group 69</Link>
+					<InlineLink href={`group/${groupId}`}>Group 69</InlineLink>
 				</li>
 			</ul>
 		</div>

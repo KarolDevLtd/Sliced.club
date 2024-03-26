@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import Link from 'next/link';
+import { InlineLink } from '~/app/_components/ui/inline-link';
 
 export default function Group() {
 	const router = useRouter();
@@ -12,10 +12,10 @@ export default function Group() {
 			<p>Group ID: {groupId}</p>
 			<ul>
 				<li>
-					<Link href={`${groupId?.toString()}/manage`}>Manage</Link>
+					<InlineLink href={`${groupId?.toString()}/manage`}>Manage</InlineLink>
 				</li>
 				<li>
-					<Link href={`${groupId?.toString()}/claim`}>Claim</Link>
+					<InlineLink href={`${groupId?.toString()}/claim`}>Claim</InlineLink>
 				</li>
 			</ul>
 		</div>
