@@ -1,16 +1,15 @@
 import React, { type ReactElement } from 'react';
 
-export const BasicButton = ({
-	children,
-	onClick,
-	type,
-	icon,
-}: {
+type BasicButtonProps = {
 	children: React.ReactNode;
-	onClick?: () => void;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	onClick?: (e: any) => any;
 	type: 'primary' | 'secondary' | 'tertiary';
 	icon?: ReactElement;
-}) => {
+	disabled?: boolean;
+};
+
+export const BasicButton = ({ children, onClick, type, icon, disabled }: BasicButtonProps) => {
 	const bgColour = {
 		primary: 'bg-purple',
 		secondary: 'bg-white',
@@ -41,6 +40,7 @@ export const BasicButton = ({
 		<button
 			className={`flex items-center justify-center rounded-md px-4 py-3 text-base font-medium hover:bg-indigo-700 md:px-5 md:py-2 border-2 ${bgColour[type]} ${textColour[type]} ${bgHoverColour[type]} ${borderColour[type]} ${borderHoverColour[type]}`}
 			onClick={onClick}
+			disabled={disabled}
 		>
 			{children}
 			{icon ? <span className="ms-2">{icon}</span> : null}
