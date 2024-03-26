@@ -1,4 +1,6 @@
 import { postRouter } from '~/server/api/routers/post';
+import { PostToFirebaseRouter } from './routers/PostToFirebase';
+import { PostToIPFSRouter } from './routers/PostToIPFS';
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 
 /**
@@ -8,6 +10,8 @@ import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
  */
 export const appRouter = createTRPCRouter({
 	post: postRouter,
+	PostToFirebase: PostToFirebaseRouter,
+	PostToIPFS: PostToIPFSRouter,
 });
 
 // export type definition of API
