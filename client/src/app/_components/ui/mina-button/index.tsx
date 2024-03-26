@@ -31,7 +31,7 @@ export const MinaButton = ({ children, disabled, onClick, checkInstall = true })
 	);
 
 	return (
-		<button className="m-5 p-5 bg-green-200" disabled={disabled} onClick={onClickBtn}>
+		<button className="m-2 p-2 bg-green-200" disabled={disabled} onClick={onClickBtn}>
 			{children}
 		</button>
 	);

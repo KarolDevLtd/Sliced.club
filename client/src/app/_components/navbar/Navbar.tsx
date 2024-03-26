@@ -1,3 +1,5 @@
+/* eslint-disable react/no-children-prop */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 'use client';
@@ -15,6 +17,7 @@ export const Navbar = () => {
 	const [selectedValue, setSelectedValue] = useState('');
 
 	const onClickConnect = useCallback(async () => {
+		console.log('onClickConnect');
 		await tryConnectWallet();
 	}, []);
 
@@ -31,8 +34,8 @@ export const Navbar = () => {
 
 	useEffect(() => {
 		setIsClient(true);
-		onClickConnect;
-		setSelectedValue(chainType);
+		onClickConnect();
+		setSelectedValue(chainType!);
 	}, [onClickConnect, chainType]);
 
 	return (
