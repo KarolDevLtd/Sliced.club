@@ -54,10 +54,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const [isConnected, setIsConnected] = useState(false);
 	const [walletAddress, setWalletAddress] = useState<string | null>(null);
 	const [walletDisplayAddress, setWalletDisplayAddress] = useState<string | null>(null);
-	const [chainType, setChainType] = useState('devnet');
+	const [chainType, setChainType] = useState('');
 
 	const tryConnectWallet = async () => {
 		try {
+			// console.log('Attempting to connect/disconnect');
 			window.mina?.on('accountsChanged', async (accounts: string[]) => {
 				if (accounts.length != 0) {
 					await connectWallet();
@@ -78,7 +79,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 				?.switchChain({
 					chainId: chain,
 				})
-				.catch((err: any) => err);
+				.catch((err: any) => {
+					throw err;
+				});
 			if ((switchResult as ProviderError).message) {
 				console.log(switchResult);
 			} else {
@@ -90,10 +93,24 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 		}
 	};
 
+	const getCurrentChainType = async () => {
+		try {
+			// console.log('getCurrentChainType');
+			const chain = await window.mina?.requestNetwork().catch((err: any) => {
+				throw err;
+			});
+			console.log(chain.chainId);
+			setChainType(chain.chainId);
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
 	// Function to connect wallet
 	const connectWallet = async () => {
 		try {
 			const account = await window.mina.requestAccounts();
+			await getCurrentChainType();
 			updateWalletUI(account);
 		} catch (err) {
 			throw err;
@@ -103,6 +120,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	// Function to disconnect wallet
 	const disconnectWallet = () => {
 		try {
+			// console.log('disconnectWallet');
 			updateWalletUI(null);
 		} catch (err) {
 			throw err;
@@ -116,6 +134,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 			setWalletDisplayAddress(`${account[0].slice(0, 6)}...${account[0].slice(-4)}`);
 			setIsConnected(true);
 		} else {
+			// console.log('Disconneting wallet');
 			localStorage.removeItem(LOCAL_STORAGE_KEY);
 			setWalletDisplayAddress(null);
 			setIsConnected(false);
