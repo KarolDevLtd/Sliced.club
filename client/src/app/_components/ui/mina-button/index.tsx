@@ -1,23 +1,20 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-'use client';
 import React, { useCallback } from 'react';
+import { BasicButton } from '../basic-button';
+
+import { FaWallet } from 'react-icons/fa';
 
 export type IMinaButton = {
-	children?: string;
+	children?: React.ReactNode;
 	disabled?: boolean;
-	onClick: (e: React.MouseEvent<HTMLElement>) => object;
+	onClick: (e: Event) => object;
 	checkInstall?: boolean;
 };
 
-export const MinaButton = ({ children, disabled, onClick, checkInstall = true }): IMinaButton => {
+export const MinaButton = ({ children, disabled, onClick, checkInstall = true }: IMinaButton) => {
 	const onClickBtn = useCallback(
-		(e: any) => {
+		(e: Event) => {
 			if (checkInstall) {
-				if (!(window as any)?.mina) {
+				if (!window?.mina) {
 					alert('No provider was found Please install Auro Wallet');
 					return;
 				} else {
@@ -27,12 +24,12 @@ export const MinaButton = ({ children, disabled, onClick, checkInstall = true })
 				onClick(e);
 			}
 		},
-		[onClick]
+		[checkInstall, onClick]
 	);
 
 	return (
-		<button className="m-2 p-2 bg-green-200" disabled={disabled} onClick={onClickBtn}>
+		<BasicButton type="tertiary" icon={<FaWallet />} disabled={disabled} onClick={onClickBtn}>
 			{children}
-		</button>
+		</BasicButton>
 	);
 };
