@@ -1,7 +1,29 @@
+import { type SetStateAction, useState } from 'react';
+
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 
 export default function Login() {
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+
+	const credentials = {
+		email,
+		password,
+	};
+
+	const handleEmail = (e: { target: { value: SetStateAction<string> } }) => {
+		setEmail(e.target.value);
+	};
+
+	const handlePassword = (e: { target: { value: SetStateAction<string> } }) => {
+		setPassword(e.target.value);
+	};
+
+	const handleSubmit = () => {
+		alert(`Email: ${credentials.email}\nPassword: ${credentials.password}`);
+	};
+
 	return (
 		<div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
 			<div className="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -28,6 +50,7 @@ export default function Login() {
 								autoComplete="email"
 								required
 								className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+								onChange={handleEmail}
 							/>
 						</div>
 					</div>
@@ -49,12 +72,15 @@ export default function Login() {
 								autoComplete="current-password"
 								required
 								className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+								onChange={handlePassword}
 							/>
 						</div>
 					</div>
 
 					<div className="flex justify-center">
-						<BasicButton type="primary">Login</BasicButton>
+						<BasicButton type="primary" onClick={handleSubmit}>
+							Login
+						</BasicButton>
 					</div>
 				</form>
 
