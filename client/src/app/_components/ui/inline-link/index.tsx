@@ -16,7 +16,7 @@ export const InlineLink = ({
 	external?: boolean;
 }) => {
 	return (
-		<Link className="text-orange hover:underline flex items-center" href={href} target={target}>
+		<Link className="text-orange hover:underline flex items-center w-fit" href={href} target={target}>
 			{children}
 			{external ? (
 				<span className="text-black ms-1 text-sm">
