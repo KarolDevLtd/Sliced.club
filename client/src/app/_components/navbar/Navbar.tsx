@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BasicButton } from '../ui/basic-button';
 import { InlineLink } from '../ui/inline-link';
@@ -16,9 +16,9 @@ export const Navbar = () => {
 	const [isClient, setIsClient] = useState(false);
 	const [selectedValue, setSelectedValue] = useState('');
 
-	const onClickConnect = useCallback(async () => {
-		console.log('onClickConnect');
-		await tryConnectWallet();
+	const onClickConnect = useCallback(async (isOnLoad: boolean) => {
+		console.log('Connect');
+		await tryConnectWallet(isOnLoad);
 	}, []);
 
 	const onClickChain = async () => {
@@ -26,7 +26,7 @@ export const Navbar = () => {
 		await tryChainChange(selectedValue);
 	};
 
-	const handleSelectChange = (event: any) => {
+	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		console.log('handleSelectChange');
 		console.log(event);
 		setSelectedValue(event.target.value);
@@ -34,7 +34,7 @@ export const Navbar = () => {
 
 	useEffect(() => {
 		setIsClient(true);
-		onClickConnect();
+		onClickConnect(true);
 		setSelectedValue(chainType!);
 	}, [onClickConnect, chainType]);
 
@@ -45,7 +45,10 @@ export const Navbar = () => {
 					<MinaButton
 						children={isConnected ? walletDisplayAddress : 'Connect'}
 						disabled={false}
-						onClick={onClickConnect}
+						onClick={() => {
+							onClickConnect(false);
+							return {};
+						}}
 						checkInstall={true}
 					/>
 					{isConnected == true && (

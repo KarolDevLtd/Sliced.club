@@ -15,7 +15,7 @@ interface WalletContextType {
 	isConnected: boolean;
 	chainType: string | null;
 	connectWallet: () => Promise<void>;
-	tryConnectWallet: () => Promise<void>;
+	tryConnectWallet: (onLoad: boolean) => Promise<void>;
 	tryChainChange: (chain: string) => Promise<void>;
 	disconnectWallet: () => void;
 }
@@ -56,9 +56,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const [walletDisplayAddress, setWalletDisplayAddress] = useState<string | null>(null);
 	const [chainType, setChainType] = useState('');
 
-	const tryConnectWallet = async () => {
+	const tryConnectWallet = async (onLoad: boolean) => {
 		try {
-			// console.log('Attempting to connect/disconnect');
+			if (onLoad) {
+				await window?.mina?.getAccounts();
+				return;
+			}
 			window.mina?.on('accountsChanged', async (accounts: string[]) => {
 				if (accounts.length != 0) {
 					await connectWallet();
@@ -75,11 +78,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
 	const tryChainChange = async (chain: string) => {
 		try {
-			const switchResult: ChainInfoArgs | ProviderError = await (window as any)?.mina
+			const switchResult: ChainInfoArgs | ProviderError = await window?.mina
 				?.switchChain({
 					chainId: chain,
 				})
-				.catch((err: any) => {
+				.catch((err: ProviderError) => {
 					throw err;
 				});
 			if ((switchResult as ProviderError).message) {
@@ -96,7 +99,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const getCurrentChainType = async () => {
 		try {
 			// console.log('getCurrentChainType');
-			const chain = await window.mina?.requestNetwork().catch((err: any) => {
+			const chain = await window.mina?.requestNetwork().catch((err: ProviderError) => {
 				throw err;
 			});
 			console.log(chain.chainId);
