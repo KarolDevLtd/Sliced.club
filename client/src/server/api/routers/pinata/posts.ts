@@ -3,15 +3,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { z } from 'zod';
-import { firestore } from 'src/firebaseConfig';
 import { of } from 'typestub-ipfs-only-hash';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
-import { addDoc, collection } from 'firebase/firestore';
 
-const sampleCollection = collection(firestore, 'sample');
-
-export const PostToIPFSRouter = createTRPCRouter({
+export const CreatePinataPostRouter = createTRPCRouter({
 	postMessage: publicProcedure
 		.input(z.object({ name: z.string(), email: z.string(), age: z.string() }))
 		.mutation(async ({ input }) => {
