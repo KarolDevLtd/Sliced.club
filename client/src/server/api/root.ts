@@ -1,6 +1,6 @@
 import { postRouter } from '~/server/api/routers/post';
-import { PostToFirebaseRouter } from './routers/PostToFirebase';
-import { PostToIPFSRouter } from './routers/PostToIPFS';
+import { CreateFirebasePostRouter } from './routers/firebase/posts';
+import { CreatePinataPostRouter } from './routers/pinata/posts';
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 
 /**
@@ -10,8 +10,8 @@ import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
  */
 export const appRouter = createTRPCRouter({
 	post: postRouter,
-	PostToFirebase: PostToFirebaseRouter,
-	PostToIPFS: PostToIPFSRouter,
+	PostToFirebase: CreateFirebasePostRouter,
+	PostToIPFS: CreatePinataPostRouter,
 });
 
 // export type definition of API

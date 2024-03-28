@@ -57,11 +57,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const [chainType, setChainType] = useState('');
 
 	const tryConnectWallet = async (onLoad: boolean) => {
+		console.log('Attempting to connect');
 		try {
-			if (onLoad) {
-				await window?.mina?.getAccounts();
-				return;
-			}
 			window.mina?.on('accountsChanged', async (accounts: string[]) => {
 				if (accounts.length != 0) {
 					await connectWallet();
@@ -70,6 +67,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 					disconnectWallet();
 				}
 			});
+			if (onLoad) {
+				//on page load, get account info automatically
+				await window?.mina?.getAccounts();
+				return;
+			}
 			await connectWallet();
 		} catch (err) {
 			console.log(err);
@@ -98,7 +100,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
 	const getCurrentChainType = async () => {
 		try {
-			// console.log('getCurrentChainType');
+			console.log('getCurrentChainType');
 			const chain = await window.mina?.requestNetwork().catch((err: ProviderError) => {
 				throw err;
 			});
@@ -111,6 +113,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
 	// Function to connect wallet
 	const connectWallet = async () => {
+		console.log('connectWallet');
 		try {
 			const account = await window.mina.requestAccounts();
 			await getCurrentChainType();
@@ -122,8 +125,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
 	// Function to disconnect wallet
 	const disconnectWallet = () => {
+		console.log('disconnectWallet');
 		try {
-			// console.log('disconnectWallet');
+			console.log('disconnectWallet');
 			updateWalletUI(null);
 		} catch (err) {
 			throw err;
