@@ -1,8 +1,8 @@
 import React, { type SetStateAction, useState } from 'react';
-import { TextInput } from '../../text-input';
-import { TextArea } from '../../text-area';
-import { BasicButton } from '../../basic-button';
-import { BasicModal } from '../../basic-modal';
+import { TextInput } from '../../ui/text-input';
+import { TextArea } from '../../ui/text-area';
+import { BasicButton } from '../../ui/basic-button';
+import { BasicModal } from '../../ui/basic-modal';
 
 const GroupPost = () => {
 	const [postOpen, setPostOpen] = useState(false);

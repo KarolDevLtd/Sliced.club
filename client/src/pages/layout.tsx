@@ -1,4 +1,4 @@
-import { Navbar } from '~/app/_components/navbar/Navbar';
+import { Navbar } from '~/app/_components/global/Navbar';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (

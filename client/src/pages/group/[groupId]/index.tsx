@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import GroupPost from '~/app/_components/ui/groups/group-post';
+import GroupPost from '~/app/_components/groups/group-post';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 
 export default function Group() {
