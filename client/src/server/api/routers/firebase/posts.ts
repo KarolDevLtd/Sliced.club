@@ -10,17 +10,16 @@ const postCollection = collection(firestore, 'posts');
 
 //CREATE POST
 export const CreateFirebasePostRouter = createTRPCRouter({
-	postSample: publicProcedure
-		.input(z.object({ name: z.string(), email: z.string(), age: z.string() }))
+	postToCollection: publicProcedure
+		.input(z.object({ posterKey: z.string(), groupId: z.number(), messageHash: z.string() }))
 		.mutation(({ input }) => {
-			const user = {
-				name: input.name,
-				email: input.email,
-				age: input.age,
+			const post = {
+				poster: input.posterKey,
+				group: input.groupId,
+				message: input.messageHash,
 			};
-
-			addDoc(postCollection, user);
-			return { user };
+			addDoc(postCollection, post);
+			return { post };
 		}),
 });
 

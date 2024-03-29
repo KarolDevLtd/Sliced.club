@@ -4,15 +4,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { z } from 'zod';
 import { of } from 'typestub-ipfs-only-hash';
+import { DateTime } from 'luxon';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 
 export const CreatePinataPostRouter = createTRPCRouter({
 	postMessage: publicProcedure
-		.input(z.object({ name: z.string(), email: z.string(), age: z.string() }))
+		.input(z.object({ title: z.string(), content: z.string() }))
 		.mutation(async ({ input }) => {
-			const dataX = input.name.trim();
-			const hashData = await of(JSON.stringify(dataX));
+			let returnObject;
 			const options = {
 				method: 'POST',
 				headers: {
@@ -20,11 +20,11 @@ export const CreatePinataPostRouter = createTRPCRouter({
 					'content-type': 'application/json',
 					authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
 				},
-				body: JSON.stringify({ pinataContent: dataX }),
+				body: JSON.stringify({ pinataContent: input }),
 			};
 
-			fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options)
-				.then((response) => response.json())
-				.then((response) => console.log(response));
+			const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options);
+			const data = await response.json();
+			return data;
 		}),
 });
