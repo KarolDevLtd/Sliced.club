@@ -24,9 +24,9 @@ const GroupPost = () => {
 				onClose={hidePostInput}
 				header={<h2 className="text-xl font-semibold">Add Post</h2>}
 				content={
-					<div>
+					<div className="flex flex-col justify-center gap-3">
 						<TextInput id="post-title" name="post-title" type="text" label="Post Title" />
-						<TextArea label={''} placeholder={'TYPE HERE M8'} rows={5} />
+						<TextArea id="post-text" name="post-text" label="Post Text" />
 					</div>
 				}
 				footer={
