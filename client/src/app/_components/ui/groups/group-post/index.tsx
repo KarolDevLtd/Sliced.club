@@ -1,5 +1,4 @@
-/* eslint-disable react/no-children-prop */
-import React, { useState } from 'react';
+import React, { type SetStateAction, useState } from 'react';
 import { TextInput } from '../../text-input';
 import { TextArea } from '../../text-area';
 import { BasicButton } from '../../basic-button';
@@ -7,6 +6,8 @@ import { BasicModal } from '../../basic-modal';
 
 const GroupPost = () => {
 	const [postOpen, setPostOpen] = useState(false);
+	const [postTitle, setPostTitle] = useState('');
+	const [postText, setPostText] = useState('');
 
 	const hidePostInput = () => {
 		setPostOpen(false);
@@ -16,30 +17,47 @@ const GroupPost = () => {
 		setPostOpen(true);
 	};
 
+	const handlePostTitle = (e: { target: { value: SetStateAction<string> } }) => {
+		setPostTitle(e.target.value);
+	};
+
+	const handlePostText = (e: { target: { value: SetStateAction<string> } }) => {
+		setPostText(e.target.value);
+	};
+
+	const handleSubmit = () => {
+		alert(`Post Title: ${postTitle}\nPost Text: ${postText}`);
+	};
+
 	return (
-		<div className="flex flex-col bg-red-500 w-1/3">
-			<BasicButton children={'Add Post'} type={'primary'} onClick={showPostInput}></BasicButton>
+		<div className="flex flex-col w-1/3">
+			<BasicButton type="primary" onClick={showPostInput}>
+				Add Post
+			</BasicButton>
 			<BasicModal
 				isOpen={postOpen}
 				onClose={hidePostInput}
 				header={<h2 className="text-xl font-semibold">Add Post</h2>}
 				content={
 					<div className="flex flex-col justify-center gap-3">
-						<TextInput id="post-title" name="post-title" type="text" label="Post Title" />
-						<TextArea id="post-text" name="post-text" label="Post Text" />
+						<TextInput
+							id="post-title"
+							name="post-title"
+							type="text"
+							label="Post Title"
+							onChange={handlePostTitle}
+						/>
+						<TextArea id="post-text" name="post-text" label="Post Text" onChange={handlePostText} />
 					</div>
 				}
 				footer={
-					<div>
-						<button className="bg-blue-500 text-red px-4 py-2 rounded-md hover:bg-blue-600 mr-4">
+					<div className="w-100 flex justify-end items-center gap-2">
+						<BasicButton type="primary" onClick={handleSubmit}>
 							Save
-						</button>
-						<button
-							className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
-							onClick={hidePostInput}
-						>
+						</BasicButton>
+						<BasicButton type="secondary" onClick={hidePostInput}>
 							Cancel
-						</button>
+						</BasicButton>
 					</div>
 				}
 			/>
