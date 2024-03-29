@@ -2,6 +2,7 @@ import { type SetStateAction, useState } from 'react';
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { InlineLink } from '~/app/_components/ui/inline-link';
+import { TextInput } from '~/app/_components/ui/text-input';
 
 export default function Login() {
 	const [email, setEmail] = useState('');
@@ -39,42 +40,28 @@ export default function Login() {
 			<div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
 				<form className="space-y-6" action="#" method="POST">
 					<div>
-						<label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-							Email address
-						</label>
-						<div className="mt-2">
-							<input
-								id="email"
-								name="email"
-								type="email"
-								autoComplete="email"
-								required
-								className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-								onChange={handleEmail}
-							/>
-						</div>
+						<TextInput
+							label="Email address"
+							id="email"
+							name="email"
+							type="email"
+							autoComplete="email"
+							required={true}
+							onChange={handleEmail}
+						/>
 					</div>
 
 					<div>
-						<div className="flex items-center justify-between">
-							<label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
-								Password
-							</label>
-							<div className="text-sm">
-								<InlineLink href="#">Forgot password?</InlineLink>
-							</div>
-						</div>
-						<div className="mt-2">
-							<input
-								id="password"
-								name="password"
-								type="password"
-								autoComplete="current-password"
-								required
-								className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-								onChange={handlePassword}
-							/>
-						</div>
+						<TextInput
+							label="Password"
+							link={{ text: 'Forgot password?', href: '#' }}
+							id="password"
+							name="password"
+							type="password"
+							autoComplete="current-password"
+							required={true}
+							onChange={handlePassword}
+						/>
 					</div>
 
 					<div className="flex justify-center">
