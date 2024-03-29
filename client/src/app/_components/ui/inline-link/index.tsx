@@ -16,13 +16,15 @@ export const InlineLink = ({
 	external?: boolean;
 }) => {
 	return (
-		<Link className="text-orange hover:underline flex items-center w-fit" href={href} target={target}>
-			{children}
-			{external ? (
-				<span className="text-black ms-1 text-sm">
-					<LiaExternalLinkAltSolid />
-				</span>
-			) : null}
-		</Link>
+		<span className="inline-block">
+			<Link className="text-orange hover:underline flex items-center w-fit" href={href} target={target}>
+				{children}
+				{external ? (
+					<span className="text-black ms-1 text-sm">
+						<LiaExternalLinkAltSolid />
+					</span>
+				) : null}
+			</Link>
+		</span>
 	);
 };
