@@ -25,7 +25,7 @@ const GroupPost = () => {
 				header={<h2 className="text-xl font-semibold">Add Post</h2>}
 				content={
 					<div>
-						<TextInput label={''} placeholder={'TITLE OF POST'} />
+						<TextInput id="post-title" name="post-title" type="text" label="Post Title" />
 						<TextArea label={''} placeholder={'TYPE HERE M8'} rows={5} />
 					</div>
 				}
