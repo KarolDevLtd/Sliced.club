@@ -20,6 +20,7 @@ export default {
 			'purple-dark': '#3543a7',
 			orange: '#ff603b',
 			'orange-dark': '#ff451a',
+			'light-grey': '#cdcdcd',
 		},
 		container: {
 			center: true,
