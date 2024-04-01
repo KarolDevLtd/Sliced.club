@@ -7,9 +7,10 @@ type BasicButtonProps = {
 	type: 'primary' | 'secondary' | 'tertiary';
 	icon?: ReactElement;
 	disabled?: boolean;
+	submitForm?: boolean;
 };
 
-export const BasicButton = ({ children, onClick, type, icon, disabled }: BasicButtonProps) => {
+export const BasicButton = ({ children, onClick, type, icon, disabled, submitForm = false }: BasicButtonProps) => {
 	const bgColour = {
 		primary: 'bg-purple',
 		secondary: 'bg-white',
@@ -41,6 +42,8 @@ export const BasicButton = ({ children, onClick, type, icon, disabled }: BasicBu
 			className={`flex items-center justify-center rounded-md px-4 py-3 text-base font-medium hover:bg-indigo-700 md:px-5 md:py-2 border-2 ${bgColour[type]} ${textColour[type]} ${bgHoverColour[type]} ${borderColour[type]} ${borderHoverColour[type]}`}
 			onClick={onClick}
 			disabled={disabled}
+			type={submitForm ? 'submit' : 'button'}
+			formNoValidate={submitForm}
 		>
 			{children}
 			{icon ? <span className="ms-2">{icon}</span> : null}

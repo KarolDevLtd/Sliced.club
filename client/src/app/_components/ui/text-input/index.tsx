@@ -1,4 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// https:jujuontheweb.medium.com/how-to-use-react-hook-form-with-your-custom-form-components-a86a1a77cf3c
+
 import React from 'react';
+
 import { InlineLink } from '../inline-link';
 
 type TextInputProps = {
@@ -14,10 +20,28 @@ type TextInputProps = {
 	type: 'text' | 'email' | 'password';
 	autoComplete?: string;
 	placeholder?: string;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	onChange?: (e: any) => any;
 	disabled?: boolean;
 	required?: boolean;
+
+	// React Hook Form Props
+	validationSchema?: {
+		required?: string;
+		minlength?: {
+			value?: number;
+			message?: string;
+		};
+		maxlength?: {
+			value?: number;
+			message?: string;
+		};
+		pattern?: {
+			value?: RegExp;
+			message?: string;
+		};
+	};
+	register?: any;
+	errors?: any;
 };
 
 export const TextInput = ({
@@ -31,6 +55,11 @@ export const TextInput = ({
 	onChange,
 	disabled,
 	required = false,
+
+	// React Hook Form Props
+	validationSchema,
+	register,
+	errors,
 }: TextInputProps) => {
 	return (
 		<div>
@@ -38,6 +67,7 @@ export const TextInput = ({
 				{label ? (
 					<label htmlFor={id} className="block text-sm font-medium leading-6 text-gray-900">
 						{label}
+						{required && '*'}
 					</label>
 				) : null}
 				{link ? (
@@ -55,11 +85,20 @@ export const TextInput = ({
 					name={name}
 					type={type}
 					autoComplete={autoComplete}
-					placeholder={placeholder}
+					placeholder={`${placeholder}${required ? '*' : null}`}
 					onChange={onChange}
 					disabled={disabled}
 					required={required}
+					// React Hook Form
+					{...register(name, validationSchema)}
 				></input>
+				{/* React Hook Form Errors */}
+				{errors && errors[name]?.type === 'required' && (
+					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+				)}
+				{errors && errors[name]?.type === 'pattern' && (
+					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+				)}
 			</div>
 		</div>
 	);
