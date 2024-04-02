@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useState } from 'react';
+import React, { type ChangeEvent, useState } from 'react';
 
 type TextAreaProps = {
 	label?: string;
@@ -14,6 +14,7 @@ type TextAreaProps = {
 	onChange?: (e: any) => any;
 	disabled?: boolean;
 	required?: boolean;
+	showCharacterCount?: boolean;
 
 	// React Hook Form Props
 	validationSchema?: {
@@ -44,12 +45,20 @@ export const TextArea = ({
 	onChange,
 	disabled,
 	required = false,
+	showCharacterCount = false,
 
 	// React Hook Form Props
 	validationSchema,
 	register = () => [],
 	errors,
 }: TextAreaProps) => {
+	const [characterCount, setCharacterCount] = useState(0);
+
+	const handleOnChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+		onChange;
+		setCharacterCount(e.target.value.length);
+	};
+
 	return (
 		<div>
 			<div className="flex items-center justify-between">
@@ -67,19 +76,19 @@ export const TextArea = ({
 					name={name}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
 					rows={rows}
-					onChange={onChange}
 					disabled={disabled}
 					required={required}
 					// React Hook Form
 					{...register(name, validationSchema)}
+					onChange={handleOnChange}
 				></textarea>
-				<span></span>
+				{showCharacterCount && <p className="text-sm text-light-grey">Character count: {characterCount}</p>}
 				{/* React Hook Form Errors */}
 				{errors && errors[name]?.type === 'required' && (
-					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 				{errors && errors[name]?.type === 'minLength' && (
-					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 			</div>
 		</div>

@@ -37,6 +37,7 @@ const GroupPost = () => {
 	const onSubmit = (data: any) => {
 		alert(JSON.stringify(data));
 		reset();
+		hidePostInput();
 	};
 
 	return (
@@ -71,6 +72,7 @@ const GroupPost = () => {
 							name="post-text"
 							label="Post Text"
 							required={true}
+							showCharacterCount={true}
 							errors={errors}
 							register={register}
 							validationSchema={{
