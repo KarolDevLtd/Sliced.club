@@ -58,7 +58,7 @@ export const TextInput = ({
 
 	// React Hook Form Props
 	validationSchema,
-	register,
+	register = () => [],
 	errors,
 }: TextInputProps) => {
 	return (
@@ -85,7 +85,7 @@ export const TextInput = ({
 					name={name}
 					type={type}
 					autoComplete={autoComplete}
-					placeholder={`${placeholder}${required ? '*' : null}`}
+					placeholder={`${placeholder ? placeholder : ''}${required ? '*' : ''}`}
 					onChange={onChange}
 					disabled={disabled}
 					required={required}
