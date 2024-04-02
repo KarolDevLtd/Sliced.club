@@ -94,13 +94,13 @@ export const TextInput = ({
 				></input>
 				{/* React Hook Form Errors */}
 				{errors && errors[name]?.type === 'required' && (
-					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 				{errors && errors[name]?.type === 'pattern' && (
-					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 				{errors && errors[name]?.type === 'minLength' && (
-					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 			</div>
 		</div>
