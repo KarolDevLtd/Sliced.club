@@ -27,11 +27,11 @@ type TextInputProps = {
 	// React Hook Form Props
 	validationSchema?: {
 		required?: string;
-		minlength?: {
+		minLength?: {
 			value?: number;
 			message?: string;
 		};
-		maxlength?: {
+		maxLength?: {
 			value?: number;
 			message?: string;
 		};
@@ -85,7 +85,7 @@ export const TextInput = ({
 					name={name}
 					type={type}
 					autoComplete={autoComplete}
-					placeholder={`${placeholder ? placeholder : ''}${required ? '*' : ''}`}
+					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
 					onChange={onChange}
 					disabled={disabled}
 					required={required}
@@ -94,10 +94,13 @@ export const TextInput = ({
 				></input>
 				{/* React Hook Form Errors */}
 				{errors && errors[name]?.type === 'required' && (
-					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 				{errors && errors[name]?.type === 'pattern' && (
-					<span className="mt-1 text-xs text-red-error">{errors[name]?.message}</span>
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+				)}
+				{errors && errors[name]?.type === 'minLength' && (
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 			</div>
 		</div>
