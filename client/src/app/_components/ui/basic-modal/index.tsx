@@ -14,7 +14,6 @@ export const BasicModal = ({ isOpen, onClose, header, footer, content }: BasicMo
 	const [isOverlayClicked, setIsOverlayClicked] = useState(false);
 
 	const handleOverlayClick = () => {
-		console.log('Overlay clicked');
 		if (!isOverlayClicked) {
 			onClose();
 		}
