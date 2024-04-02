@@ -1,11 +1,19 @@
 import { useRouter } from 'next/router';
-import GroupPost from '~/app/_components/groups/group-post';
+import { useState } from 'react';
+import GroupPostInput from '~/app/_components/groups/group-post-input';
+import GroupPostsList from '~/app/_components/groups/group-posts-list';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 
 export default function Group() {
 	const router = useRouter();
+	const [refreshPosts, setRefreshPosts] = useState(false);
 
 	const groupId = router.query.groupId;
+
+	const handlePostSubmission = () => {
+		// After the post is submitted successfully, set refreshPosts to true to trigger a refresh of posts
+		setRefreshPosts(true);
+	};
 
 	return (
 		<div>
@@ -19,7 +27,14 @@ export default function Group() {
 					<InlineLink href={`${groupId?.toString()}/claim`}>Claim</InlineLink>
 				</li>
 			</ul>
-			<GroupPost />
+			<GroupPostInput groupId={groupId} onPostSubmit={handlePostSubmission} />
+			<GroupPostsList
+				groupId={groupId}
+				refreshPosts={refreshPosts}
+				onRefresh={() => {
+					setRefreshPosts(false);
+				}}
+			/>
 		</div>
 	);
 }
