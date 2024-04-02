@@ -7,12 +7,22 @@ import GroupPostItem from '../group-post-item';
 
 type GroupPostsListProps = {
 	groupId: string;
+	refreshPosts: boolean;
+	onRefresh: () => void;
 };
 
-const GroupPostsList = ({ groupId }: GroupPostsListProps) => {
-	const { data: postsData, error } = api.GetPostsFromFirebase.getPosts.useQuery({ groupId });
+const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProps) => {
+	const { data: postsData, error, refetch } = api.GetPostsFromFirebase.getPosts.useQuery({ groupId });
 	const [posts, setPosts] = useState<FirebasePostModel[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
+
+	useEffect(() => {
+		// If refreshPosts is true, trigger a manual refetch of posts
+		if (refreshPosts) {
+			void refetch();
+			onRefresh();
+		}
+	}, [onRefresh, refetch, refreshPosts]);
 
 	useEffect(() => {
 		setIsLoading(true);

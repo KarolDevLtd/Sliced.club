@@ -10,15 +10,18 @@ import { BasicButton } from '../../ui/basic-button';
 import { BasicModal } from '../../ui/basic-modal';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
+import { DateTime } from 'luxon';
 
 type GroupPostInputProps = {
 	groupId: string;
+	onPostSubmit: () => void;
 };
 
-const GroupPostInput = ({ groupId }: GroupPostInputProps) => {
+const GroupPostInput = ({ groupId, onPostSubmit }: GroupPostInputProps) => {
 	const [postOpen, setPostOpen] = useState(false);
 	const [title, setTitle] = useState('');
 	const [content, setContent] = useState('');
+	const [isLoading, setIsLoading] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
 
 	const postToIPFS = api.PostToIPFS.postMessage.useMutation();
@@ -44,10 +47,12 @@ const GroupPostInput = ({ groupId }: GroupPostInputProps) => {
 		hidePostInput();
 		setTitle('');
 		setContent('');
+		onPostSubmit();
 	};
 
 	const savePost = async () => {
 		try {
+			setIsLoading(true);
 			if (!isConnected || !walletAddress) {
 				//TODO add error message
 				console.log('Wallet not connected');
@@ -65,16 +70,18 @@ const GroupPostInput = ({ groupId }: GroupPostInputProps) => {
 					content: content,
 				})
 				.then(async (response) => {
-					const dataFirebase = await postToFirebase.mutateAsync({
+					await postToFirebase.mutateAsync({
 						posterKey: walletAddress.toString(),
-						//TO DO/TODO: Replace this with dynamic group id
 						groupId: groupId,
-						messageHash: response.IpfsHash,
+						messageHash: response.data.IpfsHash,
+						dateTime: DateTime.now().toString(),
 					});
 				})
 				.then(closeAndClear);
 		} catch (err) {
 			console.log(err);
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
@@ -106,20 +113,24 @@ const GroupPostInput = ({ groupId }: GroupPostInputProps) => {
 					</div>
 				}
 				footer={
-					<div>
-						<button
-							className="bg-blue-500 text-red px-4 py-2 rounded-md hover:bg-blue-600 mr-4"
-							onClick={savePost}
-						>
-							Post
-						</button>
-						<button
-							className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
-							onClick={hidePostInput}
-						>
-							Cancel
-						</button>
-					</div>
+					isLoading ? (
+						<div>Loading...</div>
+					) : (
+						<div>
+							<button
+								className="bg-blue-500 text-red px-4 py-2 rounded-md hover:bg-blue-600 mr-4"
+								onClick={savePost}
+							>
+								Post
+							</button>
+							<button
+								className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
+								onClick={hidePostInput}
+							>
+								Cancel
+							</button>
+						</div>
+					)
 				}
 			/>
 		</div>
