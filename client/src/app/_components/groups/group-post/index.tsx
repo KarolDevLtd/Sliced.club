@@ -1,4 +1,6 @@
-import React, { type SetStateAction, useState } from 'react';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+
 import { TextInput } from '../../ui/text-input';
 import { TextArea } from '../../ui/text-area';
 import { BasicButton } from '../../ui/basic-button';
@@ -6,27 +8,35 @@ import { BasicModal } from '../../ui/basic-modal';
 
 const GroupPost = () => {
 	const [postOpen, setPostOpen] = useState(false);
-	const [postTitle, setPostTitle] = useState('');
-	const [postText, setPostText] = useState('');
 
 	const hidePostInput = () => {
 		setPostOpen(false);
+
+		// Clears form validation errors when closing modal
+		unregister(['post-title', 'post-text']);
 	};
 
 	const showPostInput = () => {
 		setPostOpen(true);
 	};
 
-	const handlePostTitle = (e: { target: { value: SetStateAction<string> } }) => {
-		setPostTitle(e.target.value);
-	};
-
-	const handlePostText = (e: { target: { value: SetStateAction<string> } }) => {
-		setPostText(e.target.value);
-	};
-
-	const handleSubmit = () => {
-		alert(`Post Title: ${postTitle}\nPost Text: ${postText}`);
+	const {
+		register,
+		unregister,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm({
+		mode: 'onSubmit',
+		reValidateMode: 'onSubmit',
+		// Resolver for using Zod validation library schema
+		// https://react-hook-form.com/docs/useform#resolver
+		// resolver: {}
+	});
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const onSubmit = (data: any) => {
+		alert(JSON.stringify(data));
+		reset();
 	};
 
 	return (
@@ -39,26 +49,48 @@ const GroupPost = () => {
 				onClose={hidePostInput}
 				header={<h2 className="text-xl font-semibold">Add Post</h2>}
 				content={
-					<div className="flex flex-col justify-center gap-3">
+					<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 						<TextInput
 							id="post-title"
 							name="post-title"
 							type="text"
 							label="Post Title"
-							onChange={handlePostTitle}
+							required={true}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'Post Title is required',
+								minLength: {
+									value: 10,
+									message: 'Post Title must be at least 10 characters',
+								},
+							}}
 						/>
-						<TextArea id="post-text" name="post-text" label="Post Text" onChange={handlePostText} />
-					</div>
-				}
-				footer={
-					<div className="w-100 flex justify-end items-center gap-2">
-						<BasicButton type="primary" onClick={handleSubmit}>
-							Save
-						</BasicButton>
-						<BasicButton type="secondary" onClick={hidePostInput}>
-							Cancel
-						</BasicButton>
-					</div>
+						<TextArea
+							id="post-text"
+							name="post-text"
+							label="Post Text"
+							required={true}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'Post Title is required',
+								minLength: {
+									value: 20,
+									message: 'Post Title must be at least 20 characters',
+								},
+							}}
+						/>
+
+						<div className="w-100 flex justify-end items-center gap-2">
+							<BasicButton type="primary" submitForm={true}>
+								Save
+							</BasicButton>
+							<BasicButton type="secondary" onClick={hidePostInput}>
+								Cancel
+							</BasicButton>
+						</div>
+					</form>
 				}
 			/>
 		</div>

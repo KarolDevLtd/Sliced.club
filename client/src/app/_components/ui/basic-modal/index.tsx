@@ -5,7 +5,7 @@ import { IoIosClose } from 'react-icons/io';
 interface BasicModalProps {
 	header: React.ReactNode;
 	content: React.ReactNode;
-	footer: React.ReactNode;
+	footer?: React.ReactNode;
 	isOpen: boolean;
 	onClose: () => void;
 }
