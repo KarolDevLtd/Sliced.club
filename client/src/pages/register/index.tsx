@@ -1,52 +1,26 @@
-import { type SetStateAction, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 import { TextInput } from '~/app/_components/ui/text-input';
 
 export default function Register() {
-	const [firstName, setFirstName] = useState('');
-	const [lastName, setLastName] = useState('');
-	const [email, setEmail] = useState('');
-	const [country, setCountry] = useState('');
-	const [termsAndConditions, setTermsAndConditions] = useState(false);
-
-	type RegisterFormData = {
-		firstName: string;
-		lastName: string;
-		email: string;
-		country: string;
-		termsAndConditions: boolean;
-	};
-
-	const formData: RegisterFormData = {
-		firstName,
-		lastName,
-		email,
-		country,
-		termsAndConditions,
-	};
-
-	const handleFirstName = (e: { target: { value: SetStateAction<string> } }) => {
-		setFirstName(e.target.value);
-	};
-
-	const handleLastName = (e: { target: { value: SetStateAction<string> } }) => {
-		setLastName(e.target.value);
-	};
-
-	const handleEmail = (e: { target: { value: SetStateAction<string> } }) => {
-		setEmail(e.target.value);
-	};
-
-	const handleTermsAndConditions = () => {
-		setTermsAndConditions(!termsAndConditions);
-	};
-
-	const handleRegister = () => {
-		alert(
-			`First Name: ${formData.firstName}\nLast Name: ${formData.lastName}\nEmail: ${formData.email}\nCountry: ${formData.country}\nTerms and Conditions: ${formData.termsAndConditions}`
-		);
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm({
+		mode: 'onSubmit',
+		reValidateMode: 'onSubmit',
+		// Resolver for using Zod validation library schema
+		// https://react-hook-form.com/docs/useform#resolver
+		// resolver: {}
+	});
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const onSubmit = (data: any) => {
+		alert(JSON.stringify(data));
+		reset();
 	};
 
 	return (
@@ -56,7 +30,7 @@ export default function Register() {
 				<h2 className="text-center text-2xl font-bold">Create account</h2>
 				<p className="text-center mb-6">Choose your account type and log in</p>
 
-				<form className="flex flex-col justify-center space-y-6" action="#" method="POST">
+				<form className="flex flex-col justify-center space-y-6" onSubmit={handleSubmit(onSubmit)}>
 					<div>
 						<TextInput
 							id="first-name"
@@ -65,7 +39,11 @@ export default function Register() {
 							placeholder="First Name"
 							autoComplete="first-name"
 							required={true}
-							onChange={handleFirstName}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'First name is required',
+							}}
 						/>
 						<TextInput
 							id="last-name"
@@ -74,7 +52,11 @@ export default function Register() {
 							placeholder="Last Name"
 							autoComplete="last-name"
 							required={true}
-							onChange={handleLastName}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'Last name is required',
+							}}
 						/>
 						<TextInput
 							id="email"
@@ -83,40 +65,58 @@ export default function Register() {
 							placeholder="Email Address"
 							autoComplete="email"
 							required={true}
-							onChange={handleEmail}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'Email is required',
+								pattern: {
+									value: new RegExp(
+										'^[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*$'
+									),
+									message: 'Use a valid email address',
+								},
+							}}
 						/>
 						<select
 							className="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-							name="country"
 							id="country"
-							value={country}
-							onChange={(e) => setCountry(e.target.value)}
+							defaultValue={''}
+							{...register('country', { required: true, maxLength: 2 })}
 						>
-							<option value="" disabled selected>
+							<option value="" disabled>
 								--Please select a country--
 							</option>
-							<option value="ar">Argentina</option>
-							<option value="br">Brazil</option>
-							<option value="de">Germany</option>
-							<option value="pl">Poland</option>
-							<option value="uk">United Kingdom</option>
-							<option value="us">United States</option>
+							<option value="AR">Argentina</option>
+							<option value="BR">Brazil</option>
+							<option value="FR">France</option>
+							<option value="DE">Germany</option>
+							<option value="IE">Ireland</option>
+							<option value="PL">Poland</option>
+							<option value="UK">United Kingdom</option>
+							<option value="US">United States</option>
 						</select>
+						{errors && errors.country?.type === 'required' && (
+							<span className="mt-1 text-xs text-red-error">Country is required</span>
+						)}
 						<div className="flex items-center mt-2">
 							<input
 								className="me-2 hover:cursor-pointer"
 								id="terms-and-condtions"
 								type="checkbox"
-								checked={termsAndConditions}
-								onChange={handleTermsAndConditions}
+								{...register('termsAndConditions', { required: true })}
 							/>
 							<label className="text-sm hover:cursor-pointer" htmlFor="terms-and-condtions">
 								Agree to <InlineLink href="#">Terms and Conditions</InlineLink>
 							</label>
 						</div>
+						{errors && errors.termsAndConditions?.type === 'required' && (
+							<span className="mt-1 text-xs text-red-error">
+								You must accept the terms and conditions
+							</span>
+						)}
 					</div>
 
-					<BasicButton type="primary" onClick={handleRegister}>
+					<BasicButton type="primary" submitForm={true}>
 						Sign Up
 					</BasicButton>
 				</form>
