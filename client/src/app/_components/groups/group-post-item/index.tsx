@@ -4,11 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { type FirebasePostModel } from '~/models/firebase-post-model';
 import { type IPFSPostModel } from '~/models/ipfs-post-model';
 import { api } from '~/trpc/react';
+import { BasicButton } from '../../ui/basic-button';
+import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
+import { CiHeart } from 'react-icons/ci';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData, error } = api.GetPostsFromIPFS.getMessage.useQuery({ hash: currentPost.hash });
 	const [post, setPost] = useState<IPFSPostModel>();
 	const [isLoading, setIsLoading] = useState(false);
+
+	const isLiked = false;
+
 	useEffect(() => {
 		setIsLoading(true);
 
@@ -26,6 +32,15 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			<div className="my-5">
 				<div className="text-md mt-2 mx-5">{post?.title}</div>
 				<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
+			</div>
+
+			<div className="flex justify-between">
+				<BasicButton type={'secondary'}>
+					<FaRegCommentDots />
+				</BasicButton>
+				<BasicButton icon={isLiked ? <FaHeart color="Red" /> : <CiHeart />} type={'secondary'}>
+					{''}
+				</BasicButton>
 			</div>
 		</div>
 	);

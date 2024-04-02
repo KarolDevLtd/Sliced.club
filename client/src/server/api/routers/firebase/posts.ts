@@ -11,6 +11,8 @@ import { addDoc, collection, getDocs, query as firestorequery, where, orderBy } 
 import { type FirebasePostModel } from '~/models/firebase-post-model';
 
 const postCollection = collection(firestore, 'posts');
+const commentCollection = collection(firestore, 'comments');
+const likesCollection = collection(firestore, 'likes');
 
 //CREATE POST
 export const CreateFirebasePostRouter = createTRPCRouter({
