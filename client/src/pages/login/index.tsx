@@ -1,37 +1,31 @@
-import { type SetStateAction, useState } from 'react';
+import { useForm } from 'react-hook-form';
+// https://react-hook-form.com/docs/useform
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 import { TextInput } from '~/app/_components/ui/text-input';
 
 export default function Login() {
-	const [email, setEmail] = useState('');
-	const [rememberMe, setRememberMe] = useState(false);
-
-	type LoginFormData = {
-		email: string;
-		rememberMe: boolean;
-	};
-
-	const formData: LoginFormData = {
-		email,
-		rememberMe,
-	};
-
-	const handleEmail = (e: { target: { value: SetStateAction<string> } }) => {
-		setEmail(e.target.value);
-	};
-
-	const handleRememberMe = () => {
-		setRememberMe(!rememberMe);
-	};
-
-	const handleLogin = () => {
-		alert(`Email: ${formData.email}\nRemember me: ${formData.rememberMe}`);
-	};
-
 	const handleConnectWallet = () => {
 		alert('Connect with wallet');
+	};
+
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm({
+		mode: 'onSubmit',
+		reValidateMode: 'onSubmit',
+		// Resolver for using Zod validation library schema
+		// https://react-hook-form.com/docs/useform#resolver
+		// resolver: {}
+	});
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const onSubmit = (data: any) => {
+		alert(JSON.stringify(data));
+		reset();
 	};
 
 	return (
@@ -48,7 +42,7 @@ export default function Login() {
 					<span className="w-100 px-3 bg-white">or</span>
 				</div>
 
-				<form className="flex flex-col justify-center space-y-6" action="#" method="POST">
+				<form className="flex flex-col justify-center space-y-6" onSubmit={handleSubmit(onSubmit)}>
 					<div>
 						<TextInput
 							id="email"
@@ -57,15 +51,24 @@ export default function Login() {
 							placeholder="Email Address"
 							autoComplete="email"
 							required={true}
-							onChange={handleEmail}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'Email is required',
+								pattern: {
+									value: new RegExp(
+										'^[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*$'
+									),
+									message: 'Use a valid email address',
+								},
+							}}
 						/>
 						<div className="flex items-center mt-2">
 							<input
 								className="me-2 hover:cursor-pointer"
 								id="remember-me"
 								type="checkbox"
-								checked={rememberMe}
-								onChange={handleRememberMe}
+								{...register('rememberMe')}
 							/>
 							<label className="text-sm hover:cursor-pointer" htmlFor="remember-me">
 								Remember me
@@ -73,7 +76,7 @@ export default function Login() {
 						</div>
 					</div>
 
-					<BasicButton type="primary" onClick={handleLogin}>
+					<BasicButton type="primary" submitForm={true}>
 						Sign In
 					</BasicButton>
 				</form>

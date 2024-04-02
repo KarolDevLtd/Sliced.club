@@ -21,6 +21,7 @@ export default {
 			orange: '#ff603b',
 			'orange-dark': '#ff451a',
 			'light-grey': '#cdcdcd',
+			'red-error': '#ff4c4c',
 		},
 		container: {
 			center: true,
