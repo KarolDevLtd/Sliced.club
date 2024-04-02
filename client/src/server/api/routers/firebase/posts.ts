@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { firestore } from 'src/firebaseConfig';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
-import { addDoc, collection, getDocs, query as firestorequery, where } from 'firebase/firestore';
+import { addDoc, collection, getDocs, query as firestorequery, where, orderBy } from 'firebase/firestore';
 import { type FirebasePostModel } from '~/models/firebase-post-model';
 
 const postCollection = collection(firestore, 'posts');
@@ -15,12 +15,13 @@ const postCollection = collection(firestore, 'posts');
 //CREATE POST
 export const CreateFirebasePostRouter = createTRPCRouter({
 	postToCollection: publicProcedure
-		.input(z.object({ posterKey: z.string(), groupId: z.string(), messageHash: z.string() }))
+		.input(z.object({ posterKey: z.string(), groupId: z.string(), messageHash: z.string(), dateTime: z.string() }))
 		.mutation(({ input }) => {
 			const post = {
 				poster: input.posterKey,
 				group: input.groupId,
 				message: input.messageHash,
+				datetime: input.dateTime,
 			};
 			addDoc(postCollection, post);
 			return { post };
@@ -56,11 +57,11 @@ export const GetFirebasePostsRouter = createTRPCRouter({
 			})
 		)
 		.query(async ({ input }) => {
-			const q = firestorequery(postCollection, where('group', '==', input.groupId));
+			const q = firestorequery(postCollection, where('group', '==', input.groupId), orderBy('datetime', 'desc'));
 			const posts: FirebasePostModel[] = [];
 			await getDocs(q).then((response) => {
 				response.forEach((doc) => {
-					console.log(doc.data());
+					// console.log(doc.data());
 					posts.push({
 						hash: doc.data().message as string,
 						group: doc.data().group as string,
