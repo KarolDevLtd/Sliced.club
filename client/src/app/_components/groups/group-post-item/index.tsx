@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import React, { useEffect, useState } from 'react';
@@ -7,41 +9,114 @@ import { api } from '~/trpc/react';
 import { BasicButton } from '../../ui/basic-button';
 import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
+import { useWallet } from '~/providers/walletprovider';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData, error } = api.GetPostsFromIPFS.getMessage.useQuery({ hash: currentPost.hash });
+	const { data: likesData } = api.GetPostLikesFromFirebase.getPostLikes.useQuery({ postId: currentPost.hash });
 	const [post, setPost] = useState<IPFSPostModel>();
 	const [isLoading, setIsLoading] = useState(false);
+	const [likeCount, setLikeCount] = useState(0);
+	const [isLiked, setIsLiked] = useState(false);
+	const [showComments, setShowComments] = useState(false);
+	const { isConnected, walletAddress } = useWallet();
 
-	const isLiked = false;
+	const likePostToFirebase = api.LikePostInFirebase.likePost.useMutation();
+	const unlikePostToFirebase = api.UnlikePostInFirebase.unlikePost.useMutation();
+
+	const fetchData = () => {
+		setIsLoading(true);
+		try {
+			if (postData) {
+				setPost(postData.post);
+				const postLikes = likesData?.likes;
+				if (postLikes?.some((e) => e.posterKey === walletAddress?.toString())) {
+					setIsLiked(true);
+				} else {
+					setIsLiked(false);
+				}
+				setLikeCount(postLikes?.length);
+			}
+		} catch (err) {
+			console.log(err);
+		}
+		setIsLoading(false);
+	};
 
 	useEffect(() => {
-		setIsLoading(true);
+		fetchData();
+	}, [likesData?.likes, postData, walletAddress]);
 
-		if (postData) {
-			setPost(postData.post);
-			setIsLoading(false);
+	const toggleComments = () => {
+		setShowComments(!showComments);
+		console.log(showComments);
+	};
+
+	const onLike = async () => {
+		try {
+			if (isConnected == false || isConnected == null || walletAddress == '' || walletAddress == null) {
+				//TODO: Error handling, potentially error box
+				console.log('Wallet not connected');
+				return;
+			}
+			await likePostToFirebase
+				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
+				.then(() => {
+					setIsLiked(true);
+					setLikeCount(likeCount + 1);
+				});
+		} catch (err) {
+			console.log('Error liking');
 		}
-	}, [postData]);
+	};
+
+	const onUnLike = async () => {
+		try {
+			if (isConnected == false || isConnected == null || walletAddress == '' || walletAddress == null) {
+				//TODO: Error handling, potentially error box
+				console.log('Wallet not connected');
+				return;
+			}
+			await unlikePostToFirebase
+				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
+				.then(() => {
+					setIsLiked(false);
+					setLikeCount(likeCount - 1);
+				});
+		} catch (err) {
+			console.log('Error unliking');
+		}
+	};
+
 	return (
 		<div className="flex flex-col my-2 rounded-xl shadow-sm bg-white border-solid border-2 border-indigo-100">
-			<div className="text-wrap: wrap flex flex-row justify-between text-gray-400 mt-1 mx-2">
-				<div className="text-xs overflow-hidden">{currentPost.posterKey}</div>
-			</div>
+			{isLoading ? (
+				'Loading...'
+			) : (
+				<div>
+					<div className="text-wrap: wrap flex flex-row justify-between text-gray-400 mt-1 mx-2">
+						<div className="text-xs overflow-hidden">{currentPost.posterKey}</div>
+					</div>
 
-			<div className="my-5">
-				<div className="text-md mt-2 mx-5">{post?.title}</div>
-				<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
-			</div>
+					<div className="my-5">
+						<div className="text-md mt-2 mx-5">{post?.title}</div>
+						<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
+					</div>
 
-			<div className="flex justify-between">
-				<BasicButton type={'secondary'}>
-					<FaRegCommentDots />
-				</BasicButton>
-				<BasicButton icon={isLiked ? <FaHeart color="Red" /> : <CiHeart />} type={'secondary'}>
-					{''}
-				</BasicButton>
-			</div>
+					<div className="flex justify-between">
+						<BasicButton type={'secondary'} onClick={toggleComments}>
+							<FaRegCommentDots />
+						</BasicButton>
+						<BasicButton
+							icon={isLiked ? <FaHeart color="Red" /> : <CiHeart />}
+							type={'secondary'}
+							onClick={isLiked ? onUnLike : onLike}
+						>
+							{likeCount}
+						</BasicButton>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };
