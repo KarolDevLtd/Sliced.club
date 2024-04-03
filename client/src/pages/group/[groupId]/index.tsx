@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import GroupPostInput from '~/app/_components/groups/group-post-input';
+import GroupPost from '~/app/_components/groups/group-post';
+// import GroupPostInput from '~/app/_components/groups/group-post-input';
 import GroupPostsList from '~/app/_components/groups/group-posts-list';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 
@@ -27,7 +28,7 @@ export default function Group() {
 					<InlineLink href={`${groupId?.toString()}/claim`}>Claim</InlineLink>
 				</li>
 			</ul>
-			<GroupPostInput groupId={groupId} onPostSubmit={handlePostSubmission} />
+			<GroupPost groupId={groupId} refetchPosts={handlePostSubmission} />
 			<GroupPostsList
 				groupId={groupId}
 				refreshPosts={refreshPosts}
