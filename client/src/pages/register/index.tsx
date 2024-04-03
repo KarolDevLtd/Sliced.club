@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
+import { Checkbox } from '~/app/_components/ui/checkbox';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 import { TextInput } from '~/app/_components/ui/text-input';
 
@@ -96,24 +97,21 @@ export default function Register() {
 							<option value="US">United States</option>
 						</select>
 						{errors && errors.country?.type === 'required' && (
-							<span className="mt-1 text-xs text-red-error">Country is required</span>
+							<p className="mt-1 text-xs text-red-error">Country is required</p>
 						)}
-						<div className="flex items-center mt-2">
-							<input
-								className="me-2 hover:cursor-pointer"
-								id="terms-and-condtions"
-								type="checkbox"
-								{...register('termsAndConditions', { required: true })}
-							/>
-							<label className="text-sm hover:cursor-pointer" htmlFor="terms-and-condtions">
-								Agree to <InlineLink href="#">Terms and Conditions</InlineLink>
-							</label>
-						</div>
-						{errors && errors.termsAndConditions?.type === 'required' && (
-							<span className="mt-1 text-xs text-red-error">
-								You must accept the terms and conditions
-							</span>
-						)}
+
+						<Checkbox
+							id="terms-and-condtions"
+							name="terms-and-conditions"
+							required={true}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'You must accept the Terms and Conditions',
+							}}
+						>
+							Agree to <InlineLink href="#">Terms and Conditions</InlineLink>
+						</Checkbox>
 					</div>
 
 					<BasicButton type="primary" submitForm={true}>
