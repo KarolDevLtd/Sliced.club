@@ -143,10 +143,10 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							<div>Loading...</div>
 						) : (
 							<div className="w-100 flex justify-end items-center gap-2">
-								<BasicButton type="primary" submitForm={true}>
+								<BasicButton type="primary" disabled={isLoading} submitForm={true}>
 									Save
 								</BasicButton>
-								<BasicButton type="secondary" onClick={hidePostInput}>
+								<BasicButton type="secondary" disabled={isLoading} onClick={hidePostInput}>
 									Cancel
 								</BasicButton>
 							</div>

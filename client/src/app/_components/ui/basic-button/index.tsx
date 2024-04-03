@@ -39,7 +39,7 @@ export const BasicButton = ({ children, onClick, type, icon, disabled, submitFor
 
 	return (
 		<button
-			className={`flex items-center justify-center rounded-md px-4 py-3 text-base font-medium hover:bg-indigo-700 md:px-5 md:py-2 border-2 ${bgColour[type]} ${textColour[type]} ${bgHoverColour[type]} ${borderColour[type]} ${borderHoverColour[type]}`}
+			className={`flex items-center justify-center rounded-md px-4 py-3 text-base font-medium hover:bg-indigo-700 md:px-5 md:py-2 border-2 ${bgColour[type]} ${textColour[type]} ${bgHoverColour[type]} ${borderColour[type]} ${borderHoverColour[type]} ${disabled ? 'opacity-70' : null}`}
 			onClick={onClick}
 			disabled={disabled}
 			type={submitForm ? 'submit' : 'button'}
