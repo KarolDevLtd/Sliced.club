@@ -197,13 +197,13 @@ export class Group extends SmartContract {
     //   MerkleActionss.from(actionss.map((as) => MerkleActions.from(as)))
     // );
 
-    let merkleActionss = Provable.witness(AuctionList.provable, () =>
-      actionss.map((actionArr) =>
-        AuctionList.from(
-          actionArr.map((action) => Auction.from(action.publicKey, action.bid))
-        )
-      )
-    );
+    // let merkleActionss = Provable.witness(AuctionList.provable, () =>
+    //   actionss.map((actionArr) =>
+    //     AuctionList.from(
+    //       actionArr.map((action) => Auction.from(action.publicKey, action.bid))
+    //     )
+    //   )
+    // );
     // let merkleActionss = Provable.witness(AuctionList.provable, () =>
     //   AuctionList.from(
     //     actionss.map((as) => as.map((a) => Auction.from(a.publicKey, a.bid)))
@@ -223,22 +223,20 @@ export class Group extends SmartContract {
     let counter = new UInt32(0);
 
     for (let i = 0; i < MAX_UPDATES_WITH_ACTIONS; i++) {
-      let merkleActions = merkleActionss.pop();
-
+      // let merkleActions = merkleActionss.pop();
       // for (let j = 0; j < MAX_ACTIONS_PER_UPDATE; j++) {
       // let action = merkleActions.pop();
       // hasAddress = hasAddress.or(action.equals(address));
-      counter = Provable.if(
-        counter.lessThan(merkleActions.bid),
-        counter,
-        merkleActions.bid
-      );
-
-      winner = Provable.if(
-        counter.equals(merkleActions.bid),
-        merkleActions.publicKey,
-        winner
-      );
+      // counter = Provable.if(
+      //   counter.lessThan(merkleActions.bid),
+      //   counter,
+      //   merkleActions.bid
+      // );
+      // winner = Provable.if(
+      //   counter.equals(merkleActions.bid),
+      //   merkleActions.publicKey,
+      //   winner
+      // );
       // }
       // counter.add(1)
     }
