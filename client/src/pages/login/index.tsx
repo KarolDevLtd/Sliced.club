@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 // https://react-hook-form.com/docs/useform
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
+import { Checkbox } from '~/app/_components/ui/checkbox';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 import { TextInput } from '~/app/_components/ui/text-input';
 
@@ -63,17 +64,10 @@ export default function Login() {
 								},
 							}}
 						/>
-						<div className="flex items-center mt-2">
-							<input
-								className="me-2 hover:cursor-pointer"
-								id="remember-me"
-								type="checkbox"
-								{...register('rememberMe')}
-							/>
-							<label className="text-sm hover:cursor-pointer" htmlFor="remember-me">
-								Remember me
-							</label>
-						</div>
+
+						<Checkbox id="remember-me" name="remember-me" errors={errors} register={register}>
+							Remember me
+						</Checkbox>
 					</div>
 
 					<BasicButton type="primary" submitForm={true}>
