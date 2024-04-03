@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { Checkbox } from '~/app/_components/ui/checkbox';
 import { InlineLink } from '~/app/_components/ui/inline-link';
+import { SelectOption } from '~/app/_components/ui/select-option';
 import { TextInput } from '~/app/_components/ui/text-input';
 
 export default function Register() {
@@ -78,28 +79,51 @@ export default function Register() {
 								},
 							}}
 						/>
-						<select
-							className="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+						<SelectOption
 							id="country"
-							defaultValue={''}
-							{...register('country', { required: true, maxLength: 2 })}
-						>
-							<option value="" disabled>
-								--Please select a country--
-							</option>
-							<option value="AR">Argentina</option>
-							<option value="BR">Brazil</option>
-							<option value="FR">France</option>
-							<option value="DE">Germany</option>
-							<option value="IE">Ireland</option>
-							<option value="PL">Poland</option>
-							<option value="UK">United Kingdom</option>
-							<option value="US">United States</option>
-						</select>
-						{errors && errors.country?.type === 'required' && (
-							<p className="mt-1 text-xs text-red-error">Country is required</p>
-						)}
-
+							name="country"
+							placeholder="-- Please select a country --"
+							options={[
+								{
+									value: 'AR',
+									name: 'Argentina',
+								},
+								{
+									value: 'BR',
+									name: 'Brazil',
+								},
+								{
+									value: 'FR',
+									name: 'France',
+								},
+								{
+									value: 'DE',
+									name: 'Germany',
+								},
+								{
+									value: 'IE',
+									name: 'Ireland',
+								},
+								{
+									value: 'PL',
+									name: 'Poland',
+								},
+								{
+									value: 'UK',
+									name: 'United Kingdom',
+								},
+								{
+									value: 'US',
+									name: 'United States',
+								},
+							]}
+							required={true}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'Country is required',
+							}}
+						/>
 						<Checkbox
 							id="terms-and-condtions"
 							name="terms-and-conditions"
