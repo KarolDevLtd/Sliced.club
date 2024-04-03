@@ -1,80 +1,92 @@
-import { type SetStateAction, useState } from 'react';
+import { useForm } from 'react-hook-form';
+// https://react-hook-form.com/docs/useform
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 import { TextInput } from '~/app/_components/ui/text-input';
 
 export default function Login() {
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-
-	const credentials = {
-		email,
-		password,
+	const handleConnectWallet = () => {
+		alert('Connect with wallet');
 	};
 
-	const handleEmail = (e: { target: { value: SetStateAction<string> } }) => {
-		setEmail(e.target.value);
-	};
-
-	const handlePassword = (e: { target: { value: SetStateAction<string> } }) => {
-		setPassword(e.target.value);
-	};
-
-	const handleSubmit = () => {
-		alert(`Email: ${credentials.email}\nPassword: ${credentials.password}`);
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm({
+		mode: 'onSubmit',
+		reValidateMode: 'onSubmit',
+		// Resolver for using Zod validation library schema
+		// https://react-hook-form.com/docs/useform#resolver
+		// resolver: {}
+	});
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const onSubmit = (data: any) => {
+		alert(JSON.stringify(data));
+		reset();
 	};
 
 	return (
-		<div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-			<div className="sm:mx-auto sm:w-full sm:max-w-sm">
-				{/* Small logo can go here
-				<img
-					className="mx-auto h-10 w-auto"
-					src=""
-					alt="Sliced"
-				/> */}
-				<h2 className="mt-10 text-center text-2xl font-bold">Log in to your account</h2>
-			</div>
+		<div className="grid grid-cols-1 md:grid-cols-2 my-auto h-100 flex-1">
+			<div className="min-w-100 bg-light-grey hidden md:block"></div>
+			<div className="flex min-h-full flex-col justify-center lg:px-20 md:px-10 py-6">
+				<h2 className="mb-6 text-center text-2xl font-bold">Sign in to Slice</h2>
 
-			<div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-				<form className="space-y-6" action="#" method="POST">
+				<BasicButton type="primary" onClick={handleConnectWallet}>
+					Connect Wallet
+				</BasicButton>
+
+				<div className="w-100 h-3 border-b text-center mt-4 mb-5">
+					<span className="w-100 px-3 bg-white">or</span>
+				</div>
+
+				<form className="flex flex-col justify-center space-y-6" onSubmit={handleSubmit(onSubmit)}>
 					<div>
 						<TextInput
-							label="Email address"
 							id="email"
 							name="email"
 							type="email"
+							placeholder="Email Address"
 							autoComplete="email"
 							required={true}
-							onChange={handleEmail}
+							errors={errors}
+							register={register}
+							validationSchema={{
+								required: 'Email is required',
+								pattern: {
+									value: new RegExp(
+										'^[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*$'
+									),
+									message: 'Use a valid email address',
+								},
+							}}
 						/>
+						<div className="flex items-center mt-2">
+							<input
+								className="me-2 hover:cursor-pointer"
+								id="remember-me"
+								type="checkbox"
+								{...register('rememberMe')}
+							/>
+							<label className="text-sm hover:cursor-pointer" htmlFor="remember-me">
+								Remember me
+							</label>
+						</div>
 					</div>
 
-					<div>
-						<TextInput
-							label="Password"
-							link={{ text: 'Forgot password?', href: '#' }}
-							id="password"
-							name="password"
-							type="password"
-							autoComplete="current-password"
-							required={true}
-							onChange={handlePassword}
-						/>
-					</div>
-
-					<div className="flex justify-center">
-						<BasicButton type="primary" onClick={handleSubmit}>
-							Login
-						</BasicButton>
-					</div>
+					<BasicButton type="primary" submitForm={true}>
+						Sign In
+					</BasicButton>
 				</form>
 
-				<p className="mt-10 text-center text-sm text-gray-500">Don&#39;t have an account yet?</p>
-				<div className="text-sm flex justify-center">
-					<InlineLink href="/register">Register now</InlineLink>
-				</div>
+				<p className="mt-6 text-center text-sm text-gray-500">
+					Don&#39;t have an account?{' '}
+					<span>
+						<InlineLink href="/register">Create an account</InlineLink>
+					</span>
+				</p>
 			</div>
 		</div>
 	);
