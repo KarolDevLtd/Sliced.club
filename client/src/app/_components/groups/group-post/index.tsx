@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -5,9 +9,22 @@ import { TextInput } from '../../ui/text-input';
 import { TextArea } from '../../ui/text-area';
 import { BasicButton } from '../../ui/basic-button';
 import { BasicModal } from '../../ui/basic-modal';
+import { useWallet } from '~/providers/walletprovider';
+import { api } from '~/trpc/react';
+import { DateTime } from 'luxon';
 
-const GroupPost = () => {
+type GroupPostProps = {
+	groupId: string;
+	refetchPosts: () => void;
+};
+
+const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const [postOpen, setPostOpen] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+	const { isConnected, walletAddress } = useWallet();
+
+	const postToIPFS = api.PostToIPFS.postMessage.useMutation();
+	const postToFirebase = api.PostToFirebase.postToCollection.useMutation();
 
 	const hidePostInput = () => {
 		setPostOpen(false);
@@ -34,10 +51,49 @@ const GroupPost = () => {
 		// resolver: {}
 	});
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const onSubmit = (data: any) => {
-		alert(JSON.stringify(data));
-		reset();
-		hidePostInput();
+	const onSubmit = async (data: any) => {
+		try {
+			setIsLoading(true);
+			await savePost(data['post-title'], data['post-text']);
+			// alert(JSON.stringify(data));
+			reset();
+			hidePostInput();
+			refetchPosts();
+		} catch (err) {
+			console.log(err);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const savePost = async (title: string, content: string) => {
+		try {
+			setIsLoading(true);
+			if (!isConnected || !walletAddress) {
+				//TODO add error message
+				console.log('Wallet not connected');
+				return;
+			}
+			//DO WE WANT CONTENT CHECK HERE?
+			// Save to IPFS
+			await postToIPFS
+				.mutateAsync({
+					title: title,
+					content: content,
+				})
+				.then(async (response) => {
+					await postToFirebase.mutateAsync({
+						posterKey: walletAddress.toString(),
+						groupId: groupId,
+						messageHash: response.data.IpfsHash,
+						dateTime: DateTime.now().toString(),
+					});
+				});
+		} catch (err) {
+			console.log(err);
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -83,15 +139,18 @@ const GroupPost = () => {
 								},
 							}}
 						/>
-
-						<div className="w-100 flex justify-end items-center gap-2">
-							<BasicButton type="primary" submitForm={true}>
-								Save
-							</BasicButton>
-							<BasicButton type="secondary" onClick={hidePostInput}>
-								Cancel
-							</BasicButton>
-						</div>
+						{isLoading ? (
+							<div>Loading...</div>
+						) : (
+							<div className="w-100 flex justify-end items-center gap-2">
+								<BasicButton type="primary" submitForm={true}>
+									Save
+								</BasicButton>
+								<BasicButton type="secondary" onClick={hidePostInput}>
+									Cancel
+								</BasicButton>
+							</div>
+						)}
 					</form>
 				}
 			/>
