@@ -18,43 +18,47 @@ import {
  * See https://docs.minaprotocol.com/zkapps for more info.
  */
 
-let proofsEnabled = false;
+let proofsEnabled = false; // TODO fix groupSettingHash.getAndRequireEquals
+const fee = 1e8;
 
 describe('GroupBasic', () => {
-  let deployer: TestAccount,
-    sender: TestAccount,
+  let testAccounts: TestAccounts,
+    deployer: TestAccount,
     admin: TestAccount,
+    organiser: TestAccount,
     alexa: TestAccount,
     billy: TestAccount,
     charlie: TestAccount,
     jackie: TestAccount,
-    groupAddress: PublicKey,
     groupPrivateKey: PrivateKey,
-    tokenAddress: PublicKey,
-    tokenPrivateKey: PrivateKey,
+    groupAddress: PublicKey,
+    tokenPrivateKey = PrivateKey.random(),
+    tokenAddress = tokenPrivateKey.toPublicKey(),
     group: GroupBasic,
     tokenApp: FungibleToken;
 
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(12), // maxMembers
     new UInt32(3000), // itemPrice
-    new UInt32(6) // groupDuration
+    new UInt32(6), // groupDuration
+    tokenAddress
   ); // 500 monthly
+
+  const paymentAmount = GROUP_SETTINGS.itemPrice
+    .div(GROUP_SETTINGS.maxMembers)
+    .mul(new UInt32(2));
+
   beforeAll(async () => {
     if (proofsEnabled) await GroupBasic.compile();
-  });
-
-  beforeAll(async () => {
     const Local = Mina.LocalBlockchain({ proofsEnabled });
     Mina.setActiveInstance(Local);
-
-    [deployer, sender, admin, alexa, billy, charlie, jackie] =
+    [deployer, admin, organiser, alexa, billy, charlie, jackie] = testAccounts =
       Local.testAccounts as TestAccounts;
+
     groupPrivateKey = PrivateKey.random();
     groupAddress = groupPrivateKey.toPublicKey();
     group = new GroupBasic(groupAddress);
-    tokenPrivateKey = PrivateKey.random();
-    tokenAddress = tokenPrivateKey.toPublicKey();
+
     tokenApp = new FungibleToken(tokenAddress);
     console.log(`
     deployer ${deployer.publicKey.toBase58()}
@@ -65,7 +69,7 @@ describe('GroupBasic', () => {
     jackie ${jackie.publicKey.toBase58()}
 
     token ${tokenAddress.toBase58()}
-    groupBasic ${tokenAddress.toBase58()}
+    groupBasic ${groupAddress.toBase58()}
   `);
     await localDeploy();
   });
@@ -74,7 +78,7 @@ describe('GroupBasic', () => {
     const deployTokenTx = await Mina.transaction(deployer.publicKey, () => {
       AccountUpdate.fundNewAccount(deployer.publicKey);
       tokenApp.deploy({
-        owner: deployer.publicKey,
+        owner: admin.publicKey,
         supply: UInt64.from(10_000_000_000_000),
         symbol: 'mUSD',
         src: 'source code link',
@@ -86,7 +90,7 @@ describe('GroupBasic', () => {
     ).wait();
     const txn = await Mina.transaction(deployer.publicKey, () => {
       AccountUpdate.fundNewAccount(deployer.publicKey);
-      group.deploy({ tokenAddress, admin: admin.publicKey });
+      group.deploy({ admin: admin.publicKey });
     });
     await txn.prove();
     // this tx needs .sign(), because `deploy()` adds an account update that requires signature authorization
@@ -94,28 +98,86 @@ describe('GroupBasic', () => {
   }
 
   it('generates and deploys the `GroupBasic` smart contract', async () => {
-    const groupToken = group.tokenAddress.get();
-    expect(groupToken).toEqual(tokenAddress);
+    // const groupToken = group.tokenAddress.get();
+    // expect(groupToken).toEqual(tokenAddress);
     const groupAdmin = group.admin.get();
     expect(groupAdmin).toEqual(admin.publicKey);
   });
 
+  it('mints and distributes tokens ', async () => {
+    const mintAmount = new UInt64(1_000_000_000);
+    const initialBalanceAdmin = tokenApp
+      .getBalanceOf(admin.publicKey)
+      .toBigInt();
+    const mintTx = await Mina.transaction(
+      {
+        sender: admin.publicKey,
+        fee,
+      },
+      () => {
+        AccountUpdate.fundNewAccount(admin.publicKey);
+        tokenApp.mint(admin.publicKey, mintAmount);
+      }
+    );
+    await mintTx.prove();
+    mintTx.sign([admin.privateKey]);
+    await mintTx.send().then((v) => v.wait());
+    expect(tokenApp.getBalanceOf(admin.publicKey).toBigInt()).toEqual(
+      initialBalanceAdmin + mintAmount.toBigInt()
+    );
+
+    const userAmount = new UInt64(2000);
+    for (let i = 3; i < 5; i++) {
+      const transferTx = await Mina.transaction(
+        {
+          sender: admin.publicKey,
+          fee,
+        },
+        () => {
+          AccountUpdate.fundNewAccount(admin.publicKey);
+          tokenApp.transfer(
+            admin.publicKey,
+            testAccounts[i].publicKey,
+            userAmount
+          );
+        }
+      );
+      await transferTx.prove();
+      transferTx.sign([admin.privateKey]);
+      await transferTx.send().then((v) => v.wait());
+      expect(
+        tokenApp.getBalanceOf(testAccounts[i].publicKey).toBigInt()
+      ).toEqual(userAmount.toBigInt());
+    }
+  });
+
   it('correctly sets the group settings ', async () => {
     // update transaction
-    const txn = await Mina.transaction(sender.publicKey, () => {
+    const txn = await Mina.transaction(organiser.publicKey, () => {
       group.setGroupSettings(GROUP_SETTINGS);
     });
     await txn.prove();
-    await txn.sign([sender.privateKey]).send();
+    await txn.sign([organiser.privateKey]).send();
 
     expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
   });
 
   it('correctly makes a payment', async () => {
-    const txn = await Mina.transaction(sender.publicKey, () => {
+    const initialBalanceAlexa = tokenApp
+      .getBalanceOf(alexa.publicKey)
+      .toBigInt();
+    const initialBalanceGroup = tokenApp.getBalanceOf(groupAddress).toBigInt();
+    const txn = await Mina.transaction(alexa.publicKey, () => {
+      AccountUpdate.fundNewAccount(alexa.publicKey);
       group.makePayment(GROUP_SETTINGS);
     });
     await txn.prove();
-    await txn.sign([sender.privateKey]).send();
+    await txn.sign([alexa.privateKey]).send();
+    expect(tokenApp.getBalanceOf(alexa.publicKey).toBigInt()).toEqual(
+      initialBalanceAlexa - paymentAmount.toBigint()
+    );
+    expect(tokenApp.getBalanceOf(groupAddress).toBigInt()).toEqual(
+      initialBalanceGroup + paymentAmount.toBigint()
+    );
   });
 });
