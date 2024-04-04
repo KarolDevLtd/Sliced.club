@@ -8,6 +8,8 @@
 import { ChainInfoArgs, ProviderError } from '@aurowallet/mina-provider';
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+
 // Define the type for the context value
 interface WalletContextType {
 	walletDisplayAddress: string | null;
@@ -55,6 +57,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const [walletAddress, setWalletAddress] = useState<string | null>(null);
 	const [walletDisplayAddress, setWalletDisplayAddress] = useState<string | null>(null);
 	const [chainType, setChainType] = useState('');
+
+	const { connectUserWallet } = useUserStore((state) => state);
+	const { disconnectUserWallet } = useUserStore((state) => state);
 
 	const tryConnectWallet = async (onLoad: boolean) => {
 		console.log('Attempting to connect');
@@ -140,11 +145,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(account));
 			setWalletDisplayAddress(`${account[0].slice(0, 6)}...${account[0].slice(-4)}`);
 			setIsConnected(true);
+			connectUserWallet();
 		} else {
 			// console.log('Disconneting wallet');
 			localStorage.removeItem(LOCAL_STORAGE_KEY);
 			setWalletDisplayAddress(null);
 			setIsConnected(false);
+			disconnectUserWallet();
 		}
 		setWalletAddress(account);
 	};
