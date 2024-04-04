@@ -6,18 +6,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { z } from 'zod';
 import { firestore } from 'src/firebaseConfig';
-
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { addDoc, collection, getDocs, query as firestorequery, where, orderBy, deleteDoc } from 'firebase/firestore';
 import { type FirebasePostModel } from '~/models/firebase-post-model';
 import { FirebaseLikeModel } from '~/models/firebase-like-model';
+import { FirebaseCommentModel } from '~/models/firebase-comment-model';
 
 const postCollection = collection(firestore, 'posts');
 const commentCollection = collection(firestore, 'comments');
 const likesCollection = collection(firestore, 'likes');
 
 //CREATE POST
-export const CreateFirebasePostRouter = createTRPCRouter({
+export const FirebasePostRouter = createTRPCRouter({
 	postToCollection: publicProcedure
 		.input(z.object({ posterKey: z.string(), groupId: z.string(), messageHash: z.string(), dateTime: z.string() }))
 		.mutation(({ input }) => {
@@ -30,30 +30,28 @@ export const CreateFirebasePostRouter = createTRPCRouter({
 			addDoc(postCollection, post);
 			return { post };
 		}),
-});
 
-//UPDATE POST
-// export const UpdateFirebasePostRouter = createTRPCRouter({
-// 	postSample: publicProcedure
-// 		.input(z.object({ name: z.string(), email: z.string(), age: z.string() }))
-// 		.mutation(({ input }) => {
-// 			const user = {
-// 				name: input.name,
-// 				email: input.email,
-// 				age: input.age,
-// 			};
+	//UPDATE POST
+	// export const UpdateFirebasePostRouter = createTRPCRouter({
+	// 	postSample: publicProcedure
+	// 		.input(z.object({ name: z.string(), email: z.string(), age: z.string() }))
+	// 		.mutation(({ input }) => {
+	// 			const user = {
+	// 				name: input.name,
+	// 				email: input.email,
+	// 				age: input.age,
+	// 			};
 
-// 			addDoc(postCollection, user);
-// 			return { user };
-// 		}),
-// });
+	// 			addDoc(postCollection, user);
+	// 			return { user };
+	// 		}),
+	// });
 
-//DELETE POST
+	//DELETE POST
 
-//GET POST
+	//GET POST
 
-//GET POSTS
-export const GetFirebasePostsRouter = createTRPCRouter({
+	//GET POSTS
 	getPosts: publicProcedure
 		.input(
 			z.object({
@@ -75,10 +73,8 @@ export const GetFirebasePostsRouter = createTRPCRouter({
 			});
 			return { posts };
 		}),
-});
 
-//LIKE POST
-export const LikeFirebasePostRouter = createTRPCRouter({
+	//LIKE POST
 	likePost: publicProcedure
 		.input(
 			z.object({
@@ -94,10 +90,8 @@ export const LikeFirebasePostRouter = createTRPCRouter({
 			addDoc(likesCollection, like);
 			return { like };
 		}),
-});
 
-//UNLIKE POST
-export const UnlikeFirebasePostRouter = createTRPCRouter({
+	//UNLIKE POST
 	unlikePost: publicProcedure
 		.input(
 			z.object({
@@ -117,10 +111,8 @@ export const UnlikeFirebasePostRouter = createTRPCRouter({
 			});
 			return { success: true };
 		}),
-});
 
-//GET POST LIKES
-export const GetLikesFirebasePostRouter = createTRPCRouter({
+	//GET POST LIKES
 	getPostLikes: publicProcedure
 		.input(
 			z.object({
@@ -140,5 +132,51 @@ export const GetLikesFirebasePostRouter = createTRPCRouter({
 				});
 			});
 			return { likes };
+		}),
+
+	//CREATE COMMENT
+	commentToCollection: publicProcedure
+		.input(
+			z.object({
+				posterKey: z.string(),
+				parentMessageId: z.string(),
+				commentContent: z.string(),
+				dateTime: z.string(),
+			})
+		)
+		.mutation(({ input }) => {
+			const comment = {
+				poster: input.posterKey,
+				parentMessageId: input.parentMessageId,
+				commentContent: input.commentContent,
+				datetime: input.dateTime,
+			};
+			addDoc(commentCollection, comment);
+			return { comment };
+		}),
+
+	//GET COMMENTS
+	getComments: publicProcedure
+		.input(
+			z.object({
+				parentMessageId: z.string(),
+			})
+		)
+		.query(async ({ input }) => {
+			const q = firestorequery(
+				commentCollection,
+				where('parentMessageId', '==', input.parentMessageId),
+				orderBy('datetime', 'desc')
+			);
+			const comments: FirebaseCommentModel[] = [];
+			await getDocs(q).then((response) => {
+				response.forEach((doc) => {
+					comments.push({
+						hash: doc.data().commentContent as string,
+						posterKey: doc.data().poster as string,
+					});
+				});
+			});
+			return { comments };
 		}),
 });
