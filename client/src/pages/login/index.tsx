@@ -1,5 +1,8 @@
-import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/router';
 // https://react-hook-form.com/docs/useform
+import { useForm } from 'react-hook-form';
+
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { Checkbox } from '~/app/_components/ui/checkbox';
@@ -7,6 +10,10 @@ import { InlineLink } from '~/app/_components/ui/inline-link';
 import { TextInput } from '~/app/_components/ui/text-input';
 
 export default function Login() {
+	const router = useRouter();
+
+	const { logInUser } = useUserStore((state) => state);
+
 	const handleConnectWallet = () => {
 		alert('Connect with wallet');
 	};
@@ -27,6 +34,8 @@ export default function Login() {
 	const onSubmit = (data: any) => {
 		alert(JSON.stringify(data));
 		reset();
+		logInUser();
+		void router.push('/');
 	};
 
 	return (

@@ -3,7 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 'use client';
-import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import React, { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+
+import useStore from '~/stores/utils/useStore';
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { type UserState } from '~/stores/userStore';
+
 import Link from 'next/link';
 import { BasicButton } from '../ui/basic-button';
 import { InlineLink } from '../ui/inline-link';
@@ -11,6 +16,9 @@ import { useWallet } from '~/providers/walletprovider';
 import { MinaButton } from '../ui/mina-button';
 
 export const Navbar = () => {
+	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+	const { logOutUser } = useUserStore((state) => state);
+
 	const exampleUserId = '69e8f4d1';
 	const { walletDisplayAddress, isConnected, tryConnectWallet, tryChainChange, chainType } = useWallet();
 	const [isClient, setIsClient] = useState(false);
@@ -39,7 +47,7 @@ export const Navbar = () => {
 	}, [onClickConnect, chainType]);
 
 	return (
-		<header className="border-b fixed w-full z-50 bg-white h-20">
+		<header className="border-b fixed w-full z-40 bg-white h-20">
 			<div className="container flex justify-between items-center h-full">
 				<div className="flex flex-1">
 					<MinaButton
@@ -73,15 +81,23 @@ export const Navbar = () => {
 					</Link>
 				</div>
 				<div className="flex-1 flex items-center justify-end">
-					<div className="flex gap-2 me-5">
-						<Link href="/login">
-							<BasicButton type="secondary">Login</BasicButton>
-						</Link>
-						<Link href="/register">
-							<BasicButton type="primary">Register</BasicButton>
-						</Link>
-					</div>
-					<InlineLink href={`/profile/${exampleUserId}`}>My Profile</InlineLink>
+					{isLoggedIn ? (
+						<div className="flex items-center gap-2 me-5">
+							<InlineLink href={`/profile/${exampleUserId}`}>My Profile</InlineLink>
+							<BasicButton type="secondary" onClick={() => logOutUser()}>
+								Logout
+							</BasicButton>
+						</div>
+					) : (
+						<div className="flex gap-2 me-5">
+							<Link href="/login">
+								<BasicButton type="secondary">Login</BasicButton>
+							</Link>
+							<Link href="/register">
+								<BasicButton type="primary">Register</BasicButton>
+							</Link>
+						</div>
+					)}
 				</div>
 			</div>
 		</header>
