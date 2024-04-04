@@ -14,7 +14,7 @@ type GroupPostsListProps = {
 };
 
 const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProps) => {
-	const { data: postsData, error, refetch } = api.GetPostsFromFirebase.getPosts.useQuery({ groupId });
+	const { data: postsData, error, refetch } = api.FirebasePost.getPosts.useQuery({ groupId });
 	const [posts, setPosts] = useState<FirebasePostModel[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -43,11 +43,11 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 	}, [error]);
 
 	return (
-		<div className="flex flex-auto w-1/2 overflow-hidden">
+		<div className="flex flex-auto w-1/3 overflow-hidden">
 			{isLoading ? (
 				<div>Loading...</div>
 			) : (
-				<ul className="overflow-auto h-48 flex flex-col">
+				<ul className="overflow-auto flex flex-col">
 					{posts.map((post) => (
 						<GroupPostItem key={post.hash} posterKey={post.posterKey} hash={post.hash} group={post.group} />
 					))}

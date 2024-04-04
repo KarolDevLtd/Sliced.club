@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 
-export const CreatePinataPostRouter = createTRPCRouter({
+export const PinataPostRouter = createTRPCRouter({
 	postMessage: publicProcedure
 		.input(z.object({ title: z.string(), content: z.string() }))
 		.mutation(async ({ input }) => {
@@ -29,9 +29,7 @@ export const CreatePinataPostRouter = createTRPCRouter({
 			}
 			return { data };
 		}),
-});
 
-export const GetPinataPostRouter = createTRPCRouter({
 	getMessage: publicProcedure.input(z.object({ hash: z.string() })).query(async ({ input }) => {
 		let post;
 		try {
@@ -43,5 +41,25 @@ export const GetPinataPostRouter = createTRPCRouter({
 			console.log('Error getting has from IPFS');
 		}
 		return { post };
+	}),
+
+	postComment: publicProcedure.input(z.object({ content: z.string() })).mutation(async ({ input }) => {
+		let data;
+		try {
+			const options = {
+				method: 'POST',
+				headers: {
+					accept: 'application/json',
+					'content-type': 'application/json',
+					authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+				},
+				body: JSON.stringify({ pinataContent: input }),
+			};
+			const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options);
+			data = await response.json();
+		} catch (err) {
+			console.log(err);
+		}
+		return { data };
 	}),
 });
