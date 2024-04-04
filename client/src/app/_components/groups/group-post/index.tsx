@@ -5,6 +5,10 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import useStore from '~/stores/utils/useStore';
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { type UserState } from '~/stores/userStore';
+
 import { TextInput } from '../../ui/text-input';
 import { TextArea } from '../../ui/text-area';
 import { BasicButton } from '../../ui/basic-button';
@@ -12,6 +16,7 @@ import { BasicModal } from '../../ui/basic-modal';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
+import { preventActionNotLoggedIn } from '~/helpers/user-helper';
 
 type GroupPostProps = {
 	groupId: string;
@@ -26,6 +31,8 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const postToIPFS = api.PostToIPFS.postMessage.useMutation();
 	const postToFirebase = api.PostToFirebase.postToCollection.useMutation();
 
+	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+
 	const hidePostInput = () => {
 		setPostOpen(false);
 
@@ -34,6 +41,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	};
 
 	const showPostInput = () => {
+		if (preventActionNotLoggedIn(isLoggedIn)) return;
 		setPostOpen(true);
 	};
 

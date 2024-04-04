@@ -3,6 +3,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import React, { useEffect, useState } from 'react';
+
+import useStore from '~/stores/utils/useStore';
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { type UserState } from '~/stores/userStore';
+
 import { type FirebasePostModel } from '~/models/firebase-post-model';
 import { type IPFSPostModel } from '~/models/ipfs-post-model';
 import { api } from '~/trpc/react';
@@ -12,6 +17,7 @@ import { CiHeart } from 'react-icons/ci';
 import { useWallet } from '~/providers/walletprovider';
 import PostComment from '../post-comment';
 import PostCommentList from '../post-comments-list';
+import { preventActionNotLoggedIn } from '~/helpers/user-helper';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -23,6 +29,8 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const [showComments, setShowComments] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
 	const [refreshComments, setRefreshComments] = useState(false);
+
+	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
 	const likePostToFirebase = api.FirebasePost.likePost.useMutation();
 	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
@@ -56,6 +64,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	};
 
 	const onLike = async () => {
+		if (preventActionNotLoggedIn(isLoggedIn)) return;
 		try {
 			if (isConnected == false || isConnected == null || walletAddress == '' || walletAddress == null) {
 				//TODO: Error handling, potentially error box
@@ -74,6 +83,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	};
 
 	const onUnLike = async () => {
+		if (preventActionNotLoggedIn(isLoggedIn)) return;
 		try {
 			if (isConnected == false || isConnected == null || walletAddress == '' || walletAddress == null) {
 				//TODO: Error handling, potentially error box

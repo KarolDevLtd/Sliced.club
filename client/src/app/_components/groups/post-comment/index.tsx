@@ -4,12 +4,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+
+import useStore from '~/stores/utils/useStore';
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { type UserState } from '~/stores/userStore';
+
 import { TextArea } from '../../ui/text-area';
 import { BasicButton } from '../../ui/basic-button';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { IoIosSend } from 'react-icons/io';
+import { preventActionNotLoggedIn } from '~/helpers/user-helper';
 
 type PostCommentProps = {
 	postId: string;
@@ -21,6 +27,8 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [, setValue] = useState('');
 	const [rows, setRows] = useState(1);
+
+	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
 	const commentToIPFS = api.PinataPost.postComment.useMutation();
 	const commentToFirebase = api.FirebasePost.commentToCollection.useMutation();
@@ -51,6 +59,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	});
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onSubmit = async (data: any) => {
+		if (preventActionNotLoggedIn(isLoggedIn)) return;
 		try {
 			setIsLoading(true);
 			await saveComment(data['comment-content']);
