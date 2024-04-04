@@ -43,7 +43,7 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 	}, [error]);
 
 	return (
-		<div className="flex flex-auto w-1/2 overflow-hidden">
+		<div className="flex flex-auto w-1/3 overflow-hidden">
 			{isLoading ? (
 				<div>Loading...</div>
 			) : (

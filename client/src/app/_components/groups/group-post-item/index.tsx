@@ -22,6 +22,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const [isLiked, setIsLiked] = useState(false);
 	const [showComments, setShowComments] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
+	const [refreshComments, setRefreshComments] = useState(false);
 
 	const likePostToFirebase = api.FirebasePost.likePost.useMutation();
 	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
@@ -90,6 +91,11 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		}
 	};
 
+	const handleCommentSubmission = (refreshing: boolean) => {
+		// After the post is submitted successfully, set refreshComment to true to trigger a refresh of comments
+		setRefreshComments(refreshing);
+	};
+
 	return (
 		<div className="flex flex-col my-2 rounded-xl shadow-sm bg-white border-solid border-2 border-indigo-100">
 			{isLoading ? (
@@ -121,16 +127,12 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						<div>
 							<PostComment
 								postId={currentPost.hash}
-								refetchComments={function (): void {
-									throw new Error('Function not implemented.');
-								}}
+								refetchComments={() => handleCommentSubmission(true)}
 							/>
 							<PostCommentList
 								postId={currentPost.hash}
-								refreshComments={false}
-								onRefresh={function (): void {
-									throw new Error('Function not implemented.');
-								}}
+								refreshComments={refreshComments}
+								onRefresh={() => handleCommentSubmission(false)}
 							/>
 						</div>
 					) : null}
