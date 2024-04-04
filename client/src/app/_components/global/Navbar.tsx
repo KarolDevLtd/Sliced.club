@@ -39,7 +39,7 @@ export const Navbar = () => {
 	}, [onClickConnect, chainType]);
 
 	return (
-		<header className="border-b fixed w-full z-50 bg-white h-20">
+		<header className="border-b fixed w-full z-40 bg-white h-20">
 			<div className="container flex justify-between items-center h-full">
 				<div className="flex flex-1">
 					<MinaButton
