@@ -60,7 +60,7 @@ export const TextArea = ({
 	};
 
 	return (
-		<div>
+		<div className="w-full p-2">
 			<div className="flex items-center justify-between">
 				{label ? (
 					<label htmlFor={id} className="block text-sm font-medium leading-6 text-gray-900">
