@@ -1,4 +1,7 @@
+import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
+
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { Checkbox } from '~/app/_components/ui/checkbox';
@@ -7,6 +10,10 @@ import { SelectOption } from '~/app/_components/ui/select-option';
 import { TextInput } from '~/app/_components/ui/text-input';
 
 export default function Register() {
+	const router = useRouter();
+
+	const { logInUser } = useUserStore((state) => state);
+
 	const {
 		register,
 		handleSubmit,
@@ -23,6 +30,8 @@ export default function Register() {
 	const onSubmit = (data: any) => {
 		alert(JSON.stringify(data));
 		reset();
+		logInUser();
+		void router.push('/');
 	};
 
 	return (
