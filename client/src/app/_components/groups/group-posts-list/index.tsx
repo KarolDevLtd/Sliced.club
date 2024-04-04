@@ -14,7 +14,7 @@ type GroupPostsListProps = {
 };
 
 const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProps) => {
-	const { data: postsData, error, refetch } = api.GetPostsFromFirebase.getPosts.useQuery({ groupId });
+	const { data: postsData, error, refetch } = api.FirebasePost.getPosts.useQuery({ groupId });
 	const [posts, setPosts] = useState<FirebasePostModel[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 

@@ -10,10 +10,12 @@ import { BasicButton } from '../../ui/basic-button';
 import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
 import { useWallet } from '~/providers/walletprovider';
+import PostComment from '../post-comment';
+import PostCommentList from '../post-comments-list';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
-	const { data: postData, error } = api.GetPostsFromIPFS.getMessage.useQuery({ hash: currentPost.hash });
-	const { data: likesData } = api.GetPostLikesFromFirebase.getPostLikes.useQuery({ postId: currentPost.hash });
+	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
+	const { data: likesData } = api.FirebasePost.getPostLikes.useQuery({ postId: currentPost.hash });
 	const [post, setPost] = useState<IPFSPostModel>();
 	const [isLoading, setIsLoading] = useState(false);
 	const [likeCount, setLikeCount] = useState(0);
@@ -21,8 +23,8 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const [showComments, setShowComments] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
 
-	const likePostToFirebase = api.LikePostInFirebase.likePost.useMutation();
-	const unlikePostToFirebase = api.UnlikePostInFirebase.unlikePost.useMutation();
+	const likePostToFirebase = api.FirebasePost.likePost.useMutation();
+	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
 
 	const fetchData = () => {
 		setIsLoading(true);
@@ -35,7 +37,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 				} else {
 					setIsLiked(false);
 				}
-				setLikeCount(postLikes?.length);
+				setLikeCount(postLikes!.length);
 			}
 		} catch (err) {
 			console.log(err);
@@ -115,6 +117,23 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 							{likeCount}
 						</BasicButton>
 					</div>
+					{showComments ? (
+						<div>
+							<PostComment
+								postId={currentPost.hash}
+								refetchComments={function (): void {
+									throw new Error('Function not implemented.');
+								}}
+							/>
+							<PostCommentList
+								postId={currentPost.hash}
+								refreshComments={false}
+								onRefresh={function (): void {
+									throw new Error('Function not implemented.');
+								}}
+							/>
+						</div>
+					) : null}
 				</div>
 			)}
 		</div>
