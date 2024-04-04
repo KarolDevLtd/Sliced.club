@@ -1,13 +1,23 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 // THIS IS A TEMPORARY FILE TO KEEP TRACK OF USER STORE STATUS DURING TESTING
 import { useState } from 'react';
+import useStore from '~/stores/utils/useStore';
 
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { BasicButton } from './ui/basic-button';
+import { type UserState } from '~/stores/userStore';
 
 export const UserStoreStatus = ({}) => {
 	const [display, setDisplay] = useState(false);
 
-	const { isLoggedIn, logInUser, logOutUser } = useUserStore((state) => state);
+	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+	const _hasHydrated = useStore(useUserStore, (state: UserState) => state._hasHydrated);
+
+	const { logInUser, logOutUser } = useUserStore((state) => state);
 
 	return (
 		<div className="fixed z-50 mt-1 ms-1">
@@ -22,6 +32,9 @@ export const UserStoreStatus = ({}) => {
 						</p>
 						<p>
 							<strong>isLoggedIn:</strong> {isLoggedIn.toString()}
+						</p>
+						<p>
+							<strong>storeHasHydrated:</strong> {_hasHydrated.toString()}
 						</p>
 						<div className="flex items-center gap-1 mt-1">
 							<BasicButton type="secondary" onClick={() => void logInUser()}>
