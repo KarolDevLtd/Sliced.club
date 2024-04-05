@@ -17,7 +17,7 @@ export type IMinaButton = {
 };
 
 export const MinaButton = ({ children, disabled, checkInstall = true, type }: IMinaButton) => {
-	const { walletDisplayAddress, isConnected, tryConnectWallet, tryChainChange, chainType } = useWallet();
+	const { tryConnectWallet, tryChainChange, chainType } = useWallet();
 	const [isClient, setIsClient] = useState(false);
 	const [selectedValue, setSelectedValue] = useState('');
 
@@ -33,6 +33,17 @@ export const MinaButton = ({ children, disabled, checkInstall = true, type }: IM
 		setSelectedValue(event.target.value);
 	};
 
+	const onClickBtn = useCallback(
+		(e: Event) => {
+			if (checkInstall && !window?.mina) {
+				alert('No provider was found - please install Auro Wallet');
+				return;
+			}
+			type === 'chain' ? void onClickChain() : void onClickConnect(false);
+		},
+		[checkInstall, onClickChain, onClickConnect]
+	);
+
 	useEffect(() => {
 		setIsClient(true);
 		onClickConnect(true);
@@ -41,14 +52,7 @@ export const MinaButton = ({ children, disabled, checkInstall = true, type }: IM
 
 	return (
 		<div>
-			<BasicButton
-				type="tertiary"
-				icon={<FaWallet />}
-				disabled={disabled}
-				onClick={() => {
-					type == 'chain' ? void onClickChain() : void onClickConnect(false);
-				}}
-			>
+			<BasicButton type="tertiary" icon={<FaWallet />} disabled={disabled} onClick={onClickBtn}>
 				{children}
 			</BasicButton>
 			{type == 'chain' ? (
