@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 'use client';
 import React, { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -18,6 +19,8 @@ import { useWallet } from '~/providers/walletprovider';
 import { MinaButton } from '../ui/mina-button';
 
 export const Navbar = () => {
+	const router = useRouter();
+
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const { logOutUser } = useUserStore((state) => state);
 	const { walletDisplayAddress, isConnected } = useWallet();
@@ -26,6 +29,10 @@ export const Navbar = () => {
 	const handleLogOut = () => {
 		logOutUser();
 		toast.success('Logged out successfully');
+	};
+
+	const handlePlatformNavigation = () => {
+		void router.push('/dashboard');
 	};
 
 	return (
@@ -50,7 +57,9 @@ export const Navbar = () => {
 				<div className="flex-1 flex items-center justify-end">
 					{isLoggedIn ? (
 						<div className="flex items-center gap-2 me-5">
-							<InlineLink href={`/profile/${exampleUserId}`}>My Profile</InlineLink>
+							<BasicButton type="tertiary" onClick={handlePlatformNavigation}>
+								Platform
+							</BasicButton>
 							<BasicButton type="secondary" onClick={handleLogOut}>
 								Logout
 							</BasicButton>

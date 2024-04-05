@@ -25,9 +25,7 @@ export default function Home() {
 	return (
 		<div>
 			<ul>
-				<li>
-					{isLoggedIn ? <InlineLink href="/dashboard">Platform</InlineLink> : <p>Log in to go to platform</p>}
-				</li>
+				<li>{isLoggedIn ? <h1>Sliced</h1> : <p>Log in to go to platform</p>}</li>
 			</ul>
 		</div>
 	);
