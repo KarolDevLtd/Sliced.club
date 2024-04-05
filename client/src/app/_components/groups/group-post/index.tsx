@@ -16,7 +16,7 @@ import { BasicModal } from '../../ui/basic-modal';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
-import { preventActionNotLoggedIn } from '~/helpers/user-helper';
+import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 
 type GroupPostProps = {
 	groupId: string;
@@ -32,6 +32,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const postToFirebase = api.PostToFirebase.postToCollection.useMutation();
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const hidePostInput = () => {
 		setPostOpen(false);
@@ -77,11 +78,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
-			if (!isConnected || !walletAddress) {
-				//TODO add error message
-				console.log('Wallet not connected');
-				return;
-			}
+			if (preventActionWalletNotConnected(walletConnected)) return;
 			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
 			await postToIPFS
