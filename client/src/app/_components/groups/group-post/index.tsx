@@ -66,6 +66,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const onSubmit = async (data: any) => {
 		try {
 			setIsLoading(true);
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			await savePost(data['post-title'], data['post-text']);
 			console.log(JSON.stringify(data));
 			reset();
@@ -82,7 +83,6 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
-			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
 			await postToIPFS
