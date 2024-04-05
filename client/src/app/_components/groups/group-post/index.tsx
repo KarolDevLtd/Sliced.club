@@ -5,6 +5,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { toast } from 'react-toastify';
+
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
@@ -16,7 +18,8 @@ import { BasicModal } from '../../ui/basic-modal';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
-import { preventActionNotLoggedIn } from '~/helpers/user-helper';
+import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { Spinner } from '../../ui/spinner';
 
 type GroupPostProps = {
 	groupId: string;
@@ -32,6 +35,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const postToFirebase = api.PostToFirebase.postToCollection.useMutation();
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const hidePostInput = () => {
 		setPostOpen(false);
@@ -41,7 +45,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	};
 
 	const showPostInput = () => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
 		setPostOpen(true);
 	};
 
@@ -63,10 +67,11 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		try {
 			setIsLoading(true);
 			await savePost(data['post-title'], data['post-text']);
-			// alert(JSON.stringify(data));
+			console.log(JSON.stringify(data));
 			reset();
 			hidePostInput();
 			refetchPosts();
+			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
 		} finally {
@@ -77,11 +82,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
-			if (!isConnected || !walletAddress) {
-				//TODO add error message
-				console.log('Wallet not connected');
-				return;
-			}
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
 			await postToIPFS
@@ -147,18 +148,19 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 								},
 							}}
 						/>
-						{isLoading ? (
-							<div>Loading...</div>
-						) : (
-							<div className="w-100 flex justify-end items-center gap-2">
-								<BasicButton type="primary" disabled={isLoading} submitForm={true}>
-									Save
-								</BasicButton>
-								<BasicButton type="secondary" disabled={isLoading} onClick={hidePostInput}>
-									Cancel
-								</BasicButton>
-							</div>
-						)}
+						<div className="w-100 flex justify-end items-center gap-2">
+							<BasicButton
+								type="primary"
+								icon={isLoading ? <Spinner size="sm" /> : null}
+								disabled={isLoading}
+								submitForm={true}
+							>
+								Save
+							</BasicButton>
+							<BasicButton type="secondary" disabled={isLoading} onClick={hidePostInput}>
+								Cancel
+							</BasicButton>
+						</div>
 					</form>
 				}
 			/>

@@ -9,6 +9,8 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 
+import { toast } from 'react-toastify';
+
 import Link from 'next/link';
 import { BasicButton } from '../ui/basic-button';
 import { InlineLink } from '../ui/inline-link';
@@ -20,6 +22,11 @@ export const Navbar = () => {
 	const { logOutUser } = useUserStore((state) => state);
 	const { walletDisplayAddress, isConnected } = useWallet();
 	const exampleUserId = '69e8f4d1';
+
+	const handleLogOut = () => {
+		logOutUser();
+		toast.success('Logged out successfully');
+	};
 
 	return (
 		<header className="border-b fixed w-full z-40 bg-white h-20">
@@ -44,7 +51,7 @@ export const Navbar = () => {
 					{isLoggedIn ? (
 						<div className="flex items-center gap-2 me-5">
 							<InlineLink href={`/profile/${exampleUserId}`}>My Profile</InlineLink>
-							<BasicButton type="secondary" onClick={() => logOutUser()}>
+							<BasicButton type="secondary" onClick={handleLogOut}>
 								Logout
 							</BasicButton>
 						</div>

@@ -17,7 +17,7 @@ import { CiHeart } from 'react-icons/ci';
 import { useWallet } from '~/providers/walletprovider';
 import PostComment from '../post-comment';
 import PostCommentList from '../post-comments-list';
-import { preventActionNotLoggedIn } from '~/helpers/user-helper';
+import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -30,6 +30,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [refreshComments, setRefreshComments] = useState(false);
 
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
 	const likePostToFirebase = api.FirebasePost.likePost.useMutation();
@@ -64,13 +65,9 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	};
 
 	const onLike = async () => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to like a comment')) return;
 		try {
-			if (isConnected == false || isConnected == null || walletAddress == '' || walletAddress == null) {
-				//TODO: Error handling, potentially error box
-				console.log('Wallet not connected');
-				return;
-			}
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to like a comment')) return;
 			await likePostToFirebase
 				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
 				.then(() => {
@@ -83,13 +80,9 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	};
 
 	const onUnLike = async () => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to unlike a comment')) return;
 		try {
-			if (isConnected == false || isConnected == null || walletAddress == '' || walletAddress == null) {
-				//TODO: Error handling, potentially error box
-				console.log('Wallet not connected');
-				return;
-			}
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to unlike a comment')) return;
 			await unlikePostToFirebase
 				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
 				.then(() => {

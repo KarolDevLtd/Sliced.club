@@ -14,6 +14,7 @@ export const UserStoreStatus = ({}) => {
 	const [display, setDisplay] = useState(false);
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const _hasHydrated = useStore(useUserStore, (state: UserState) => state._hasHydrated);
 
 	return (
@@ -28,10 +29,13 @@ export const UserStoreStatus = ({}) => {
 							<strong>USER STORE</strong>
 						</p>
 						<p>
-							<strong>isLoggedIn:</strong> {isLoggedIn.toString()}
+							<strong>isLoggedIn:</strong> {isLoggedIn?.toString()}
 						</p>
 						<p>
-							<strong>storeHasHydrated:</strong> {_hasHydrated.toString()}
+							<strong>walletConnected:</strong> {walletConnected?.toString()}
+						</p>
+						<p>
+							<strong>storeHasHydrated:</strong> {_hasHydrated?.toString()}
 						</p>
 					</div>
 				</>

@@ -9,13 +9,16 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 
+import { toast } from 'react-toastify';
+
 import { TextArea } from '../../ui/text-area';
 import { BasicButton } from '../../ui/basic-button';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { IoIosSend } from 'react-icons/io';
-import { preventActionNotLoggedIn } from '~/helpers/user-helper';
+import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { Spinner } from '../../ui/spinner';
 
 type PostCommentProps = {
 	postId: string;
@@ -29,6 +32,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	const [rows, setRows] = useState(1);
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const commentToIPFS = api.PinataPost.postComment.useMutation();
 	const commentToFirebase = api.FirebasePost.commentToCollection.useMutation();
@@ -59,12 +63,14 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	});
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onSubmit = async (data: any) => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to post a comment')) return;
+		if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post a comment')) return;
 		try {
 			setIsLoading(true);
 			await saveComment(data['comment-content']);
 			reset();
 			refetchComments();
+			toast.success('Comment posted successfully');
 		} catch (err) {
 			console.log(err);
 		} finally {
@@ -117,19 +123,15 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 						required: 'Comment content is required',
 						minLength: {
 							value: 1,
-							message: 'Post Title must be at least 10 characters',
+							message: 'Comment must be at least 1 character',
 						},
 					}}
 				/>
-				{isLoading ? (
-					'Loading...'
-				) : (
-					<div className="p-3">
-						<BasicButton type={'primary'} submitForm={true}>
-							<IoIosSend />
-						</BasicButton>
-					</div>
-				)}
+				<div className="p-3">
+					<BasicButton type={'primary'} submitForm={true}>
+						{isLoading ? <Spinner size="sm" /> : <IoIosSend />}
+					</BasicButton>
+				</div>
 			</form>
 		</div>
 	);
