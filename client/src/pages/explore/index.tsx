@@ -1,4 +1,5 @@
 import { InlineLink } from '~/app/_components/ui/inline-link';
+import PlatformLayout from '~/layouts/platform';
 
 export default function Explore() {
 	const groupId = '69';
@@ -14,3 +15,7 @@ export default function Explore() {
 		</div>
 	);
 }
+
+Explore.getLayout = function getLayout(page) {
+	return <PlatformLayout>{page}</PlatformLayout>;
+};

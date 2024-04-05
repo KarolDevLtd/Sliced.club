@@ -1,3 +1,5 @@
+import PlatformLayout from '~/layouts/platform';
+
 export default function CreateGroup() {
 	return (
 		<div>
@@ -5,3 +7,7 @@ export default function CreateGroup() {
 		</div>
 	);
 }
+
+CreateGroup.getLayout = function getLayout(page) {
+	return <PlatformLayout>{page}</PlatformLayout>;
+};

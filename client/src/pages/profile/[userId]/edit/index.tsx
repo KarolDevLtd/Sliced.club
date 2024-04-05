@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import PlatformLayout from '~/layouts/platform';
 
 export default function EditProfile() {
 	const router = useRouter();
@@ -12,3 +13,7 @@ export default function EditProfile() {
 		</div>
 	);
 }
+
+EditProfile.getLayout = function getLayout(page) {
+	return <PlatformLayout>{page}</PlatformLayout>;
+};

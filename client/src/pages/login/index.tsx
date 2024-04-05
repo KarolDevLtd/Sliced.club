@@ -14,6 +14,7 @@ import { InlineLink } from '~/app/_components/ui/inline-link';
 import { TextInput } from '~/app/_components/ui/text-input';
 
 import { preventActionWalletNotConnected } from '~/helpers/user-helper';
+import DefaultLayout from '~/layouts/default';
 
 export default function Login() {
 	const router = useRouter();
@@ -105,3 +106,7 @@ export default function Login() {
 		</div>
 	);
 }
+
+Login.getLayout = function getLayout(page) {
+	return <DefaultLayout>{page}</DefaultLayout>;
+};

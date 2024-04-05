@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { api } from '~/trpc/react';
 import { InlineLink } from '~/app/_components/ui/inline-link';
+import DefaultLayout from '~/layouts/default';
 
 export default function Home() {
 	return (
@@ -19,3 +20,7 @@ export default function Home() {
 		</div>
 	);
 }
+
+Home.getLayout = function getLayout(page) {
+	return <DefaultLayout>{page}</DefaultLayout>;
+};
