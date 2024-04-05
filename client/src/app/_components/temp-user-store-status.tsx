@@ -5,8 +5,8 @@
 
 // THIS IS A TEMPORARY FILE TO KEEP TRACK OF USER STORE STATUS DURING TESTING
 import { useState } from 'react';
-import useStore from '~/stores/utils/useStore';
 
+import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 

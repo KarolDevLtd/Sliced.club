@@ -1,29 +1,24 @@
-import type { AppProps } from 'next/app';
-import Layout from '~/pages/layout';
-import Providers from '~/providers';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import type { AppContext, AppInitialProps, AppLayoutProps } from 'next/app';
 import '../styles/globals.css';
 // https://fkhadra.github.io/react-toastify/introduction
-import { Bounce, ToastContainer } from 'react-toastify';
+import type { NextComponentType } from 'next';
+import { type ReactNode } from 'react';
 
-export default function SlicedApp({ Component, pageProps }: AppProps) {
-	return (
-		<Providers>
-			<Layout>
-				<ToastContainer
-					position="bottom-right"
-					autoClose={5000}
-					hideProgressBar={false}
-					newestOnTop={false}
-					closeOnClick
-					rtl={false}
-					pauseOnFocusLoss
-					draggable
-					pauseOnHover
-					theme="light"
-					transition={Bounce}
-				/>
-				<Component {...pageProps} />
-			</Layout>
-		</Providers>
+const SlicedApp: NextComponentType<AppContext, AppInitialProps, AppLayoutProps> = ({
+	Component,
+	pageProps,
+}: AppLayoutProps) => {
+	const getLayout = Component.getLayout ?? ((page: ReactNode) => page);
+
+	return getLayout(
+		<>
+			<Component {...pageProps} />
+		</>
 	);
-}
+};
+
+export default SlicedApp;

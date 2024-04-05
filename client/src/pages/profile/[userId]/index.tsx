@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import { InlineLink } from '~/app/_components/ui/inline-link';
+import PlatformLayout from '~/layouts/platform';
 
 export default function Profile() {
 	const router = useRouter();
@@ -23,3 +24,7 @@ export default function Profile() {
 		</div>
 	);
 }
+
+Profile.getLayout = function getLayout(page) {
+	return <PlatformLayout>{page}</PlatformLayout>;
+};

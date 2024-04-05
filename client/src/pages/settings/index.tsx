@@ -1,18 +1,13 @@
-import { useRouter } from 'next/router';
 import { MinaButton } from '~/app/_components/ui/mina-button';
 import PlatformLayout from '~/layouts/platform';
 import { useWallet } from '~/providers/walletprovider';
 
-export default function EditProfile() {
-	const router = useRouter();
-
+export default function Settings() {
 	const { walletDisplayAddress, isConnected } = useWallet();
-
-	const userId = router.query.userId;
 
 	return (
 		<div>
-			<h1>User ID: {userId}</h1>
+			<h1>Settings</h1>
 			<div>
 				<MinaButton disabled={false} checkInstall={true} type="connnect">
 					{isConnected ? walletDisplayAddress : 'Connect'}
@@ -27,6 +22,6 @@ export default function EditProfile() {
 	);
 }
 
-EditProfile.getLayout = function getLayout(page) {
+Settings.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
