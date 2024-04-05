@@ -5,6 +5,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { toast } from 'react-toastify';
+
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
@@ -64,10 +66,11 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		try {
 			setIsLoading(true);
 			await savePost(data['post-title'], data['post-text']);
-			// alert(JSON.stringify(data));
+			console.log(JSON.stringify(data));
 			reset();
 			hidePostInput();
 			refetchPosts();
+			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
 		} finally {

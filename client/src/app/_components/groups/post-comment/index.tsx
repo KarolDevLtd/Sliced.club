@@ -9,6 +9,8 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 
+import { toast } from 'react-toastify';
+
 import { TextArea } from '../../ui/text-area';
 import { BasicButton } from '../../ui/basic-button';
 import { useWallet } from '~/providers/walletprovider';
@@ -67,6 +69,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 			await saveComment(data['comment-content']);
 			reset();
 			refetchComments();
+			toast.success('Comment posted successfully');
 		} catch (err) {
 			console.log(err);
 		} finally {
