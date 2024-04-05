@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import React, { type ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { BasicButton } from '../basic-button';
 
 import { FaWallet } from 'react-icons/fa';
@@ -18,16 +18,19 @@ export type IMinaButton = {
 
 export const MinaButton = ({ children, disabled, checkInstall = true, type }: IMinaButton) => {
 	const { tryConnectWallet, tryChainChange, chainType } = useWallet();
-	const [isClient, setIsClient] = useState(false);
+	const [isCient, setIsClient] = useState(false);
 	const [selectedValue, setSelectedValue] = useState('');
 
-	const onClickConnect = useCallback(async (isOnLoad: boolean) => {
-		await tryConnectWallet(isOnLoad);
-	}, []);
+	const onClickConnect = useCallback(
+		async (isOnLoad: boolean) => {
+			await tryConnectWallet(isOnLoad);
+		},
+		[tryConnectWallet]
+	);
 
 	const onClickChain = useCallback(async () => {
 		await tryChainChange(selectedValue);
-	}, [selectedValue]);
+	}, [selectedValue, tryChainChange]);
 
 	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		setSelectedValue(event.target.value);
@@ -41,7 +44,7 @@ export const MinaButton = ({ children, disabled, checkInstall = true, type }: IM
 			}
 			type === 'chain' ? void onClickChain() : void onClickConnect(false);
 		},
-		[checkInstall, onClickChain, onClickConnect]
+		[checkInstall, onClickChain, onClickConnect, type]
 	);
 
 	useEffect(() => {
