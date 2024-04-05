@@ -5,7 +5,7 @@ type BasicButtonProps = {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	onClick?: (e: any) => any;
 	type: 'primary' | 'secondary' | 'tertiary';
-	icon?: ReactElement;
+	icon?: ReactElement | null;
 	disabled?: boolean;
 	submitForm?: boolean;
 };

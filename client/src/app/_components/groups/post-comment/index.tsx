@@ -18,6 +18,7 @@ import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { IoIosSend } from 'react-icons/io';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { Spinner } from '../../ui/spinner';
 
 type PostCommentProps = {
 	postId: string;
@@ -122,19 +123,15 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 						required: 'Comment content is required',
 						minLength: {
 							value: 1,
-							message: 'Post Title must be at least 10 characters',
+							message: 'Comment must be at least 1 character',
 						},
 					}}
 				/>
-				{isLoading ? (
-					'Loading...'
-				) : (
-					<div className="p-3">
-						<BasicButton type={'primary'} submitForm={true}>
-							<IoIosSend />
-						</BasicButton>
-					</div>
-				)}
+				<div className="p-3">
+					<BasicButton type={'primary'} submitForm={true}>
+						{isLoading ? <Spinner size="sm" /> : <IoIosSend />}
+					</BasicButton>
+				</div>
 			</form>
 		</div>
 	);
