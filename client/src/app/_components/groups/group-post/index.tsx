@@ -19,6 +19,7 @@ import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { Spinner } from '../../ui/spinner';
 
 type GroupPostProps = {
 	groupId: string;
@@ -147,18 +148,19 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 								},
 							}}
 						/>
-						{isLoading ? (
-							<div>Loading...</div>
-						) : (
-							<div className="w-100 flex justify-end items-center gap-2">
-								<BasicButton type="primary" disabled={isLoading} submitForm={true}>
-									Save
-								</BasicButton>
-								<BasicButton type="secondary" disabled={isLoading} onClick={hidePostInput}>
-									Cancel
-								</BasicButton>
-							</div>
-						)}
+						<div className="w-100 flex justify-end items-center gap-2">
+							<BasicButton
+								type="primary"
+								icon={isLoading ? <Spinner size="sm" /> : null}
+								disabled={isLoading}
+								submitForm={true}
+							>
+								Save
+							</BasicButton>
+							<BasicButton type="secondary" disabled={isLoading} onClick={hidePostInput}>
+								Cancel
+							</BasicButton>
+						</div>
 					</form>
 				}
 			/>
