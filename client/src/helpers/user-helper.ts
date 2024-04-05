@@ -1,14 +1,22 @@
-const preventActionNotLoggedIn = (isLoggedIn: boolean | undefined) => {
+// https://fkhadra.github.io/react-toastify/introduction
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const preventActionNotLoggedIn = (isLoggedIn: boolean | undefined, customMessage?: string) => {
+	const message = customMessage ? customMessage : "You're not logged in";
+
 	if (!isLoggedIn) {
-		alert('You must be logged in');
+		toast.error(message);
 		return true;
 	}
 	return false;
 };
 
-const preventActionWalletNotConnected = (walletConnected: boolean | undefined) => {
+const preventActionWalletNotConnected = (walletConnected: boolean | undefined, customMessage?: string) => {
+	const message = customMessage ? customMessage : 'Wallet not connected';
+
 	if (!walletConnected) {
-		alert('You need to connect a wallet');
+		toast.error(message);
 		return true;
 	}
 	return false;

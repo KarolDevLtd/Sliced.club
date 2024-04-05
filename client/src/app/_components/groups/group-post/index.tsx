@@ -42,7 +42,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	};
 
 	const showPostInput = () => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
 		setPostOpen(true);
 	};
 
@@ -78,7 +78,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
-			if (preventActionWalletNotConnected(walletConnected)) return;
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
 			await postToIPFS

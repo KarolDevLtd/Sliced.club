@@ -65,9 +65,9 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	};
 
 	const onLike = async () => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to like a comment')) return;
 		try {
-			if (preventActionWalletNotConnected(walletConnected)) return;
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to like a comment')) return;
 			await likePostToFirebase
 				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
 				.then(() => {
@@ -80,9 +80,9 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	};
 
 	const onUnLike = async () => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to unlike a comment')) return;
 		try {
-			if (preventActionWalletNotConnected(walletConnected)) return;
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to unlike a comment')) return;
 			await unlikePostToFirebase
 				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
 				.then(() => {

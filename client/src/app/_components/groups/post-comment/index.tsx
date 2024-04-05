@@ -60,8 +60,8 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	});
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onSubmit = async (data: any) => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
-		if (preventActionWalletNotConnected(walletConnected)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to post a comment')) return;
+		if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post a comment')) return;
 		try {
 			setIsLoading(true);
 			await saveComment(data['comment-content']);
