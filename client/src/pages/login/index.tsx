@@ -6,8 +6,6 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 
-import { toast } from 'react-toastify';
-
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { Checkbox } from '~/app/_components/ui/checkbox';
 import { InlineLink } from '~/app/_components/ui/inline-link';
@@ -25,8 +23,7 @@ export default function Login() {
 	const handleConnectWallet = () => {
 		if (preventActionWalletNotConnected(walletConnected, 'Connect your wallet to log in using it')) return;
 		logInUser();
-		void router.push('/');
-		toast.success('Log in with wallet successful');
+		void router.push('/dashboard?login=wallet');
 	};
 
 	const {
@@ -46,8 +43,7 @@ export default function Login() {
 		console.log(JSON.stringify(data));
 		reset();
 		logInUser();
-		void router.push('/');
-		toast.success('Logged in successfully');
+		void router.push('/dashboard?login=success');
 	};
 
 	return (
