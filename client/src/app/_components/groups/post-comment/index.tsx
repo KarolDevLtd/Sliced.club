@@ -15,7 +15,7 @@ import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { IoIosSend } from 'react-icons/io';
-import { preventActionNotLoggedIn } from '~/helpers/user-helper';
+import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 
 type PostCommentProps = {
 	postId: string;
@@ -29,6 +29,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	const [rows, setRows] = useState(1);
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const commentToIPFS = api.PinataPost.postComment.useMutation();
 	const commentToFirebase = api.FirebasePost.commentToCollection.useMutation();
@@ -60,6 +61,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onSubmit = async (data: any) => {
 		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionWalletNotConnected(walletConnected)) return;
 		try {
 			setIsLoading(true);
 			await saveComment(data['comment-content']);
