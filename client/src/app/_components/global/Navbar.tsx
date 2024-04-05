@@ -18,33 +18,8 @@ import { MinaButton } from '../ui/mina-button';
 export const Navbar = () => {
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const { logOutUser } = useUserStore((state) => state);
-
+	const { walletDisplayAddress, isConnected } = useWallet();
 	const exampleUserId = '69e8f4d1';
-	const { walletDisplayAddress, isConnected, tryConnectWallet, tryChainChange, chainType } = useWallet();
-	const [isClient, setIsClient] = useState(false);
-	const [selectedValue, setSelectedValue] = useState('');
-
-	const onClickConnect = useCallback(async (isOnLoad: boolean) => {
-		console.log('Connect');
-		await tryConnectWallet(isOnLoad);
-	}, []);
-
-	const onClickChain = async () => {
-		console.log(selectedValue);
-		await tryChainChange(selectedValue);
-	};
-
-	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
-		console.log('handleSelectChange');
-		console.log(event);
-		setSelectedValue(event.target.value);
-	};
-
-	useEffect(() => {
-		setIsClient(true);
-		onClickConnect(true);
-		setSelectedValue(chainType!);
-	}, [onClickConnect, chainType]);
 
 	return (
 		<header className="border-b fixed w-full z-40 bg-white h-20">
@@ -53,26 +28,11 @@ export const Navbar = () => {
 					<MinaButton
 						children={isConnected ? walletDisplayAddress : 'Connect'}
 						disabled={false}
-						onClick={() => {
-							onClickConnect(false);
-							return {};
-						}}
 						checkInstall={true}
+						type="connnect"
 					/>
 					{isConnected == true && (
-						<div>
-							<MinaButton
-								children={'Switch Chain'}
-								disabled={false}
-								onClick={onClickChain}
-								checkInstall={true}
-							/>
-							<select value={selectedValue} onChange={(e) => handleSelectChange(e)}>
-								<option value="mainnet">mainnet</option>
-								<option value="devnet">devnet</option>
-								<option value="berkeley">berkeley</option>
-							</select>
-						</div>
+						<MinaButton children={'Switch Chain'} disabled={false} checkInstall={true} type="chain" />
 					)}
 				</div>
 				<div className="flex-1">
