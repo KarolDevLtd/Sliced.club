@@ -5,6 +5,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { toast } from 'react-toastify';
+
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
@@ -42,7 +44,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	};
 
 	const showPostInput = () => {
-		if (preventActionNotLoggedIn(isLoggedIn)) return;
+		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
 		setPostOpen(true);
 	};
 
@@ -64,10 +66,11 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		try {
 			setIsLoading(true);
 			await savePost(data['post-title'], data['post-text']);
-			// alert(JSON.stringify(data));
+			console.log(JSON.stringify(data));
 			reset();
 			hidePostInput();
 			refetchPosts();
+			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
 		} finally {
@@ -78,7 +81,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
-			if (preventActionWalletNotConnected(walletConnected)) return;
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
 			await postToIPFS

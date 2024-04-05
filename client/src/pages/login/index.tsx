@@ -2,20 +2,30 @@ import { useRouter } from 'next/router';
 // https://react-hook-form.com/docs/useform
 import { useForm } from 'react-hook-form';
 
+import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { type UserState } from '~/stores/userStore';
+
+import { toast } from 'react-toastify';
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { Checkbox } from '~/app/_components/ui/checkbox';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 import { TextInput } from '~/app/_components/ui/text-input';
 
+import { preventActionWalletNotConnected } from '~/helpers/user-helper';
+
 export default function Login() {
 	const router = useRouter();
 
 	const { logInUser } = useUserStore((state) => state);
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const handleConnectWallet = () => {
-		alert('Connect with wallet');
+		if (preventActionWalletNotConnected(walletConnected, 'Connect your wallet to log in using it')) return;
+		logInUser();
+		void router.push('/');
+		toast.success('Log in with wallet successful');
 	};
 
 	const {
@@ -32,10 +42,11 @@ export default function Login() {
 	});
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onSubmit = (data: any) => {
-		alert(JSON.stringify(data));
+		console.log(JSON.stringify(data));
 		reset();
 		logInUser();
 		void router.push('/');
+		toast.success('Logged in successfully');
 	};
 
 	return (
