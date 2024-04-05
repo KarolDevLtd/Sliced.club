@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+
 import { SidebarItem } from './sidebar-item';
 import { LogoutButton } from './logout-button';
 
@@ -15,7 +17,9 @@ export const PlatformSidebar = () => {
 	return (
 		<aside className="flex flex-col justify-between items-center p-6 w-1/6 bg-light-grey">
 			<div>
-				<p className="text-center mb-6">Sliced</p>
+				<p className="text-center mb-6">
+					<Link href="/">Sliced</Link>
+				</p>
 				<SidebarItem text="Home" href="/dashboard" icon={<FaHome />} />
 				<SidebarItem text="Groups" href="/groups" icon={<FaUserGroup />} />
 				<SidebarItem text="My Products" href="/products" icon={<FaShoppingCart />} />
