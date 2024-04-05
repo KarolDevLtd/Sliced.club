@@ -39,20 +39,16 @@ export const Navbar = () => {
 		<header className="border-b fixed w-full z-40 bg-white h-20">
 			<div className="container flex justify-between items-center h-full">
 				<div className="flex flex-1">
-					<MinaButton
-						children={isConnected ? walletDisplayAddress : 'Connect'}
-						disabled={false}
-						checkInstall={true}
-						type="connnect"
-					/>
-					{isConnected == true && (
-						<MinaButton children={'Switch Chain'} disabled={false} checkInstall={true} type="chain" />
-					)}
-				</div>
-				<div className="flex-1">
 					<Link href="/">
-						<h1 className="text-2xl text-center">Sliced</h1>
+						<h1 className="text-2xl text-center">Sliced Logo</h1>
 					</Link>
+				</div>
+				<div className="flex items-center gap-4 flex-1">
+					<Link href="/">Home</Link>
+					<Link href="/about">About Us</Link>
+					<Link href="/how-it-works">How it works</Link>
+					<Link href="/users">Users</Link>
+					<Link href="/contact">Contact</Link>
 				</div>
 				<div className="flex-1 flex items-center justify-end">
 					{isLoggedIn ? (
