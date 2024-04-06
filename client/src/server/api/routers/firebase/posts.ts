@@ -9,8 +9,8 @@ import { firestore } from 'src/firebaseConfig';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { addDoc, collection, getDocs, query as firestorequery, where, orderBy, deleteDoc } from 'firebase/firestore';
 import { type FirebasePostModel } from '~/models/firebase-post-model';
-import { FirebaseLikeModel } from '~/models/firebase-like-model';
-import { FirebaseCommentModel } from '~/models/firebase-comment-model';
+import { type FirebaseLikeModel } from '~/models/firebase-like-model';
+import { type FirebaseCommentModel } from '~/models/firebase-comment-model';
 
 const postCollection = collection(firestore, 'posts');
 const commentCollection = collection(firestore, 'comments');
@@ -19,12 +19,21 @@ const likesCollection = collection(firestore, 'likes');
 //CREATE POST
 export const FirebasePostRouter = createTRPCRouter({
 	postToCollection: publicProcedure
-		.input(z.object({ posterKey: z.string(), groupId: z.string(), messageHash: z.string(), dateTime: z.string() }))
+		.input(
+			z.object({
+				posterKey: z.string(),
+				groupId: z.string(),
+				messageHash: z.string(),
+				imageHash: z.string().nullable(),
+				dateTime: z.string(),
+			})
+		)
 		.mutation(({ input }) => {
 			const post = {
 				poster: input.posterKey,
 				group: input.groupId,
 				message: input.messageHash,
+				image: input.imageHash,
 				datetime: input.dateTime,
 			};
 			addDoc(postCollection, post);
@@ -68,6 +77,7 @@ export const FirebasePostRouter = createTRPCRouter({
 						hash: doc.data().message as string,
 						group: doc.data().group as string,
 						posterKey: doc.data().poster as string,
+						imageHash: doc.data().poster as string | null,
 					});
 				});
 			});

@@ -30,16 +30,14 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const [postOpen, setPostOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
+	const [selectedFile, setSelectedFile] = useState();
 
-	const postToIPFS = api.PostToIPFS.postMessage.useMutation();
-	const postToFirebase = api.PostToFirebase.postToCollection.useMutation();
-
+	const postToIPFS = api.PinataPost.postMessage.useMutation();
+	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
-
 	const hidePostInput = () => {
 		setPostOpen(false);
-
 		// Clears form validation errors when closing modal
 		unregister(['post-title', 'post-text']);
 	};
@@ -47,6 +45,10 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const showPostInput = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
 		setPostOpen(true);
+	};
+
+	const changeHandler = (event: any) => {
+		setSelectedFile(event.target.files[0]);
 	};
 
 	const {
@@ -79,25 +81,50 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		}
 	};
 
+	const saveImage = async () => {
+		try {
+			const body = new FormData();
+			//Must be set to 'file' for no 400
+			body.set('file', selectedFile);
+			const response = await fetch('/api/upload', {
+				method: 'POST',
+				body,
+			});
+			if (!response.ok) {
+				throw new Error('Error uploading profile image');
+			}
+			const result: Response = await response.json();
+			if (!result) throw new Error('Error uploading profile image');
+			return result;
+		} catch (error) {
+			console.log('Error sending File to IPFS: ');
+			console.log(error);
+		}
+	};
+
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
+			let postImgIPFS;
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
-			await postToIPFS
-				.mutateAsync({
-					title: title,
-					content: content,
-				})
-				.then(async (response) => {
-					await postToFirebase.mutateAsync({
-						posterKey: walletAddress.toString(),
-						groupId: groupId,
-						messageHash: response.data.IpfsHash,
-						dateTime: DateTime.now().toString(),
-					});
-				});
+			const postMsgIPFS = await postToIPFS.mutateAsync({
+				title: title,
+				content: content,
+			});
+
+			if (selectedFile) {
+				postImgIPFS = await saveImage();
+				console.log(postImgIPFS.data);
+			}
+			const postMsgFirebase = await postToFirebase.mutateAsync({
+				posterKey: walletAddress!.toString(),
+				groupId: groupId,
+				messageHash: postMsgIPFS.data.IpfsHash,
+				imageHash: selectedFile ? postImgIPFS.data.IpfsHash : null,
+				dateTime: DateTime.now().toString(),
+			});
 		} catch (err) {
 			console.log(err);
 		} finally {
@@ -149,6 +176,10 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							}}
 						/>
 						<div className="w-100 flex justify-end items-center gap-2">
+							<>
+								<label className="form-label"> Choose File</label>
+								<input type="file" onChange={changeHandler} />
+							</>
 							<BasicButton
 								type="primary"
 								icon={isLoading ? <Spinner size="sm" /> : null}

@@ -36,16 +36,13 @@ export const MinaButton = ({ children, disabled, checkInstall = true, type }: IM
 		setSelectedValue(event.target.value);
 	};
 
-	const onClickBtn = useCallback(
-		(e: Event) => {
-			if (checkInstall && !window?.mina) {
-				alert('No provider was found - please install Auro Wallet');
-				return;
-			}
-			type === 'chain' ? void onClickChain() : void onClickConnect(false);
-		},
-		[checkInstall, onClickChain, onClickConnect, type]
-	);
+	const onClickBtn = useCallback(() => {
+		if (checkInstall && !window?.mina) {
+			alert('No provider was found - please install Auro Wallet');
+			return;
+		}
+		type === 'chain' ? void onClickChain() : void onClickConnect(false);
+	}, [checkInstall, onClickChain, onClickConnect, type]);
 
 	useEffect(() => {
 		setIsClient(true);
