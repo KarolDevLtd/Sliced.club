@@ -15,8 +15,8 @@ import { IoMdNotifications } from 'react-icons/io';
 
 export const PlatformSidebar = () => {
 	return (
-		<aside className="flex flex-col justify-between items-center p-6 w-1/6 bg-light-grey">
-			<div>
+		<aside className="flex flex-col justify-between items-center pt-6 w-1/6 bg-light-grey">
+			<div className="min-w-full flex flex-col">
 				<p className="text-center mb-6">
 					<Link href="/">Sliced</Link>
 				</p>
@@ -26,10 +26,12 @@ export const PlatformSidebar = () => {
 				<SidebarItem text="My Payments" href="/payments" icon={<FaMoneyBill />} />
 				<SidebarItem text="My Profile" href="/profile/69/edit" icon={<FaUser />} />
 				<SidebarItem text="Categories" href="/categories" icon={<FaSearch />} />
-				<SidebarItem text="Notifications" href="/profile/69/edit" icon={<IoMdNotifications />} />
+				<SidebarItem text="Notifications" href="/notifications" icon={<IoMdNotifications />} />
 				<SidebarItem text="Settings" href="/settings" icon={<IoIosSettings />} />
 			</div>
-			<LogoutButton />
+			<div className="min-w-full flex flex-col">
+				<LogoutButton />
+			</div>
 		</aside>
 	);
 };
