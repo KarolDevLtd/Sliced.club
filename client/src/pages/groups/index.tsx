@@ -7,7 +7,7 @@ export default function Groups() {
 	return (
 		<ul>
 			<li>
-				<InlineLink href={`group/${groupId}`}>Group 69</InlineLink>
+				<InlineLink href={`groups/${groupId}`}>Group 69</InlineLink>
 			</li>
 		</ul>
 	);

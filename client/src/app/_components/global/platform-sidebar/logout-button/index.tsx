@@ -14,7 +14,10 @@ export const LogoutButton = () => {
 	};
 
 	return (
-		<div className="flex items-center gap-2 p-2 hover:cursor-pointer" onClick={handleLogOut}>
+		<div
+			className="flex justify-center sm:justify-start items-center gap-2 px-4 py-2 w-100 hover:bg-medium-grey hover:cursor-pointer"
+			onClick={handleLogOut}
+		>
 			<span>
 				<RiLogoutBoxFill />
 			</span>
