@@ -13,9 +13,15 @@ import { FaMoneyBill } from 'react-icons/fa';
 import { FaSearch } from 'react-icons/fa';
 import { IoMdNotifications } from 'react-icons/io';
 
-export const PlatformSidebar = () => {
+type PlatformSidebarProps = {
+	hidden: boolean | undefined;
+};
+
+export const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 	return (
-		<aside className="flex flex-col justify-between items-center pt-6 w-1/6 bg-light-grey">
+		<aside
+			className={`${hidden ? 'hidden sm:block' : null} fixed sm:static top-0 flex flex-col justify-between items-center pt-6 min-h-screen w-full sm:w-1/4 md:w-1/5 lg:w-1/6 bg-light-grey`}
+		>
 			<div className="min-w-full flex flex-col">
 				<p className="text-center mb-6">
 					<Link href="/">Sliced</Link>
