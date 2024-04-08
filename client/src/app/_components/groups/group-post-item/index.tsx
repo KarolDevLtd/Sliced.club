@@ -31,7 +31,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const [showComments, setShowComments] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
 	const [refreshComments, setRefreshComments] = useState(false);
-	const [imageData, setImageData] = useState<string | null>('');
+	const [imageData, setImageData] = useState<string | null>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
 
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
@@ -144,14 +144,16 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					<div className="my-5">
 						<div className="text-md mt-2 mx-5">{post?.title}</div>
 						<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
-						{imageData && hasImage ? (
-							<img src={imageData} alt="Image" />
-						) : (
-							<div className="flex flex-col items-center p-5">
-								<MdErrorOutline />
-								Error loading image
-							</div>
-						)}
+						{hasImage ? (
+							imageData != null ? (
+								<img src={imageData} alt="Image" />
+							) : (
+								<div className="flex flex-col items-center p-5">
+									<MdErrorOutline />
+									Error loading image
+								</div>
+							)
+						) : null}
 					</div>
 
 					<div className="flex justify-between">
