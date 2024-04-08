@@ -38,7 +38,7 @@ export const PinataPostRouter = createTRPCRouter({
 			});
 			post = await response.json(); // This parses the JSON from the response body
 		} catch (err) {
-			console.log('Error getting hass from IPFS');
+			console.log('Error getting hash from IPFS');
 		}
 		return { post };
 	}),

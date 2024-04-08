@@ -40,7 +40,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const likePostToFirebase = api.FirebasePost.likePost.useMutation();
 	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
 
-	const getData = async () => {
+	const fetchData = async () => {
 		setIsLoading(true);
 		try {
 			if (postData) {
@@ -84,14 +84,9 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		}
 	};
 
-	const fetchData = useCallback(async () => {
-		const data = await getData();
-		// setState(data)
-	}, []);
-
 	useEffect(() => {
 		//Use void here as do not need result, use state set inside result
-		void getData();
+		void fetchData();
 	}, [likesData?.likes, postData, walletAddress]);
 
 	const toggleComments = () => {
