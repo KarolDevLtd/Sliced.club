@@ -71,6 +71,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const onSubmit = async (data: any) => {
 		try {
 			setIsLoading(true);
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			await savePost(data['post-title'], data['post-text']);
 			console.log(JSON.stringify(data));
 			reset();

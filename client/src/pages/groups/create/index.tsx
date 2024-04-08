@@ -1,15 +1,13 @@
 import PlatformLayout from '~/layouts/platform';
 
-export default function Explore() {
-	const groupId = '69';
-
+export default function CreateGroup() {
 	return (
 		<div>
-			<h1>Explore</h1>
+			<h1>Create Group</h1>
 		</div>
 	);
 }
 
-Explore.getLayout = function getLayout(page) {
+CreateGroup.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

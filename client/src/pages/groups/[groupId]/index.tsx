@@ -4,6 +4,7 @@ import GroupPost from '~/app/_components/groups/group-post';
 // import GroupPostInput from '~/app/_components/groups/group-post-input';
 import GroupPostsList from '~/app/_components/groups/group-posts-list';
 import { InlineLink } from '~/app/_components/ui/inline-link';
+import PlatformLayout from '~/layouts/platform';
 
 export default function Group() {
 	const router = useRouter();
@@ -39,3 +40,7 @@ export default function Group() {
 		</div>
 	);
 }
+
+Group.getLayout = function getLayout(page) {
+	return <PlatformLayout>{page}</PlatformLayout>;
+};
