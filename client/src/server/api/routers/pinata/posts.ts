@@ -33,7 +33,7 @@ export const PinataPostRouter = createTRPCRouter({
 	getMessage: publicProcedure.input(z.object({ hash: z.string() })).query(async ({ input }) => {
 		let post;
 		try {
-			const response = await fetch(`https://tan-late-louse-578.mypinata.cloud/ipfs/${input.hash}`, {
+			const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
 				method: 'GET',
 			});
 			post = await response.json(); // This parses the JSON from the response body
