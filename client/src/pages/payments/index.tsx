@@ -8,16 +8,6 @@ export default function Payments() {
 	return (
 		<div>
 			<h1>Payments</h1>
-			<div>
-				<MinaButton disabled={false} checkInstall={true} type="connnect">
-					{isConnected ? walletDisplayAddress : 'Connect'}
-				</MinaButton>
-				{isConnected == true && (
-					<MinaButton disabled={false} checkInstall={true} type="chain">
-						Switch Chain
-					</MinaButton>
-				)}
-			</div>
 		</div>
 	);
 }
