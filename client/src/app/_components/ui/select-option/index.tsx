@@ -14,6 +14,8 @@ type SelectOptionProps = {
 		name: string;
 	}[];
 	defaultValue?: string;
+	value?: string;
+	onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 
 	// React Hook Form Props
 	validationSchema?: {
@@ -30,7 +32,9 @@ export const SelectOption = ({
 	disabled,
 	required = false,
 	options,
-	defaultValue = '',
+	defaultValue,
+	value,
+	onChange,
 
 	// React Hook Form Props
 	validationSchema,
@@ -51,6 +55,8 @@ export const SelectOption = ({
 				name={name}
 				disabled={disabled}
 				defaultValue={defaultValue}
+				value={value}
+				onChange={onChange}
 				{...register(name, validationSchema)}
 			>
 				{placeholder ? (

@@ -96,6 +96,7 @@ export default function Register() {
 							id="country"
 							name="country"
 							placeholder="-- Please select a country --"
+							defaultValue=""
 							options={[
 								{
 									value: 'AR',
