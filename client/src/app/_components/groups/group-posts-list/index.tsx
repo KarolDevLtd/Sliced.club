@@ -46,7 +46,7 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 		<div className="flex flex-auto w-1/3 overflow-hidden">
 			{isLoading ? (
 				<div>Loading...</div>
-			) : (
+			) : postsData?.posts.length != 0 ? (
 				<ul className="overflow-auto flex flex-col">
 					{posts.map((post) => (
 						<GroupPostItem
@@ -58,6 +58,8 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 						/>
 					))}
 				</ul>
+			) : (
+				<div>There are no posts associated with this group yet</div>
 			)}
 		</div>
 	);
