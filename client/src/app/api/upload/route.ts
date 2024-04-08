@@ -1,16 +1,33 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { NextResponse } from 'next/server';
 
+//Choice for using request over next request: https://www.reddit.com/r/nextjs/comments/12i224x/request_vs_nextrequest_vs_nextapirequest_and/
 export async function GET(req: Request) {
-	const { searchParams } = new URL(req.url);
-	// const { data, error } = await fetch(process.env.BASE_URL + '/route1' + searchParams)
-	return new Response(
-		JSON.stringify({
-			// data: data ? data : [],
-			// error: error ?? ""
-		}),
-		{ status: 200 }
-	);
+	try {
+		const url = new URL(req.url);
+		const searchParams = new URLSearchParams(url.searchParams);
+		const response = await fetch(
+			`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${searchParams.get('imageHash')}`,
+			{
+				method: 'GET',
+			}
+		);
+
+		if (response.ok) {
+			const imageData = await response.blob();
+			return new Response(imageData, { status: 200, headers: { 'Content-Type': 'image/jpeg' } });
+		}
+
+		return new Response(JSON.stringify({ error: 'Image not found' }), {
+			status: 404,
+		});
+	} catch (err) {
+		console.error('Error fetching image:', err);
+		return new Response(JSON.stringify({ err }), {
+			status: 500,
+		});
+	}
 }
 
 export async function POST(req: Request) {

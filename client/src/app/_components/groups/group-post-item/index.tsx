@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -14,10 +14,12 @@ import { api } from '~/trpc/react';
 import { BasicButton } from '../../ui/basic-button';
 import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
+import { MdErrorOutline } from 'react-icons/md';
 import { useWallet } from '~/providers/walletprovider';
 import PostComment from '../post-comment';
 import PostCommentList from '../post-comments-list';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { toast } from 'react-toastify';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -29,6 +31,8 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const [showComments, setShowComments] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
 	const [refreshComments, setRefreshComments] = useState(false);
+	const [imageData, setImageData] = useState<string | null>('');
+	const [hasImage, setHasImage] = useState<boolean>(false);
 
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
@@ -36,7 +40,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const likePostToFirebase = api.FirebasePost.likePost.useMutation();
 	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
 
-	const fetchData = () => {
+	const getData = async () => {
 		setIsLoading(true);
 		try {
 			if (postData) {
@@ -48,20 +52,51 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					setIsLiked(false);
 				}
 				setLikeCount(postLikes!.length);
+
+				//Fetch post image if exists
+				if (currentPost.imageHash != null) {
+					setHasImage(true);
+					await fetchImages();
+				}
 			}
 		} catch (err) {
 			console.log(err);
+			toast.error('Error fetching posts');
 		}
 		setIsLoading(false);
 	};
 
+	const fetchImages = async () => {
+		try {
+			// const response = await fetch(`/api/upload/${currentPost.imageHash}`);
+			const response = await fetch(`/api/upload?imageHash=${currentPost.imageHash}`);
+			if (response.ok) {
+				const blob = await response.blob();
+				const imageUrl = URL.createObjectURL(blob);
+				setImageData(imageUrl);
+			} else {
+				setImageData(null);
+				console.log('Error fetching image');
+			}
+		} catch (err) {
+			console.log(err);
+			toast.error('Error fetching one or more images');
+		}
+	};
+
+	const fetchData = useCallback(async () => {
+		const data = await getData();
+		// setState(data)
+	}, []);
+
 	useEffect(() => {
-		fetchData();
+		//Use void here as do not need result, use state set inside result
+		void getData();
 	}, [likesData?.likes, postData, walletAddress]);
 
 	const toggleComments = () => {
 		setShowComments(!showComments);
-		console.log(showComments);
+		// console.log(showComments);
 	};
 
 	const onLike = async () => {
@@ -69,13 +104,14 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		try {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to like a comment')) return;
 			await likePostToFirebase
-				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
+				.mutateAsync({ postId: currentPost.hash, userId: walletAddress!.toString() })
 				.then(() => {
 					setIsLiked(true);
 					setLikeCount(likeCount + 1);
 				});
 		} catch (err) {
 			console.log('Error liking');
+			toast.error('Error liking post');
 		}
 	};
 
@@ -84,13 +120,14 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		try {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to unlike a comment')) return;
 			await unlikePostToFirebase
-				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
+				.mutateAsync({ postId: currentPost.hash, userId: walletAddress!.toString() })
 				.then(() => {
 					setIsLiked(false);
 					setLikeCount(likeCount - 1);
 				});
 		} catch (err) {
 			console.log('Error unliking');
+			toast.error('Error unliking post');
 		}
 	};
 
@@ -112,6 +149,14 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					<div className="my-5">
 						<div className="text-md mt-2 mx-5">{post?.title}</div>
 						<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
+						{imageData && hasImage ? (
+							<img src={imageData} alt="Image" />
+						) : (
+							<div className="flex flex-col items-center p-5">
+								<MdErrorOutline />
+								Error loading image
+							</div>
+						)}
 					</div>
 
 					<div className="flex justify-between">

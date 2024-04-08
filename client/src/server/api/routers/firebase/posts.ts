@@ -72,12 +72,11 @@ export const FirebasePostRouter = createTRPCRouter({
 			const posts: FirebasePostModel[] = [];
 			await getDocs(q).then((response) => {
 				response.forEach((doc) => {
-					// console.log(doc.data());
 					posts.push({
 						hash: doc.data().message as string,
 						group: doc.data().group as string,
 						posterKey: doc.data().poster as string,
-						imageHash: doc.data().poster as string | null,
+						imageHash: doc.data().image as string | null,
 					});
 				});
 			});

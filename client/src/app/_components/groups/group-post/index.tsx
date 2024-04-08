@@ -30,7 +30,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const [postOpen, setPostOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
-	const [selectedFile, setSelectedFile] = useState();
+	const [selectedFile, setSelectedFile] = useState<string | Blob>();
 
 	const postToIPFS = api.PinataPost.postMessage.useMutation();
 	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
@@ -47,8 +47,11 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		setPostOpen(true);
 	};
 
-	const changeHandler = (event: any) => {
-		setSelectedFile(event.target.files[0]);
+	const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const files = event.target.files;
+		if (files && files.length > 0) {
+			setSelectedFile(files[0]);
+		}
 	};
 
 	const {
@@ -76,6 +79,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
+			toast.error('Error submitting post');
 		} finally {
 			setIsLoading(false);
 		}
@@ -85,7 +89,8 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		try {
 			const body = new FormData();
 			//Must be set to 'file' for no 400
-			body.set('file', selectedFile);
+			//'!' against file as checking for non-null before calling this func.
+			body.set('file', selectedFile!);
 			const response = await fetch('/api/upload', {
 				method: 'POST',
 				body,
@@ -97,8 +102,8 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			if (!result) throw new Error('Error uploading profile image');
 			return result;
 		} catch (error) {
-			console.log('Error sending File to IPFS: ');
 			console.log(error);
+			toast.error('Error pinning image');
 		}
 	};
 
@@ -127,6 +132,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			});
 		} catch (err) {
 			console.log(err);
+			toast.error('Error making post');
 		} finally {
 			setIsLoading(false);
 		}
