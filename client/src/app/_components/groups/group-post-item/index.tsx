@@ -20,6 +20,10 @@ import PostComment from '../post-comment';
 import PostCommentList from '../post-comments-list';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
+import { Controlled as ControlledZoom } from 'react-medium-image-zoom';
+import Zoom from 'react-medium-image-zoom';
+import 'react-medium-image-zoom/dist/styles.css';
+import Image from 'next/image';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -33,6 +37,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const [refreshComments, setRefreshComments] = useState(false);
 	const [imageData, setImageData] = useState<string | null>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
+	const [isZoomed, setIsZoomed] = useState(false);
 
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
@@ -131,6 +136,10 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		setRefreshComments(refreshing);
 	};
 
+	const handleZoomChange = useCallback((shouldZoom) => {
+		setIsZoomed(shouldZoom);
+	}, []);
+
 	return (
 		<div className="flex flex-col my-2 rounded-xl shadow-sm bg-white border-solid border-2 border-indigo-100">
 			{isLoading ? (
@@ -146,7 +155,9 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
 						{hasImage ? (
 							imageData != null ? (
-								<img src={imageData} alt="Image" />
+								<ControlledZoom isZoomed={isZoomed} onZoomChange={handleZoomChange}>
+									<Image src={imageData} width={250} height={250} alt="Uploaded image" />
+								</ControlledZoom>
 							) : (
 								<div className="flex flex-col items-center p-5">
 									<MdErrorOutline />
