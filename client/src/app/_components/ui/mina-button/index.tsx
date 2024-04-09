@@ -7,6 +7,7 @@ import { GoArrowSwitch } from 'react-icons/go';
 
 import { useWallet } from '~/providers/walletprovider';
 import { SelectOption } from '../select-option';
+import { MinaChainOptions } from '~/models/chain-options';
 
 type MinaButtonTypes = 'chain' | 'connect';
 
@@ -70,20 +71,7 @@ export const MinaButton = ({ types, disabled }: MinaButtonProps) => {
 						name="wallet-chain"
 						value={selectedValue}
 						onChange={(e) => handleSelectChange(e)}
-						options={[
-							{
-								value: 'mainnet',
-								name: 'mainnet',
-							},
-							{
-								value: 'devnet',
-								name: 'devnet',
-							},
-							{
-								value: 'berkeley',
-								name: 'berkeley',
-							},
-						]}
+						options={MinaChainOptions}
 					/>
 				</>
 			)}
