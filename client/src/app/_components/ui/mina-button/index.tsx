@@ -1,22 +1,25 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import React, { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+
 import { BasicButton } from '../basic-button';
+import { SelectOption } from '../select-option';
 
 import { FaWallet } from 'react-icons/fa';
 import { GoArrowSwitch } from 'react-icons/go';
 
 import { useWallet } from '~/providers/walletprovider';
-import { SelectOption } from '../select-option';
 import { MinaChainOptions } from '~/models/chain-options';
 
 type MinaButtonTypes = 'chain' | 'connect';
 
 export type MinaButtonProps = {
-	types?: MinaButtonTypes[];
+	types: MinaButtonTypes[];
+	checkInstall?: boolean;
 	disabled?: boolean;
 };
 
-export const MinaButton = ({ types, disabled }: MinaButtonProps) => {
+export const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) => {
 	const { walletDisplayAddress, isConnected, tryConnectWallet, tryChainChange, chainType } = useWallet();
 	const [selectedValue, setSelectedValue] = useState('');
 
@@ -35,6 +38,13 @@ export const MinaButton = ({ types, disabled }: MinaButtonProps) => {
 		setSelectedValue(event.target.value);
 	};
 
+	const onClickBtn = useCallback(() => {
+		if (checkInstall && !window?.mina) {
+			toast.error('No provider was found - please install Auro Wallet');
+			return;
+		}
+	}, [checkInstall]);
+
 	useEffect(() => {
 		onClickConnect(true);
 		setSelectedValue(chainType!);
@@ -42,25 +52,27 @@ export const MinaButton = ({ types, disabled }: MinaButtonProps) => {
 
 	return (
 		<div className="flex flex-col gap-1">
-			{types?.includes('connect') && (
+			{types.includes('connect') && (
 				<BasicButton
 					type="tertiary"
 					icon={<FaWallet />}
 					disabled={disabled}
 					onClick={() => {
+						onClickBtn;
 						void onClickConnect(false);
 					}}
 				>
 					{isConnected ? walletDisplayAddress : 'Connect'}
 				</BasicButton>
 			)}
-			{isConnected && types?.includes('chain') && (
+			{isConnected && types.includes('chain') && (
 				<>
 					<BasicButton
 						type="tertiary"
 						icon={<GoArrowSwitch />}
 						disabled={disabled}
 						onClick={() => {
+							onClickBtn;
 							void onClickChain();
 						}}
 					>
