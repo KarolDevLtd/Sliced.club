@@ -36,7 +36,7 @@ export const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 				<SidebarItem text="Notifications" href="/notifications" icon={<IoMdNotifications />} />
 				<SidebarItem text="Settings" href="/settings" icon={<IoIosSettings />} />
 			</div>
-			<MinaButton />
+			<MinaButton types={['connect', 'chain']} />
 			<div className="min-w-full">
 				<LogoutButton />
 			</div>

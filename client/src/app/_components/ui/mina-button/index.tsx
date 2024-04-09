@@ -8,11 +8,14 @@ import { GoArrowSwitch } from 'react-icons/go';
 import { useWallet } from '~/providers/walletprovider';
 import { SelectOption } from '../select-option';
 
-export type IMinaButton = {
+type MinaButtonTypes = 'chain' | 'connect';
+
+export type MinaButtonProps = {
+	types?: MinaButtonTypes[];
 	disabled?: boolean;
 };
 
-export const MinaButton = ({ disabled }: IMinaButton) => {
+export const MinaButton = ({ types, disabled }: MinaButtonProps) => {
 	const { walletDisplayAddress, isConnected, tryConnectWallet, tryChainChange, chainType } = useWallet();
 	const [selectedValue, setSelectedValue] = useState('');
 
@@ -38,17 +41,19 @@ export const MinaButton = ({ disabled }: IMinaButton) => {
 
 	return (
 		<div className="flex flex-col gap-1">
-			<BasicButton
-				type="tertiary"
-				icon={<FaWallet />}
-				disabled={disabled}
-				onClick={() => {
-					void onClickConnect(false);
-				}}
-			>
-				{isConnected ? walletDisplayAddress : 'Connect'}
-			</BasicButton>
-			{isConnected && (
+			{types?.includes('connect') && (
+				<BasicButton
+					type="tertiary"
+					icon={<FaWallet />}
+					disabled={disabled}
+					onClick={() => {
+						void onClickConnect(false);
+					}}
+				>
+					{isConnected ? walletDisplayAddress : 'Connect'}
+				</BasicButton>
+			)}
+			{isConnected && types?.includes('chain') && (
 				<>
 					<BasicButton
 						type="tertiary"
