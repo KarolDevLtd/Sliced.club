@@ -20,6 +20,7 @@ import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { Spinner } from '../../ui/spinner';
+import DragDrop from '../../ui/drag-drop';
 
 type GroupPostProps = {
 	groupId: string;
@@ -184,8 +185,9 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 						/>
 						<div className="w-100 flex justify-end items-center gap-2">
 							<>
-								<label className="form-label"> Choose File</label>
-								<input type="file" onChange={changeHandler} />
+								{/* <label className="form-label"> Choose File</label>
+								<input type="file" onChange={changeHandler} /> */}
+								<DragDrop />
 							</>
 							<BasicButton
 								type="primary"
