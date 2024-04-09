@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
 
-const DragDrop: React.FC = () => {
+const DragDrop = () => {
 	const [images, setImages] = useState<File[]>([]);
 
 	const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
