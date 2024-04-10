@@ -1,9 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { z } from 'zod';
 import { firestore } from 'src/firebaseConfig';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
@@ -24,7 +18,7 @@ export const FirebasePostRouter = createTRPCRouter({
 				posterKey: z.string(),
 				groupId: z.string(),
 				messageHash: z.string(),
-				imageHash: z.string().nullable(),
+				imageHash: z.array(z.string().nullish()),
 				dateTime: z.string(),
 			})
 		)
@@ -36,7 +30,8 @@ export const FirebasePostRouter = createTRPCRouter({
 				image: input.imageHash,
 				datetime: input.dateTime,
 			};
-			addDoc(postCollection, post);
+			//https://stackoverflow.com/questions/55558875/void-before-promise-syntax
+			void addDoc(postCollection, post);
 			return { post };
 		}),
 
@@ -96,7 +91,7 @@ export const FirebasePostRouter = createTRPCRouter({
 				postId: input.postId,
 				userId: input.userId,
 			};
-			addDoc(likesCollection, like);
+			void addDoc(likesCollection, like);
 			return { like };
 		}),
 
@@ -115,8 +110,8 @@ export const FirebasePostRouter = createTRPCRouter({
 				where('userId', '==', input.userId)
 			);
 			const likesSnapshot = await getDocs(query);
-			likesSnapshot.forEach(async (likeDoc) => {
-				await deleteDoc(likeDoc.ref);
+			likesSnapshot.forEach((likeDoc) => {
+				void deleteDoc(likeDoc.ref);
 			});
 			return { success: true };
 		}),
@@ -160,7 +155,7 @@ export const FirebasePostRouter = createTRPCRouter({
 				commentContent: input.commentContent,
 				datetime: input.dateTime,
 			};
-			addDoc(commentCollection, comment);
+			void addDoc(commentCollection, comment);
 			return { comment };
 		}),
 

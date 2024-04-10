@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -20,10 +21,7 @@ import PostComment from '../post-comment';
 import PostCommentList from '../post-comments-list';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
-import { Controlled as ControlledZoom } from 'react-medium-image-zoom';
-import Zoom from 'react-medium-image-zoom';
-import 'react-medium-image-zoom/dist/styles.css';
-import Image from 'next/image';
+import ZoomableImage from '../../ui/zoomable-image';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -35,9 +33,8 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const [showComments, setShowComments] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
 	const [refreshComments, setRefreshComments] = useState(false);
-	const [imageData, setImageData] = useState<string | null>();
+	const [imageData, setImageData] = useState<string[]>([]);
 	const [hasImage, setHasImage] = useState<boolean>(false);
-	const [isZoomed, setIsZoomed] = useState(false);
 
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
@@ -59,9 +56,13 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 				setLikeCount(postLikes!.length);
 
 				//Fetch post image if exists
-				if (currentPost.imageHash != null) {
+				if (currentPost.imageHash!.length > 0) {
 					setHasImage(true);
-					await fetchImages();
+					if (Array.isArray(currentPost.imageHash)) {
+						currentPost.imageHash.forEach(async (element: string) => {
+							await fetchImages(element);
+						});
+					}
 				}
 			}
 		} catch (err) {
@@ -71,16 +72,15 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		setIsLoading(false);
 	};
 
-	const fetchImages = async () => {
+	const fetchImages = async (imageHash: string) => {
 		try {
 			// const response = await fetch(`/api/upload/${currentPost.imageHash}`);
-			const response = await fetch(`/api/upload?imageHash=${currentPost.imageHash}`);
+			const response = await fetch(`/api/upload?imageHash=${imageHash}`);
 			if (response.ok) {
 				const blob = await response.blob();
 				const imageUrl = URL.createObjectURL(blob);
-				setImageData(imageUrl);
+				setImageData((prevImageData) => [...prevImageData, imageUrl]);
 			} else {
-				setImageData(null);
 				console.log('Error fetching image');
 			}
 		} catch (err) {
@@ -136,10 +136,6 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		setRefreshComments(refreshing);
 	};
 
-	const handleZoomChange = useCallback((shouldZoom) => {
-		setIsZoomed(shouldZoom);
-	}, []);
-
 	return (
 		<div className="flex flex-col my-2 rounded-xl shadow-sm bg-white border-solid border-2 border-indigo-100">
 			{isLoading ? (
@@ -153,18 +149,17 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					<div className="my-5">
 						<div className="text-md mt-2 mx-5">{post?.title}</div>
 						<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
-						{hasImage ? (
-							imageData != null ? (
-								<ControlledZoom isZoomed={isZoomed} onZoomChange={handleZoomChange}>
-									<Image src={imageData} width={250} height={250} alt="Uploaded image" />
-								</ControlledZoom>
-							) : (
-								<div className="flex flex-col items-center p-5">
-									<MdErrorOutline />
-									Error loading image
-								</div>
-							)
-						) : null}
+						{imageData.map(function (value, index) {
+							return (
+								<ZoomableImage
+									key={value}
+									source={value}
+									width={200}
+									height={200}
+									alt={`Uploaded image ${index}`}
+								/>
+							);
+						})}
 					</div>
 
 					<div className="flex justify-between">
