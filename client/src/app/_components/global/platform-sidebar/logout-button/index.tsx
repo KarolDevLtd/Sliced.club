@@ -10,7 +10,7 @@ export const LogoutButton = () => {
 
 	const handleLogOut = () => {
 		logOutUser();
-		void router.push('/?logout=success');
+		void router.push('/login?logout=success');
 	};
 
 	return (

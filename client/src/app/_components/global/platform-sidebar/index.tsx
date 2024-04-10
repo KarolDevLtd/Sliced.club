@@ -27,7 +27,7 @@ export const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 				<p className="text-center mb-6">
 					<Link href="/">Sliced</Link>
 				</p>
-				<SidebarItem text="Home" href="/dashboard" icon={<FaHome />} />
+				<SidebarItem text="Home" href="/" icon={<FaHome />} />
 				<SidebarItem text="Groups" href="/groups" icon={<FaUserGroup />} />
 				<SidebarItem text="My Products" href="/products" icon={<FaShoppingCart />} />
 				<SidebarItem text="My Payments" href="/payments" icon={<FaMoneyBill />} />
