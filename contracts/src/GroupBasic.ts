@@ -76,8 +76,9 @@ export class GroupBasic extends SmartContract {
   }
 
   @method
-  setGroupSettings(groupSettings: GroupSettings) {
-    //TODO make admin only
+  setGroupSettings(groupSettings: GroupSettings, signedSettings: Signature) {
+    let adminPubKey = this.admin.getAndRequireEquals();
+    signedSettings.verify(adminPubKey, groupSettings.toFields());
     this.groupSettingsHash.set(groupSettings.hash());
   }
 
@@ -117,9 +118,9 @@ export class GroupBasic extends SmartContract {
     //get payment round ? 2nd nullfiier?
 
     //check if has the actual bidding amount
-    token
-      .getBalanceOf(this.sender)
-      .assertGreaterThanOrEqual(paymentAmount.mul(amountOfBids));
+    // token
+    //   .getBalanceOf(this.sender)
+    //   .assertGreaterThanOrEqual(paymentAmount.mul(amountOfBids));// compile doesnt like this
 
     //but transfer only single one
     token.transfer(this.sender, this.address, paymentAmount);

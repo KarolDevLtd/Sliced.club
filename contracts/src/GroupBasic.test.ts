@@ -9,6 +9,7 @@ import {
   AccountUpdate,
   UInt32,
   UInt64,
+  Signature,
 } from 'o1js';
 
 /*
@@ -18,7 +19,7 @@ import {
  * See https://docs.minaprotocol.com/zkapps for more info.
  */
 
-let proofsEnabled = false; // TODO fix groupSettingHash.getAndRequireEquals
+let proofsEnabled = true;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -49,7 +50,11 @@ describe('GroupBasic', () => {
     .mul(new UInt32(2));
 
   beforeAll(async () => {
-    if (proofsEnabled) await GroupBasic.compile();
+    if (proofsEnabled) {
+      await GroupBasic.compile();
+      await FungibleToken.compile();
+      console.log('compiled');
+    }
     const Local = Mina.LocalBlockchain({ proofsEnabled });
     Mina.setActiveInstance(Local);
     [deployer, admin, organiser, alexa, billy, charlie, jackie] = testAccounts =
@@ -152,9 +157,10 @@ describe('GroupBasic', () => {
   });
 
   it('correctly sets the group settings ', async () => {
+    let sig = Signature.create(organiser.privateKey, GROUP_SETTINGS.toFields());
     // update transaction
     const txn = await Mina.transaction(organiser.publicKey, () => {
-      group.setGroupSettings(GROUP_SETTINGS);
+      group.setGroupSettings(GROUP_SETTINGS, sig);
     });
     await txn.prove();
     await txn.sign([organiser.privateKey]).send();
