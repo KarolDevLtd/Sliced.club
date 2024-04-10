@@ -13,16 +13,6 @@ export default function EditProfile() {
 	return (
 		<div>
 			<h1>User ID: {userId}</h1>
-			<div>
-				<MinaButton disabled={false} checkInstall={true} type="connnect">
-					{isConnected ? walletDisplayAddress : 'Connect'}
-				</MinaButton>
-				{isConnected == true && (
-					<MinaButton disabled={false} checkInstall={true} type="chain">
-						Switch Chain
-					</MinaButton>
-				)}
-			</div>
 		</div>
 	);
 }

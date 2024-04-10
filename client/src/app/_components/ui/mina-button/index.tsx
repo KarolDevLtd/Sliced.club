@@ -1,63 +1,92 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import React, { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+
 import { BasicButton } from '../basic-button';
+import { SelectOption } from '../select-option';
 
 import { FaWallet } from 'react-icons/fa';
-import { useWallet } from '~/providers/walletprovider';
+import { GoArrowSwitch } from 'react-icons/go';
 
-export type IMinaButton = {
-	children?: React.ReactNode;
-	disabled?: boolean;
+import { useWallet } from '~/providers/walletprovider';
+import { MinaChainOptions } from '~/models/chain-options';
+
+type MinaButtonTypes = 'chain' | 'connect';
+
+export type MinaButtonProps = {
+	types: MinaButtonTypes[];
 	checkInstall?: boolean;
-	type?: 'chain' | 'connnect';
+	disabled?: boolean;
 };
 
-export const MinaButton = ({ children, disabled, checkInstall = true, type }: IMinaButton) => {
+export const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) => {
 	const { walletDisplayAddress, isConnected, tryConnectWallet, tryChainChange, chainType } = useWallet();
-	const [isClient, setIsClient] = useState(false);
 	const [selectedValue, setSelectedValue] = useState('');
 
-	const onClickConnect = useCallback(async (isOnLoad: boolean) => {
-		await tryConnectWallet(isOnLoad);
-	}, []);
+	const onClickConnect = useCallback(
+		async (isOnLoad: boolean) => {
+			await tryConnectWallet(isOnLoad);
+		},
+		[tryConnectWallet]
+	);
 
 	const onClickChain = useCallback(async () => {
 		await tryChainChange(selectedValue);
-	}, [selectedValue]);
+	}, [selectedValue, tryChainChange]);
 
 	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		setSelectedValue(event.target.value);
 	};
 
+	const onClickBtn = useCallback(() => {
+		if (checkInstall && !window?.mina) {
+			toast.error('No provider was found - please install Auro Wallet');
+			return;
+		}
+	}, [checkInstall]);
+
 	useEffect(() => {
-		setIsClient(true);
 		onClickConnect(true);
 		setSelectedValue(chainType!);
 	}, [onClickConnect, chainType]);
 
 	return (
-		<div>
-			<BasicButton
-				type="tertiary"
-				icon={<FaWallet />}
-				disabled={disabled}
-				onClick={() => {
-					type == 'chain' ? void onClickChain() : void onClickConnect(false);
-				}}
-			>
-				{children}
-			</BasicButton>
-			{type == 'chain' ? (
-				<select value={selectedValue} onChange={(e) => handleSelectChange(e)}>
-					<option value="mainnet">mainnet</option>
-					<option value="devnet">devnet</option>
-					<option value="berkeley">berkeley</option>
-				</select>
-			) : null}
+		<div className="flex flex-col gap-1">
+			{types.includes('connect') && (
+				<BasicButton
+					type="tertiary"
+					icon={<FaWallet />}
+					disabled={disabled}
+					onClick={() => {
+						onClickBtn;
+						void onClickConnect(false);
+					}}
+				>
+					{isConnected ? walletDisplayAddress : 'Connect'}
+				</BasicButton>
+			)}
+			{isConnected && types.includes('chain') && (
+				<>
+					<BasicButton
+						type="tertiary"
+						icon={<GoArrowSwitch />}
+						disabled={disabled}
+						onClick={() => {
+							onClickBtn;
+							void onClickChain();
+						}}
+					>
+						Switch Chain
+					</BasicButton>
+					<SelectOption
+						id="wallet-chain"
+						name="wallet-chain"
+						value={selectedValue}
+						onChange={(e) => handleSelectChange(e)}
+						options={MinaChainOptions}
+					/>
+				</>
+			)}
 		</div>
 	);
 };

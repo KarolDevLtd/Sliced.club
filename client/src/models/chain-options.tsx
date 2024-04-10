@@ -1,10 +1,10 @@
 export type MinaChainDropdownOptions = {
 	value: string;
-	label: string;
+	name: string;
 };
 
 export const MinaChainOptions: MinaChainDropdownOptions[] = [
-	{ value: 'mainnet', label: 'Mainnet' },
-	{ value: 'devnet', label: 'Devnet' },
-	{ value: 'berkeley', label: 'Berkeley' },
+	{ value: 'mainnet', name: 'Mainnet' },
+	{ value: 'devnet', name: 'Devnet' },
+	{ value: 'berkeley', name: 'Berkeley' },
 ];

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 
 import { SidebarItem } from './sidebar-item';
+import { MinaButton } from '../../ui/mina-button';
 import { LogoutButton } from './logout-button';
 
 import { FaHome } from 'react-icons/fa';
@@ -35,7 +36,8 @@ export const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 				<SidebarItem text="Notifications" href="/notifications" icon={<IoMdNotifications />} />
 				<SidebarItem text="Settings" href="/settings" icon={<IoIosSettings />} />
 			</div>
-			<div className="min-w-full flex flex-col">
+			<MinaButton types={['connect', 'chain']} />
+			<div className="min-w-full">
 				<LogoutButton />
 			</div>
 		</aside>
