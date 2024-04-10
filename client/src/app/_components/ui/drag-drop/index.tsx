@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable react/jsx-no-undef */
 import React, { useState } from 'react';
@@ -5,9 +6,12 @@ import Image from 'next/image';
 import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
 
-const DragDrop = () => {
-	const [images, setImages] = useState<File[]>([]);
+type DragDropProps = {
+	images: File[];
+	setImages: (any) => void;
+};
 
+const DragDrop = ({ images, setImages }: DragDropProps) => {
 	const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
 		event.preventDefault();
 		const files = Array.from(event.dataTransfer.files);

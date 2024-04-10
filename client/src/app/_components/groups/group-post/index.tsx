@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -31,12 +32,13 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const [postOpen, setPostOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
-	const [selectedFile, setSelectedFile] = useState<string | Blob>();
 
 	const postToIPFS = api.PinataPost.postMessage.useMutation();
 	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
+	const [images, setImages] = useState<File[]>([]);
+
 	const hidePostInput = () => {
 		setPostOpen(false);
 		// Clears form validation errors when closing modal
@@ -46,13 +48,6 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const showPostInput = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
 		setPostOpen(true);
-	};
-
-	const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const files = event.target.files;
-		if (files && files.length > 0) {
-			setSelectedFile(files[0]);
-		}
 	};
 
 	const {
@@ -81,60 +76,67 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
-			toast.error('Error submitting post');
+			toast.error('Post was not submitted');
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
-	const saveImage = async () => {
+	const saveImages = async () => {
+		const imgArr: Response[] = [];
 		try {
-			const body = new FormData();
-			//Must be set to 'file' for no 400
-			//'!' against file as checking for non-null before calling this func.
-			body.set('file', selectedFile!);
-			const response = await fetch('/api/upload', {
-				method: 'POST',
-				body,
-			});
-			if (!response.ok) {
-				throw new Error('Error uploading profile image');
+			for (const element of images) {
+				const body = new FormData();
+				body.set('file', element);
+				const response = await fetch('/api/upload', {
+					method: 'POST',
+					body,
+				});
+				if (!response.ok) {
+					throw new Error('Error uploading profile image');
+				}
+				const result: Response = await response.json();
+				if (!result) throw new Error('Error uploading profile image');
+				imgArr.push(result);
 			}
-			const result: Response = await response.json();
-			if (!result) throw new Error('Error uploading profile image');
-			return result;
+			return imgArr;
 		} catch (error) {
 			console.log(error);
 			toast.error('Error pinning image');
+			return [];
 		}
 	};
 
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
-			let postImgIPFS;
+			let postImgsIPFS;
+			let imageHashes;
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
+			if (images) {
+				postImgsIPFS = await saveImages();
+				//map ipfsHashes of all uploaded images to array
+				imageHashes = postImgsIPFS.map(function (item) {
+					return item.data.IpfsHash;
+				});
+			}
 			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
 			const postMsgIPFS = await postToIPFS.mutateAsync({
 				title: title,
 				content: content,
 			});
-
-			if (selectedFile) {
-				postImgIPFS = await saveImage();
-				console.log(postImgIPFS.data);
-			}
-			const postMsgFirebase = await postToFirebase.mutateAsync({
+			await postToFirebase.mutateAsync({
 				posterKey: walletAddress!.toString(),
 				groupId: groupId,
 				messageHash: postMsgIPFS.data.IpfsHash,
-				imageHash: selectedFile ? postImgIPFS.data.IpfsHash : null,
+				imageHash: imageHashes,
 				dateTime: DateTime.now().toString(),
 			});
 		} catch (err) {
 			console.log(err);
-			toast.error('Error making post');
+			toast.error('Error saving post');
+			throw err;
 		} finally {
 			setIsLoading(false);
 		}
@@ -185,9 +187,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 						/>
 						<div className="w-100 flex justify-end items-center gap-2">
 							<>
-								{/* <label className="form-label"> Choose File</label>
-								<input type="file" onChange={changeHandler} /> */}
-								<DragDrop />
+								<DragDrop images={images} setImages={setImages} />
 							</>
 							<BasicButton
 								type="primary"
