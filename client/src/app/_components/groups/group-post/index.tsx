@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -20,6 +21,7 @@ import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { compressImage } from '~/helpers/compressor';
 import { Spinner } from '../../ui/spinner';
 import DragDrop from '../../ui/drag-drop';
 
@@ -82,6 +84,26 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		}
 	};
 
+	const handleSetImages = async (images: File[], removing: boolean) => {
+		try {
+			console.log(images);
+
+			//on removing from previw no need to compress
+			if (!removing) {
+				const compressedImages = await Promise.all(
+					images.map(async (file) => {
+						return await compressImage(file);
+					})
+				);
+				// Update images state with the compressed images
+				setImages((prevImages) => [...prevImages, ...compressedImages]);
+			} else setImages(images);
+		} catch (err) {
+			console.log(err);
+			toast.error('Could not upload one or more of your images');
+		}
+	};
+
 	const saveImages = async () => {
 		const imgArr: Response[] = [];
 		try {
@@ -139,6 +161,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			throw err;
 		} finally {
 			setIsLoading(false);
+			setImages([]);
 		}
 	};
 
@@ -178,16 +201,16 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							errors={errors}
 							register={register}
 							validationSchema={{
-								required: 'Post Title is required',
+								required: 'Post Content is required',
 								minLength: {
 									value: 20,
-									message: 'Post Title must be at least 20 characters',
+									message: 'Post Content must be at least 20 characters',
 								},
 							}}
 						/>
 						<div className="w-100 flex justify-end items-center gap-2">
 							<>
-								<DragDrop images={images} setImages={setImages} />
+								<DragDrop images={images} handleSetImages={handleSetImages} />
 							</>
 							<BasicButton
 								type="primary"

@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable react/jsx-no-undef */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Zoom from 'react-medium-image-zoom';
@@ -8,10 +8,10 @@ import 'react-medium-image-zoom/dist/styles.css';
 
 type DragDropProps = {
 	images: File[];
-	setImages: (any) => void;
+	handleSetImages: (files: any, removing: boolean) => void;
 };
 
-const DragDrop = ({ images, setImages }: DragDropProps) => {
+const DragDrop = ({ images, handleSetImages }: DragDropProps) => {
 	const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
 		event.preventDefault();
 		const files = Array.from(event.dataTransfer.files);
@@ -19,10 +19,12 @@ const DragDrop = ({ images, setImages }: DragDropProps) => {
 	};
 
 	const handleFiles = (files: File[]) => {
-		const validFiles = files.filter((file) => file.type === 'image/jpeg' || file.type === 'image/png');
+		const validFiles = files.filter(
+			(file) => file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
+		);
 		const remainingSlots = 3 - images.length;
 		const newImages = validFiles.slice(0, remainingSlots);
-		setImages((prevImages) => [...prevImages, ...newImages]);
+		handleSetImages(newImages, false);
 	};
 
 	//SP - Leaving here in case wish to add back button at later date
@@ -34,12 +36,12 @@ const DragDrop = ({ images, setImages }: DragDropProps) => {
 	const removeImage = (index: number) => {
 		const updatedImages = [...images];
 		updatedImages.splice(index, 1);
-		setImages(updatedImages);
+		handleSetImages(updatedImages, true);
 	};
 
 	const removeImagePreview = (file: File) => {
 		const updatedImages = images.filter((image) => image !== file);
-		setImages(updatedImages);
+		handleSetImages(updatedImages, true);
 	};
 
 	return (
