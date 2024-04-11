@@ -15,7 +15,6 @@ import { api } from '~/trpc/react';
 import { BasicButton } from '../../ui/basic-button';
 import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
-import { MdErrorOutline } from 'react-icons/md';
 import { useWallet } from '~/providers/walletprovider';
 import PostComment from '../post-comment';
 import PostCommentList from '../post-comments-list';
@@ -43,19 +42,11 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const likePostToFirebase = api.FirebasePost.likePost.useMutation();
 	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
 
-	const fetchData = async () => {
+	const fetchImageData = async () => {
 		setIsLoading(true);
 		try {
 			if (postData) {
 				setPost(postData.post);
-				const postLikes = likesData?.likes;
-				if (postLikes?.some((e) => e.posterKey === walletAddress?.toString())) {
-					setIsLiked(true);
-				} else {
-					setIsLiked(false);
-				}
-				setLikeCount(postLikes!.length);
-
 				//Fetch post image if exists
 				if (currentPost.imageHash!.length > 0) {
 					setHasImage(true);
@@ -68,7 +59,27 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			}
 		} catch (err) {
 			console.log(err);
-			toast.error('Error fetching posts');
+			// toast.error('Error posts images for post');
+		}
+		setIsLoading(false);
+	};
+
+	const fetchLikeData = async () => {
+		setIsLoading(true);
+		try {
+			if (postData) {
+				setPost(postData.post);
+				const postLikes = likesData?.likes;
+				if (postLikes?.some((e) => e.posterKey === walletAddress?.toString())) {
+					setIsLiked(true);
+				} else {
+					setIsLiked(false);
+				}
+				setLikeCount(postLikes!.length);
+			}
+		} catch (err) {
+			console.log(err);
+			// toast.error('Error fetching likes for post');
 		}
 		setIsLoading(false);
 	};
@@ -93,12 +104,16 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 
 	useEffect(() => {
 		//Use void here as do not need result, use state set inside result
-		void fetchData();
-	}, [likesData?.likes, postData, walletAddress]);
+		void fetchImageData();
+		void fetchLikeData();
+	}, [postData, walletAddress]);
+
+	useEffect(() => {
+		void fetchLikeData();
+	}, [likesData?.likes]);
 
 	const toggleComments = () => {
 		setShowComments(!showComments);
-		// console.log(showComments);
 	};
 
 	const onLike = async () => {
@@ -112,7 +127,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					setLikeCount(likeCount + 1);
 				});
 		} catch (err) {
-			console.log('Error liking');
+			// console.log('Error liking');
 			toast.error('Error liking post');
 		}
 	};
@@ -151,7 +166,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					<div className="my-5">
 						<div className="text-md mt-2 mx-5">{post?.title}</div>
 						<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
-						<div className="flex inline-block">
+						<div className="flex inline-block justify-center">
 							{imageData.map(function (value, index) {
 								return (
 									<div key={value} className="p-2">

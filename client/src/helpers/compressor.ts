@@ -7,11 +7,11 @@ const options = {
 };
 
 const compressImage = async (imageFile: File): Promise<File> => {
-	console.log('originalFile instanceof Blob', imageFile instanceof Blob);
-	console.log(`originalFile size ${imageFile.size / 1024 / 1024} MB`);
+	// console.log('originalFile instanceof Blob', imageFile instanceof Blob);
+	// console.log(`originalFile size ${imageFile.size / 1024 / 1024} MB`);
 	const compressedFile = await imageCompression(imageFile, options);
-	console.log('compressedFile instanceof Blob', compressedFile instanceof Blob);
-	console.log(`compressedFile size ${compressedFile.size / 1024 / 1024} MB`); // ensure smaller than maxSizeMB
+	// console.log('compressedFile instanceof Blob', compressedFile instanceof Blob);
+	// console.log(`compressedFile size ${compressedFile.size / 1024 / 1024} MB`); // ensure smaller than maxSizeMB
 
 	return compressedFile;
 };
