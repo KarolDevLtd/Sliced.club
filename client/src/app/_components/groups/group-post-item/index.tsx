@@ -86,7 +86,6 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 
 	const fetchImages = async (imageHash: string) => {
 		try {
-			// const response = await fetch(`/api/upload/${currentPost.imageHash}`);
 			const response = await fetch(`/api/upload?imageHash=${imageHash}`);
 			if (response.ok) {
 				const blob = await response.blob();
@@ -105,12 +104,11 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	useEffect(() => {
 		//Use void here as do not need result, use state set inside result
 		void fetchImageData();
-		void fetchLikeData();
-	}, [postData, walletAddress]);
+	}, [postData]);
 
 	useEffect(() => {
 		void fetchLikeData();
-	}, [likesData?.likes]);
+	}, [likesData?.likes, postData, walletAddress]);
 
 	const toggleComments = () => {
 		setShowComments(!showComments);
