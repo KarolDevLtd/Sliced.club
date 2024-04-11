@@ -35,6 +35,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const [refreshComments, setRefreshComments] = useState(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [hasImage, setHasImage] = useState<boolean>(false);
+	const [imageError, setImageError] = useState(false);
 
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
@@ -82,6 +83,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 				setImageData((prevImageData) => [...prevImageData, imageUrl]);
 			} else {
 				console.log('Error fetching image');
+				setImageError(true);
 			}
 		} catch (err) {
 			console.log(err);
@@ -163,6 +165,11 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 								);
 							})}
 						</div>
+						{imageError ? (
+							<div className="mt-1 text-xs text-red-error">
+								{'There was an error fetching one or more image'}
+							</div>
+						) : null}
 					</div>
 
 					<div className="flex justify-between">
