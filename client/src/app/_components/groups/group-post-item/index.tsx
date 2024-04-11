@@ -42,6 +42,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const likePostToFirebase = api.FirebasePost.likePost.useMutation();
 	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
 
+	//Get data from Firebase
 	const fetchImageData = async () => {
 		setIsLoading(true);
 		try {
@@ -59,11 +60,29 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			}
 		} catch (err) {
 			console.log(err);
-			// toast.error('Error posts images for post');
+			toast.error('Error fetching one or more images');
 		}
 		setIsLoading(false);
 	};
 
+	//Get image from IPFS
+	const fetchImages = async (imageHash: string) => {
+		try {
+			const response = await fetch(`/api/upload?imageHash=${imageHash}`);
+			if (response.ok) {
+				const blob = await response.blob();
+				const imageUrl = URL.createObjectURL(blob);
+				setImageData((prevImageData) => [...prevImageData, imageUrl]);
+			} else {
+				console.log('Error fetching image');
+				setImageError(true);
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
+	//Get likes from Firebase
 	const fetchLikeData = async () => {
 		setIsLoading(true);
 		try {
@@ -79,39 +98,9 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			}
 		} catch (err) {
 			console.log(err);
-			// toast.error('Error fetching likes for post');
+			toast.error('Error fetching likes for post');
 		}
 		setIsLoading(false);
-	};
-
-	const fetchImages = async (imageHash: string) => {
-		try {
-			const response = await fetch(`/api/upload?imageHash=${imageHash}`);
-			if (response.ok) {
-				const blob = await response.blob();
-				const imageUrl = URL.createObjectURL(blob);
-				setImageData((prevImageData) => [...prevImageData, imageUrl]);
-			} else {
-				console.log('Error fetching image');
-				setImageError(true);
-			}
-		} catch (err) {
-			console.log(err);
-			toast.error('Error fetching one or more images');
-		}
-	};
-
-	useEffect(() => {
-		//Use void here as do not need result, use state set inside result
-		void fetchImageData();
-	}, [postData]);
-
-	useEffect(() => {
-		void fetchLikeData();
-	}, [likesData?.likes, postData, walletAddress]);
-
-	const toggleComments = () => {
-		setShowComments(!showComments);
 	};
 
 	const onLike = async () => {
@@ -146,10 +135,23 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		}
 	};
 
+	const toggleComments = () => {
+		setShowComments(!showComments);
+	};
+
 	const handleCommentSubmission = (refreshing: boolean) => {
 		// After the post is submitted successfully, set refreshComment to true to trigger a refresh of comments
 		setRefreshComments(refreshing);
 	};
+
+	useEffect(() => {
+		//Use void here as do not need result, use state set inside result
+		void fetchImageData();
+	}, [postData]);
+
+	useEffect(() => {
+		void fetchLikeData();
+	}, [likesData?.likes, postData, walletAddress]);
 
 	return (
 		<div className="flex flex-col my-2 rounded-xl shadow-sm bg-white border-solid border-2 border-indigo-100">
