@@ -149,17 +149,19 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					<div className="my-5">
 						<div className="text-md mt-2 mx-5">{post?.title}</div>
 						<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
-						{imageData.map(function (value, index) {
-							return (
-								<ZoomableImage
-									key={value}
-									source={value}
-									width={200}
-									height={200}
-									alt={`Uploaded image ${index}`}
-								/>
-							);
-						})}
+						<div className="flex">
+							{imageData.map(function (value, index) {
+								return (
+									<ZoomableImage
+										key={value}
+										source={value}
+										width={200}
+										height={200}
+										alt={`Uploaded image ${index}`}
+									/>
+								);
+							})}
+						</div>
 					</div>
 
 					<div className="flex justify-between">
