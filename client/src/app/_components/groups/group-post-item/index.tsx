@@ -53,7 +53,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					setHasImage(true);
 					if (Array.isArray(currentPost.imageHash)) {
 						currentPost.imageHash.forEach(async (element: string) => {
-							await fetchImages(element);
+							await fetchImages(element, currentPost.imageHash);
 						});
 					}
 				}
@@ -66,13 +66,25 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	};
 
 	//Get image from IPFS
-	const fetchImages = async (imageHash: string) => {
+	const fetchImages = async (imageHash: string, imageHashes) => {
 		try {
 			const response = await fetch(`/api/upload?imageHash=${imageHash}`);
 			if (response.ok) {
 				const blob = await response.blob();
 				const imageUrl = URL.createObjectURL(blob);
-				setImageData((prevImageData) => [...prevImageData, imageUrl]);
+				//Below used to render images in the order they were uploaded to db...
+				// Find the index of the current imageHash in the imageHashes array
+				const index = imageHashes.indexOf(imageHash);
+				if (index !== -1) {
+					// Update the state at the corresponding index
+					setImageData((prevImageData) => {
+						const newData = [...prevImageData];
+						newData[index] = imageUrl;
+						return newData;
+					});
+				} else {
+					console.log('Image hash not found in imageHashes array');
+				}
 			} else {
 				console.log('Error fetching image');
 				setImageError(true);
