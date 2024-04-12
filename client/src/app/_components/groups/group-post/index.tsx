@@ -210,7 +210,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 						/>
 						<div className="w-100 flex justify-end items-center gap-2">
 							<>
-								<DragDrop images={images} handleSetImages={handleSetImages} />
+								<DragDrop images={images} handleSetImages={handleSetImages} includeButton={true} />
 							</>
 							<BasicButton
 								type="primary"
