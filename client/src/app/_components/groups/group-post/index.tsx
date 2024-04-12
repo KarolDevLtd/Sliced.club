@@ -86,8 +86,6 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 
 	const handleSetImages = async (images: File[], removing: boolean) => {
 		try {
-			console.log(images);
-
 			//on removing from previw no need to compress
 			if (!removing) {
 				const compressedImages = await Promise.all(
