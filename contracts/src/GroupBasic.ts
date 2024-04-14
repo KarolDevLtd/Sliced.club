@@ -24,7 +24,7 @@ import {
   UInt64,
   PrivateKey,
 } from 'o1js';
-import { FungibleToken } from './FungibleToken';
+import { FungibleToken } from './token/FungibleToken';
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
 
@@ -67,7 +67,7 @@ export class GroupBasic extends SmartContract {
 
   // state ipfs hash?
 
-  deploy(args: DeployArgs & { admin: PublicKey }) {
+  async deploy(args: DeployArgs & { admin: PublicKey }) {
     super.deploy(args);
     this.admin.set(args.admin);
     this.merkleRoot.set(initialCommitment);
@@ -76,14 +76,17 @@ export class GroupBasic extends SmartContract {
   }
 
   @method
-  setGroupSettings(groupSettings: GroupSettings, signedSettings: Signature) {
+  async setGroupSettings(
+    groupSettings: GroupSettings,
+    signedSettings: Signature
+  ) {
     let adminPubKey = this.admin.getAndRequireEquals();
     signedSettings.verify(adminPubKey, groupSettings.toFields());
     this.groupSettingsHash.set(groupSettings.hash());
   }
 
   @method
-  makePayment(_groupSettings: GroupSettings) {
+  async makePayment(_groupSettings: GroupSettings) {
     //TODO ensure user in the group
 
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
@@ -94,11 +97,15 @@ export class GroupBasic extends SmartContract {
     let paymentAmount = this.getPaymentAmount(_groupSettings);
     // Provable.log('paymentAmount', paymentAmount);
     const token = new FungibleToken(_groupSettings.tokenAddress);
-    token.transfer(this.sender, this.address, paymentAmount);
+    token.transfer(
+      this.sender.getAndRequireSignature(),
+      this.address,
+      paymentAmount
+    );
   }
 
   @method
-  getLotteryResult(_groupSettings: GroupSettings) {
+  async getLotteryResult(_groupSettings: GroupSettings) {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
 
@@ -108,7 +115,7 @@ export class GroupBasic extends SmartContract {
   }
 
   @method
-  joinAuction(_groupSettings: GroupSettings, amountOfBids: UInt64) {
+  async joinAuction(_groupSettings: GroupSettings, amountOfBids: UInt64) {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
     let adminPubKey = this.admin.getAndRequireEquals();
@@ -123,7 +130,11 @@ export class GroupBasic extends SmartContract {
     //   .assertGreaterThanOrEqual(paymentAmount.mul(amountOfBids));// compile doesnt like this
 
     //but transfer only single one
-    token.transfer(this.sender, this.address, paymentAmount);
+    token.transfer(
+      this.sender.getAndRequireSignature(),
+      this.address,
+      paymentAmount
+    );
 
     //encrypt bidding info
     let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
@@ -132,7 +143,10 @@ export class GroupBasic extends SmartContract {
   }
 
   @method
-  getAuctionResult(_groupSettings: GroupSettings, adminPrivKey: PrivateKey) {
+  async getAuctionResult(
+    _groupSettings: GroupSettings,
+    adminPrivKey: PrivateKey
+  ) {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
     let adminPubKey = this.admin.getAndRequireEquals();

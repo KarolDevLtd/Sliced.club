@@ -25,21 +25,6 @@ import {
 // constants for our static-sized provable code
 const MAX_UPDATES_WITH_ACTIONS = 100;
 const MAX_ACTIONS_PER_UPDATE = 2;
-// class Account extends Struct({
-//   publicKey: PublicKey,
-//   depositMina: UInt32,
-// }) {
-//   hash(): Field {
-//     return Poseidon.hash(Account.toFields(this));
-//   }
-
-//   addMina(depositMina: number) {
-//     return new Account({
-//       publicKey: this.publicKey,
-//       depositMina: this.depositMina.add(depositMina),
-//     });
-//   }
-// }
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
 
@@ -65,11 +50,7 @@ class Auction extends Struct({
     return new Auction(publicKey, bid);
   }
 }
-// in this example, an action is just a public key
-// const Auction = Auction;
-// type Action = PublicKey;
-// const Action = PublicKey;
-// PublicKey.toFields()
+
 // the actions within one account update are a Merkle list with a custom hash
 // const emptyHash = Actions.empty().hash;
 const emptyAuction = Auction.empty<typeof Auction>();
@@ -117,7 +98,7 @@ export class Group extends SmartContract {
   @method async init() {
     super.init();
     this.merkleRoot.set(initialCommitment);
-    this.admin.set(this.sender);
+    this.admin.set(this.sender.getAndRequireSignature());
   }
 
   @method async makePaymentRound(nullifier: Nullifier) {
@@ -126,18 +107,18 @@ export class Group extends SmartContract {
 
     nullifier.verify([nullifierMessage]);
 
-    let nullifierWitness = Circuit.witness(MerkleMapWitness, () =>
-      NullifierTree.getWitness(nullifier.key())
-    );
+    // let nullifierWitness = Circuit.witness(MerkleMapWitness, () => // todo as broken on 0.18.0
+    //   NullifierTree.getWitness(nullifier.key())
+    // );
 
-    // we compute the current root and make sure the entry is set to 0 (= unused)
-    nullifier.assertUnused(nullifierWitness, nullifierRoot);
+    // // we compute the current root and make sure the entry is set to 0 (= unused)
+    // nullifier.assertUnused(nullifierWitness, nullifierRoot);
 
-    // we set the nullifier to 1 (= used) and calculate the new root
-    let newRoot = nullifier.setUsed(nullifierWitness);
+    // // we set the nullifier to 1 (= used) and calculate the new root
+    // let newRoot = nullifier.setUsed(nullifierWitness);
 
-    // we update the on-chain root
-    this.nullifierRoot.set(newRoot);
+    // // we update the on-chain root
+    // this.nullifierRoot.set(newRoot);
     // nullifier.verify([nullifierMessage]).assertTrue();
     // nullifier.assertUnused(nullifierRoot).assertTrue();
     // let newRoot = nullifier.setUsed(nullifierRoot);

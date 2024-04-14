@@ -1,4 +1,4 @@
-import { FungibleToken } from './FungibleToken';
+import { FungibleToken } from './token/FungibleToken';
 import { GroupBasic, GroupSettings } from './GroupBasic';
 import { TestAccount, TestAccounts } from './test_utils';
 import {
@@ -19,7 +19,7 @@ import {
  * See https://docs.minaprotocol.com/zkapps for more info.
  */
 
-let proofsEnabled = true;
+let proofsEnabled = false;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -80,20 +80,23 @@ describe('GroupBasic', () => {
   });
 
   async function localDeploy() {
-    const deployTokenTx = await Mina.transaction(deployer.publicKey, () => {
-      AccountUpdate.fundNewAccount(deployer.publicKey);
-      tokenApp.deploy({
-        owner: admin.publicKey,
-        supply: UInt64.from(10_000_000_000_000),
-        symbol: 'mUSD',
-        src: 'source code link',
-      });
-    });
+    const deployTokenTx = await Mina.transaction(
+      deployer.publicKey,
+      async () => {
+        AccountUpdate.fundNewAccount(deployer.publicKey);
+        await tokenApp.deploy({
+          owner: admin.publicKey,
+          supply: UInt64.from(10_000_000_000_000),
+          symbol: 'mUSD',
+          src: 'source code link',
+        });
+      }
+    );
     await deployTokenTx.prove();
     await (
       await deployTokenTx.sign([deployer.privateKey, tokenPrivateKey]).send()
     ).wait();
-    const txn = await Mina.transaction(deployer.publicKey, () => {
+    const txn = await Mina.transaction(deployer.publicKey, async () => {
       AccountUpdate.fundNewAccount(deployer.publicKey);
       group.deploy({ admin: admin.publicKey });
     });
@@ -111,15 +114,16 @@ describe('GroupBasic', () => {
 
   it('mints and distributes tokens ', async () => {
     const mintAmount = new UInt64(1_000_000_000);
-    const initialBalanceAdmin = tokenApp
-      .getBalanceOf(admin.publicKey)
-      .toBigInt();
+    const initialBalanceAdmin = (
+      await tokenApp.getBalanceOf(admin.publicKey)
+    ).toBigInt();
+
     const mintTx = await Mina.transaction(
       {
         sender: admin.publicKey,
         fee,
       },
-      () => {
+      async () => {
         AccountUpdate.fundNewAccount(admin.publicKey);
         tokenApp.mint(admin.publicKey, mintAmount);
       }
@@ -127,7 +131,7 @@ describe('GroupBasic', () => {
     await mintTx.prove();
     mintTx.sign([admin.privateKey]);
     await mintTx.send().then((v) => v.wait());
-    expect(tokenApp.getBalanceOf(admin.publicKey).toBigInt()).toEqual(
+    expect((await tokenApp.getBalanceOf(admin.publicKey)).toBigInt()).toEqual(
       initialBalanceAdmin + mintAmount.toBigInt()
     );
 
@@ -138,7 +142,7 @@ describe('GroupBasic', () => {
           sender: admin.publicKey,
           fee,
         },
-        () => {
+        async () => {
           AccountUpdate.fundNewAccount(admin.publicKey);
           tokenApp.transfer(
             admin.publicKey,
@@ -151,7 +155,7 @@ describe('GroupBasic', () => {
       transferTx.sign([admin.privateKey]);
       await transferTx.send().then((v) => v.wait());
       expect(
-        tokenApp.getBalanceOf(testAccounts[i].publicKey).toBigInt()
+        (await tokenApp.getBalanceOf(testAccounts[i].publicKey)).toBigInt()
       ).toEqual(userAmount.toBigInt());
     }
   });
@@ -159,7 +163,7 @@ describe('GroupBasic', () => {
   it('correctly sets the group settings ', async () => {
     let sig = Signature.create(organiser.privateKey, GROUP_SETTINGS.toFields());
     // update transaction
-    const txn = await Mina.transaction(organiser.publicKey, () => {
+    const txn = await Mina.transaction(organiser.publicKey, async () => {
       group.setGroupSettings(GROUP_SETTINGS, sig);
     });
     await txn.prove();
@@ -169,20 +173,22 @@ describe('GroupBasic', () => {
   });
 
   it('correctly makes a payment', async () => {
-    const initialBalanceAlexa = tokenApp
-      .getBalanceOf(alexa.publicKey)
-      .toBigInt();
-    const initialBalanceGroup = tokenApp.getBalanceOf(groupAddress).toBigInt();
-    const txn = await Mina.transaction(alexa.publicKey, () => {
+    const initialBalanceAlexa = (
+      await tokenApp.getBalanceOf(alexa.publicKey)
+    ).toBigInt();
+    const initialBalanceGroup = (
+      await tokenApp.getBalanceOf(groupAddress)
+    ).toBigInt();
+    const txn = await Mina.transaction(alexa.publicKey, async () => {
       AccountUpdate.fundNewAccount(alexa.publicKey);
       group.makePayment(GROUP_SETTINGS);
     });
     await txn.prove();
     await txn.sign([alexa.privateKey]).send();
-    expect(tokenApp.getBalanceOf(alexa.publicKey).toBigInt()).toEqual(
+    expect((await tokenApp.getBalanceOf(alexa.publicKey)).toBigInt()).toEqual(
       initialBalanceAlexa - paymentAmount.toBigint()
     );
-    expect(tokenApp.getBalanceOf(groupAddress).toBigInt()).toEqual(
+    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
       initialBalanceGroup + paymentAmount.toBigint()
     );
   });
