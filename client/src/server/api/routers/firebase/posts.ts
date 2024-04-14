@@ -60,18 +60,18 @@ export const FirebasePostRouter = createTRPCRouter({
 		)
 		.query(async ({ input }) => {
 			const q = firestorequery(postCollection, where('group', '==', input.groupId), orderBy('datetime', 'desc'));
-			const posts: FirebasePostModel[] = [];
+			const items: FirebasePostModel[] = [];
 			await getDocs(q).then((response) => {
 				response.forEach((doc) => {
 					// console.log(doc.data());
-					posts.push({
+					items.push({
 						hash: doc.data().message as string,
 						group: doc.data().group as string,
 						posterKey: doc.data().poster as string,
 					});
 				});
 			});
-			return { posts };
+			return { items };
 		}),
 
 	//LIKE POST
@@ -168,15 +168,15 @@ export const FirebasePostRouter = createTRPCRouter({
 				where('parentMessageId', '==', input.parentMessageId),
 				orderBy('datetime', 'desc')
 			);
-			const comments: FirebaseCommentModel[] = [];
+			const items: FirebaseCommentModel[] = [];
 			await getDocs(q).then((response) => {
 				response.forEach((doc) => {
-					comments.push({
+					items.push({
 						hash: doc.data().commentContent as string,
 						posterKey: doc.data().poster as string,
 					});
 				});
 			});
-			return { comments };
+			return { items };
 		}),
 });

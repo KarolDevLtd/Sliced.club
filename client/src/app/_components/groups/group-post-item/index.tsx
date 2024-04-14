@@ -16,8 +16,10 @@ import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
 import { useWallet } from '~/providers/walletprovider';
 import PostComment from '../post-comment';
-import PostCommentList from '../post-comments-list';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import GenericList from '../../ui/generic-list';
+import { FirebaseCommentModel } from '~/models/firebase-comment-model';
+import PostCommentItem from '../post-comment-item';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -69,7 +71,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		try {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to like a comment')) return;
 			await likePostToFirebase
-				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
+				.mutateAsync({ postId: currentPost.hash, userId: walletAddress!.toString() })
 				.then(() => {
 					setIsLiked(true);
 					setLikeCount(likeCount + 1);
@@ -84,7 +86,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		try {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to unlike a comment')) return;
 			await unlikePostToFirebase
-				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
+				.mutateAsync({ postId: currentPost.hash, userId: walletAddress!.toString() })
 				.then(() => {
 					setIsLiked(false);
 					setLikeCount(likeCount - 1);
@@ -132,10 +134,18 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 								postId={currentPost.hash}
 								refetchComments={() => handleCommentSubmission(true)}
 							/>
-							<PostCommentList
-								postId={currentPost.hash}
-								refreshComments={refreshComments}
+							<GenericList<FirebaseCommentModel>
+								query={api.FirebasePost.getComments.useQuery}
+								renderItem={(comment) => (
+									<PostCommentItem
+										key={comment.hash}
+										hash={comment.hash}
+										posterKey={comment.posterKey}
+									/>
+								)}
+								refreshData={refreshComments}
 								onRefresh={() => handleCommentSubmission(false)}
+								queryParameters={{ parentMessageId: currentPost.hash }}
 							/>
 						</div>
 					) : null}

@@ -1,10 +1,13 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import GroupPost from '~/app/_components/groups/group-post';
+import GroupPostItem from '~/app/_components/groups/group-post-item';
 // import GroupPostInput from '~/app/_components/groups/group-post-input';
-import GroupPostsList from '~/app/_components/groups/group-posts-list';
+import GenericList from '~/app/_components/ui/generic-list';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 import PlatformLayout from '~/layouts/platform';
+import { FirebasePostModel } from '~/models/firebase-post-model';
+import { api } from '~/trpc/react';
 
 export default function Group() {
 	const router = useRouter();
@@ -30,12 +33,16 @@ export default function Group() {
 				</li>
 			</ul>
 			<GroupPost groupId={groupId} refetchPosts={handlePostSubmission} />
-			<GroupPostsList
-				groupId={groupId}
-				refreshPosts={refreshPosts}
+			<GenericList<FirebasePostModel>
+				query={api.FirebasePost.getPosts.useQuery}
+				renderItem={(post) => (
+					<GroupPostItem key={post.hash} posterKey={post.posterKey} hash={post.hash} group={post.group} />
+				)}
+				refreshData={refreshPosts}
 				onRefresh={() => {
 					setRefreshPosts(false);
 				}}
+				queryParameters={{ groupId }}
 			/>
 		</div>
 	);
