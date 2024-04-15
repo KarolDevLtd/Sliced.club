@@ -110,7 +110,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			}
 		} catch (err) {
 			console.log(err);
-			toast.error('Error fetching likes for post');
+			toast.warn('Error fetching likes for post');
 		}
 		setIsLoading(false);
 	};
@@ -181,11 +181,11 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						<div className="flex inline-block justify-center">
 							{imageData.map(function (value, index) {
 								return (
-									<div key={value} className="p-2">
+									<div key={value} className="m-w-1 flex justify-center">
 										<ZoomableImage
 											source={value}
-											width={200}
-											height={200}
+											width={100}
+											height={100}
 											alt={`Uploaded image ${index}`}
 										/>
 									</div>

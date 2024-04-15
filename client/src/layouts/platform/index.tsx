@@ -31,9 +31,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 						)}
 					</div>
 					<PlatformSidebar hidden={!showNav} />
-					<main className="p-6 ms-0 w-full sm:ms-auto sm:w-3/4 md:w-4/5 lg:w-5/6 overflow-auto">
-						{children}
-					</main>
+					<main className="p-6 ms-0 w-full sm:ms-auto sm:w-3/4 md:w-4/5 lg:w-5/6">{children}</main>
 				</div>
 			</Providers>
 		</RootLayout>

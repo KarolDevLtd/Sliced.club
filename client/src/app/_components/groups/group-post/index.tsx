@@ -78,7 +78,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
-			toast.error('Post was not submitted');
+			toast.error('Post was not submitted - please try again');
 		} finally {
 			setIsLoading(false);
 		}

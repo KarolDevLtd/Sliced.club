@@ -18,9 +18,11 @@ const ZoomableImage = ({ source, width, height, alt }: ZoomableImageProps) => {
 	}, []);
 
 	return (
-		<ControlledZoom isZoomed={isZoomed} onZoomChange={handleZoomChange}>
-			<Image src={source} width={width} height={height} alt={alt} />
-		</ControlledZoom>
+		<div className="w-3/4">
+			<ControlledZoom isZoomed={isZoomed} onZoomChange={handleZoomChange}>
+				<Image src={source} width={width} height={height} alt={alt} />
+			</ControlledZoom>
+		</div>
 	);
 };
 export default ZoomableImage;

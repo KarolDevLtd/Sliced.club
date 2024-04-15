@@ -103,7 +103,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 				});
 		} catch (err) {
 			console.log(err);
-			toast.error('Error making comment');
+			toast.error('Error making comment - please try again');
 		} finally {
 			setIsLoading(false);
 		}

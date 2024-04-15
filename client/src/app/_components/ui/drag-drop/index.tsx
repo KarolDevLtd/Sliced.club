@@ -55,17 +55,9 @@ const DragDrop = ({ images, handleSetImages, includeButton }: DragDropProps) => 
 					<label for="files" className="form-label">
 						{'Choose File '}
 					</label>
-					<input
-						type="file"
-						id="files"
-						accept="image/jpeg, image/png, image/webp"
-						onChange={changeHandler}
-						class="hidden"
-					/>
+					<input type="file" id="files" accept="image/jpeg, image/png, image/webp" onChange={changeHandler} />
 				</div>
-			) : (
-				<></>
-			)}
+			) : null}
 			<div
 				className="flex justify-center items-center h-20 bg-light-grey rounded-md m-2"
 				onDrop={handleDrop}
@@ -73,9 +65,7 @@ const DragDrop = ({ images, handleSetImages, includeButton }: DragDropProps) => 
 			>
 				{images.length == 0 ? (
 					<label className="flex justify-center">Drag & Drop to Upload (max 3 images)</label>
-				) : (
-					<></>
-				)}
+				) : null}
 				<div className="flex">
 					{images.map((image, index) => (
 						<div key={index}>
