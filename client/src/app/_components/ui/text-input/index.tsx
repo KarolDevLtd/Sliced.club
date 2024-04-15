@@ -17,7 +17,7 @@ type TextInputProps = {
 	id: string;
 	name: string;
 	// Feel free to add more types to this enum as we need them
-	type: 'text' | 'email' | 'password';
+	type: 'text' | 'email' | 'password' | 'number';
 	autoComplete?: string;
 	placeholder?: string;
 	onChange?: (e: any) => any;
