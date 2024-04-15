@@ -11,6 +11,7 @@ import { InlineLink } from '~/app/_components/ui/inline-link';
 import { SelectOption } from '~/app/_components/ui/select-option';
 import { TextInput } from '~/app/_components/ui/text-input';
 import DefaultLayout from '~/layouts/default';
+import { CountryOptions } from '~/models/country-options';
 
 export default function Register() {
 	const router = useRouter();
@@ -96,40 +97,7 @@ export default function Register() {
 							name="country"
 							placeholder="-- Please select a country --"
 							defaultValue=""
-							options={[
-								{
-									value: 'AR',
-									name: 'Argentina',
-								},
-								{
-									value: 'BR',
-									name: 'Brazil',
-								},
-								{
-									value: 'FR',
-									name: 'France',
-								},
-								{
-									value: 'DE',
-									name: 'Germany',
-								},
-								{
-									value: 'IE',
-									name: 'Ireland',
-								},
-								{
-									value: 'PL',
-									name: 'Poland',
-								},
-								{
-									value: 'UK',
-									name: 'United Kingdom',
-								},
-								{
-									value: 'US',
-									name: 'United States',
-								},
-							]}
+							options={CountryOptions}
 							required={true}
 							errors={errors}
 							register={register}
