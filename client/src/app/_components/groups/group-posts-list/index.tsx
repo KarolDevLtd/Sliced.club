@@ -43,15 +43,23 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 	}, [error]);
 
 	return (
-		<div className="flex flex-auto w-1/3 overflow-hidden">
+		<div className="flex flex-auto w-1/3 h-96 overflow-auto">
 			{isLoading ? (
 				<div>Loading...</div>
-			) : (
-				<ul className="overflow-auto flex flex-col">
+			) : postsData?.posts.length != 0 ? (
+				<ul className="flex flex-col">
 					{posts.map((post) => (
-						<GroupPostItem key={post.hash} posterKey={post.posterKey} hash={post.hash} group={post.group} />
+						<GroupPostItem
+							key={post.hash}
+							posterKey={post.posterKey}
+							hash={post.hash}
+							group={post.group}
+							imageHash={post.imageHash}
+						/>
 					))}
 				</ul>
+			) : (
+				<div>There are no posts associated with this group yet</div>
 			)}
 		</div>
 	);

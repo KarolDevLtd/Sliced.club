@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -19,7 +21,9 @@ import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { compressImage } from '~/helpers/compressor';
 import { Spinner } from '../../ui/spinner';
+import DragDrop from '../../ui/drag-drop';
 
 type GroupPostProps = {
 	groupId: string;
@@ -31,15 +35,14 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
 
-	const postToIPFS = api.PostToIPFS.postMessage.useMutation();
-	const postToFirebase = api.PostToFirebase.postToCollection.useMutation();
-
+	const postToIPFS = api.PinataPost.postMessage.useMutation();
+	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
+	const [images, setImages] = useState<File[]>([]);
 
 	const hidePostInput = () => {
 		setPostOpen(false);
-
 		// Clears form validation errors when closing modal
 		unregister(['post-title', 'post-text']);
 	};
@@ -75,33 +78,88 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
+			toast.error('Post was not submitted - please try again');
 		} finally {
 			setIsLoading(false);
+		}
+	};
+
+	const handleSetImages = async (images: File[], removing: boolean) => {
+		try {
+			//on removing from previw no need to compress
+			if (!removing) {
+				const compressedImages = await Promise.all(
+					images.map(async (file) => {
+						return await compressImage(file);
+					})
+				);
+				// Update images state with the compressed images
+				setImages((prevImages) => [...prevImages, ...compressedImages]);
+			} else setImages(images);
+		} catch (err) {
+			console.log(err);
+			toast.error('Could not upload one or more of your images');
+		}
+	};
+
+	const saveImages = async () => {
+		const imgArr: Response[] = [];
+		try {
+			for (const element of images) {
+				const body = new FormData();
+				body.set('file', element);
+				const response = await fetch('/api/upload', {
+					method: 'POST',
+					body,
+				});
+				if (!response.ok) {
+					throw new Error('Error uploading profile image');
+				}
+				const result: Response = await response.json();
+				if (!result) throw new Error('Error uploading profile image');
+				imgArr.push(result);
+			}
+			return imgArr;
+		} catch (error) {
+			console.log(error);
+			toast.error('Error pinning image');
+			return [];
 		}
 	};
 
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
+			let postImgsIPFS;
+			let imageHashes;
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
+			if (images) {
+				postImgsIPFS = await saveImages();
+				//map ipfsHashes of all uploaded images to array
+				imageHashes = postImgsIPFS.map(function (item) {
+					return item.data.IpfsHash;
+				});
+			}
 			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
-			await postToIPFS
-				.mutateAsync({
-					title: title,
-					content: content,
-				})
-				.then(async (response) => {
-					await postToFirebase.mutateAsync({
-						posterKey: walletAddress.toString(),
-						groupId: groupId,
-						messageHash: response.data.IpfsHash,
-						dateTime: DateTime.now().toString(),
-					});
-				});
+			const postMsgIPFS = await postToIPFS.mutateAsync({
+				title: title,
+				content: content,
+			});
+			await postToFirebase.mutateAsync({
+				posterKey: walletAddress!.toString(),
+				groupId: groupId,
+				messageHash: postMsgIPFS.data.IpfsHash,
+				imageHash: imageHashes,
+				dateTime: DateTime.now().toString(),
+			});
 		} catch (err) {
 			console.log(err);
+			toast.error('Error saving post');
+			throw err;
 		} finally {
 			setIsLoading(false);
+			setImages([]);
 		}
 	};
 
@@ -141,14 +199,17 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							errors={errors}
 							register={register}
 							validationSchema={{
-								required: 'Post Title is required',
+								required: 'Post Content is required',
 								minLength: {
 									value: 20,
-									message: 'Post Title must be at least 20 characters',
+									message: 'Post Content must be at least 20 characters',
 								},
 							}}
 						/>
 						<div className="w-100 flex justify-end items-center gap-2">
+							<>
+								<DragDrop images={images} handleSetImages={handleSetImages} includeButton={true} />
+							</>
 							<BasicButton
 								type="primary"
 								icon={isLoading ? <Spinner size="sm" /> : null}

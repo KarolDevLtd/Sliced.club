@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import React, { type ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-
 import { BasicButton } from '../basic-button';
 import { SelectOption } from '../select-option';
 
