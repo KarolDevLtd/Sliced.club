@@ -34,8 +34,7 @@ export default function Register() {
 		console.log(JSON.stringify(data));
 		reset();
 		logInUser();
-		void router.push('/');
-		toast.error('Registered successfully');
+		void router.push('/?register=success');
 	};
 
 	return (
@@ -96,6 +95,7 @@ export default function Register() {
 							id="country"
 							name="country"
 							placeholder="-- Please select a country --"
+							defaultValue=""
 							options={[
 								{
 									value: 'AR',

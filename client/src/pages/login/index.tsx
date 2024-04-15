@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 // https://react-hook-form.com/docs/useform
 import { useForm } from 'react-hook-form';
@@ -5,6 +6,8 @@ import { useForm } from 'react-hook-form';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
+
+import { toast } from 'react-toastify';
 
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { Checkbox } from '~/app/_components/ui/checkbox';
@@ -23,8 +26,12 @@ export default function Login() {
 	const handleConnectWallet = () => {
 		if (preventActionWalletNotConnected(walletConnected, 'Connect your wallet to log in using it')) return;
 		logInUser();
-		void router.push('/dashboard?login=wallet');
+		void router.push('/?login=wallet');
 	};
+
+	useEffect(() => {
+		if (router.query.logout === 'success') toast.success('Logged out successfully');
+	}, [router.query.logout]);
 
 	const {
 		register,
@@ -43,7 +50,7 @@ export default function Login() {
 		console.log(JSON.stringify(data));
 		reset();
 		logInUser();
-		void router.push('/dashboard?login=success');
+		void router.push('/?login=success');
 	};
 
 	return (

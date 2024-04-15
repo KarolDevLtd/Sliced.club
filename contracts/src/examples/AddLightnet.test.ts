@@ -89,10 +89,13 @@ describe('Add testing on Lightnet', () => {
   });
 
   async function localDeploy() {
-    const txn = await Mina.transaction({ fee, sender: deployerAccount }, () => {
-      // AccountUpdate.fundNewAccount(deployerAccount);
-      zkApp.deploy();
-    });
+    const txn = await Mina.transaction(
+      { fee, sender: deployerAccount },
+      async () => {
+        // AccountUpdate.fundNewAccount(deployerAccount);
+        await zkApp.deploy();
+      }
+    );
     await txn.prove();
     // this tx needs .sign(), because `deploy()` adds an account update that requires signature authorization
     await txn.sign([deployerKey, zkAppPrivateKey]).send();
@@ -103,9 +106,12 @@ describe('Add testing on Lightnet', () => {
     await fetchAccount({ publicKey: zkAppAddress });
     const currentNum = zkApp.num.get();
     // update transaction
-    const txn = await Mina.transaction({ fee, sender: senderAccount }, () => {
-      zkApp.update();
-    });
+    const txn = await Mina.transaction(
+      { fee, sender: senderAccount },
+      async () => {
+        await zkApp.update();
+      }
+    );
     await txn.prove();
     await (await txn.sign([senderKey]).send()).wait();
 
