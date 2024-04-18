@@ -59,7 +59,7 @@ export default function Group() {
 					</div>
 				</div>
 
-				<div className="flex-1">
+				<div className="flex-1 overflow-y-scroll">
 					<GroupPost groupId={groupId} refetchPosts={handlePostSubmission} />
 					<GenericList<FirebasePostModel>
 						query={api.FirebasePost.getPosts.useQuery}
