@@ -23,11 +23,37 @@ import {
   Encryption,
   UInt64,
   PrivateKey,
+  Group,
 } from 'o1js';
 import { FungibleToken } from './token/FungibleToken';
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
+type CipherText = {
+  publicKey: Group;
+  cipherText: Field[];
+};
+export class Auction extends Struct({
+  publicKey: PublicKey,
+  message: UInt64,
+  paymentRound: UInt64,
+}) {
+  constructor(publicKey: PublicKey, bid: UInt64, paymentRound: UInt64) {
+    super({ publicKey, message: bid, paymentRound });
+  }
+  hash(): Field {
+    return Poseidon.hash(Auction.toFields(this));
+  }
+  toFields(): Field[] {
+    return Auction.toFields(this);
+  }
+  static empty<T extends new (...args: any) => any>(): InstanceType<T> {
+    return new Auction(PublicKey.empty(), UInt64.zero, UInt64.zero) as any;
+  }
 
+  // static from(publicKey: PublicKey, bid: UInt64, paymentRound: UInt64) {
+  //   return new Auction(publicKey, bid, paymentRound);
+  // }
+}
 export class GroupSettings extends Struct({
   maxMembers: UInt32,
   itemPrice: UInt32,
@@ -63,7 +89,8 @@ export class GroupBasic extends SmartContract {
   @state(Field) merkleRoot = State<Field>();
   @state(Field) groupSettingsHash = State<Field>();
   @state(PublicKey) admin = State<PublicKey>();
-  @state(Field) paymentRound = State<Field>();
+  @state(UInt64) paymentRound = State<UInt64>();
+  reducer = Reducer({ actionType: Auction });
 
   // state ipfs hash?
 
@@ -71,7 +98,7 @@ export class GroupBasic extends SmartContract {
     super.deploy(args);
     this.admin.set(args.admin);
     this.merkleRoot.set(initialCommitment);
-    this.paymentRound.set(Field(0));
+    this.paymentRound.set(UInt64.zero);
     this.groupSettingsHash.set(GroupSettings.empty().hash());
   }
 
@@ -88,20 +115,16 @@ export class GroupBasic extends SmartContract {
   @method
   async makePayment(_groupSettings: GroupSettings) {
     //TODO ensure user in the group
-
+    let senderAddr = this.sender.getAndRequireSignature();
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
-    // this.groupSettingsHash.requireEquals(this.groupSettingsHash.get());
     groupSettingsHash.assertEquals(_groupSettings.hash());
 
     //TODO get payment round ensure not yet paid ? nullifier?
+    let currentPaymentRound = this.paymentRound.getAndRequireEquals();
     let paymentAmount = this.getPaymentAmount(_groupSettings);
     // Provable.log('paymentAmount', paymentAmount);
     const token = new FungibleToken(_groupSettings.tokenAddress);
-    token.transfer(
-      this.sender.getAndRequireSignature(),
-      this.address,
-      paymentAmount
-    );
+    await token.transfer(senderAddr, this.address, paymentAmount);
   }
 
   @method
@@ -109,9 +132,7 @@ export class GroupBasic extends SmartContract {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
 
-    this.paymentRound.set(
-      this.paymentRound.getAndRequireEquals().add(Field(1))
-    );
+    this.paymentRound.set(this.paymentRound.getAndRequireEquals().add(1));
   }
 
   @method
@@ -119,25 +140,26 @@ export class GroupBasic extends SmartContract {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
     let adminPubKey = this.admin.getAndRequireEquals();
+    let senderPubKey = this.sender.getAndRequireSignature();
+    let currentPaymentRound = this.paymentRound.getAndRequireEquals();
     let paymentAmount = this.getPaymentAmount(_groupSettings);
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
     //get payment round ? 2nd nullfiier?
 
     //check if has the actual bidding amount
-    // token
-    //   .getBalanceOf(this.sender)
-    //   .assertGreaterThanOrEqual(paymentAmount.mul(amountOfBids));// compile doesnt like this
+    let balance = await token.getBalanceOf(senderPubKey);
+
+    balance.assertGreaterThanOrEqual(paymentAmount.mul(amountOfBids)); // compile doesnt like this
 
     //but transfer only single one
-    token.transfer(
-      this.sender.getAndRequireSignature(),
-      this.address,
-      paymentAmount
-    );
+    await token.transfer(senderPubKey, this.address, paymentAmount);
 
     //encrypt bidding info
     let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
+    // this.reducer.dispatch(
+    //   new Auction(senderPubKey, message, currentPaymentRound)
+    // );
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
     // adminPubKey;
   }

@@ -98,7 +98,7 @@ describe('GroupBasic', () => {
     ).wait();
     const txn = await Mina.transaction(deployer.publicKey, async () => {
       AccountUpdate.fundNewAccount(deployer.publicKey);
-      group.deploy({ admin: admin.publicKey });
+      await group.deploy({ admin: admin.publicKey });
     });
     await txn.prove();
     // this tx needs .sign(), because `deploy()` adds an account update that requires signature authorization
@@ -125,7 +125,7 @@ describe('GroupBasic', () => {
       },
       async () => {
         AccountUpdate.fundNewAccount(admin.publicKey);
-        tokenApp.mint(admin.publicKey, mintAmount);
+        await tokenApp.mint(admin.publicKey, mintAmount);
       }
     );
     await mintTx.prove();
@@ -144,7 +144,7 @@ describe('GroupBasic', () => {
         },
         async () => {
           AccountUpdate.fundNewAccount(admin.publicKey);
-          tokenApp.transfer(
+          await tokenApp.transfer(
             admin.publicKey,
             testAccounts[i].publicKey,
             userAmount
@@ -164,7 +164,7 @@ describe('GroupBasic', () => {
     let sig = Signature.create(organiser.privateKey, GROUP_SETTINGS.toFields());
     // update transaction
     const txn = await Mina.transaction(organiser.publicKey, async () => {
-      group.setGroupSettings(GROUP_SETTINGS, sig);
+      await group.setGroupSettings(GROUP_SETTINGS, sig);
     });
     await txn.prove();
     await txn.sign([organiser.privateKey]).send();
@@ -181,7 +181,7 @@ describe('GroupBasic', () => {
     ).toBigInt();
     const txn = await Mina.transaction(alexa.publicKey, async () => {
       AccountUpdate.fundNewAccount(alexa.publicKey);
-      group.makePayment(GROUP_SETTINGS);
+      await group.makePayment(GROUP_SETTINGS);
     });
     await txn.prove();
     await txn.sign([alexa.privateKey]).send();
