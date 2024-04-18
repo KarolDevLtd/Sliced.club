@@ -18,7 +18,7 @@ import { useWallet } from '~/providers/walletprovider';
 import PostComment from '../post-comment';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import GenericList from '../../ui/generic-list';
-import { FirebaseCommentModel } from '~/models/firebase-comment-model';
+import { type FirebaseCommentModel } from '~/models/firebase-comment-model';
 import PostCommentItem from '../post-comment-item';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
