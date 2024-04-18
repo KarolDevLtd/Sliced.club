@@ -56,7 +56,7 @@ export default function Group() {
 					</div>
 				</div>
 
-				<div className="flex-1 overflow-y-scroll">
+				<div className="flex-1">
 					<GroupPost groupId={groupId} refetchPosts={handlePostSubmission} />
 					<GroupPostsList
 						groupId={groupId}
