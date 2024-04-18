@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
-type DashboardHeaderProps = {
-	userFirstName: string;
-};
+import useStore from '~/stores/utils/useStore';
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { type UserState } from '~/stores/userStore';
 
-export const DashboardHeader = ({ userFirstName }: DashboardHeaderProps) => {
+type DashboardHeaderProps = object;
+
+export const DashboardHeader = ({}: DashboardHeaderProps) => {
 	const [greetingMessage, setGreetingMessage] = useState('');
+
+	const userFirstName = useStore(useUserStore, (state: UserState) => state.userFirstName);
 
 	useEffect(() => {
 		const greetings = [
