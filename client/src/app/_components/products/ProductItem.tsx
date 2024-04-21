@@ -4,6 +4,7 @@ import { FaUserGroup } from 'react-icons/fa6';
 import { BasicButton } from '../ui/basic-button';
 import { type Product } from '~/types/product-types';
 import { BasicModal } from '../ui/basic-modal';
+import { formatCurrency } from '~/helpers/currency-helper';
 
 type ProductItemProps = {
 	product: Product;
@@ -57,14 +58,16 @@ const ProductItem = ({ product }: ProductItemProps) => {
 							<strong>Group Organiser:</strong> <p>{product.groupOrganiser}</p>
 						</div>
 						<div className="flex items-center gap-1">
-							<strong>Price:</strong> <p>{product.price}</p>
+							<strong>Price:</strong> <p>{formatCurrency(product.price)}</p>
 						</div>
 						<div className="flex items-center gap-1">
 							<strong>Group members:</strong> <p>{product.groupMembers}</p>
 						</div>
-						<div className="flex items-center gap-1">
-							<strong>Items received:</strong> <p>{product.itemsReceived}</p>
-						</div>
+						{product.itemsReceived ? (
+							<div className="flex items-center gap-1">
+								<strong>Items received:</strong> <p>{product.itemsReceived}</p>
+							</div>
+						) : null}
 					</div>
 				}
 			/>
