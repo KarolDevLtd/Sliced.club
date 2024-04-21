@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import PlatformLayout from '~/layouts/platform';
 import { DashboardHeader } from '~/app/_components/dashboard/DashboardHeader';
 import Carousel from '~/app/_components/ui/Carousel';
+import MyProducts from '~/app/_components/products/MyProducts';
 
 export default function Dashboard() {
 	const router = useRouter();
@@ -19,7 +20,7 @@ export default function Dashboard() {
 
 	return (
 		<div className="flex flex-col gap-4 min-h-full max-h-full">
-			<DashboardHeader userFirstName="Karol" />
+			<DashboardHeader />
 			<div className="grid grid-rows-3 gap-2 min-h-full flex-1">
 				<div className="row-span-1 grid grid-cols-3 gap-2">
 					<div className="col-span-2">
@@ -49,7 +50,12 @@ export default function Dashboard() {
 						></Carousel>
 					</div>
 				</div>
-				<div className="row-span-2 bg-orange rounded-md"></div>
+				<div className="row-span-2 grid grid-cols-3 gap-2">
+					<div className="col-span-2">
+						<MyProducts />
+					</div>
+					<div className="col-span-1 bg-light-grey rounded-md"></div>
+				</div>
 			</div>
 		</div>
 	);
