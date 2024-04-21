@@ -72,8 +72,8 @@ export default function Dashboard() {
 	return (
 		<div className="flex flex-col gap-4 min-h-full max-h-full">
 			<DashboardHeader />
-			<div className="grid grid-rows-3 gap-2 min-h-full flex-1">
-				<div className="row-span-1 grid grid-cols-3 gap-2">
+			<div className="grid grid-rows-3 gap-4 min-h-full flex-1">
+				<div className="row-span-1 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
 						<Carousel
 							slides={[
@@ -101,7 +101,7 @@ export default function Dashboard() {
 						></Carousel>
 					</div>
 				</div>
-				<div className="row-span-2 grid grid-cols-3 gap-2">
+				<div className="row-span-2 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
 						<ProductList heading="My Products" products={myProducts} />
 						<ProductList heading="Available Groups" products={availableGroups} />
