@@ -1,4 +1,6 @@
 import React from 'react';
+import router from 'next/router';
+
 import { formatCurrency } from '~/helpers/currency-helper';
 import { formatDate } from '~/helpers/date-helper';
 import { type Payment } from '~/types/payment-types';
@@ -8,8 +10,15 @@ type PaymentItemProps = {
 };
 
 const PaymentItem = ({ payment }: PaymentItemProps) => {
+	const handleClick = () => {
+		void router.push(`/payments/${Math.round(payment.amountDue).toString()}`);
+	};
+
 	return (
-		<div className="flex gap-4 items-center p-4 bg-light-grey min-w-full min-h-[90px] rounded-md">
+		<div
+			className="flex gap-4 items-center p-4 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer"
+			onClick={handleClick}
+		>
 			<div className="h-12 w-12 bg-medium-grey rounded-md"></div>
 			<div>
 				<p>

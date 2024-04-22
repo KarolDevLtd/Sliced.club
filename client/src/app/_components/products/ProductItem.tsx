@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import React, { useState } from 'react';
+import router from 'next/router';
 
 import { FaUserGroup } from 'react-icons/fa6';
 import { BasicButton } from '../ui/basic-button';
@@ -22,9 +25,19 @@ const ProductItem = ({ product }: ProductItemProps) => {
 		return product.itemsReceived ? `${Math.round((product.itemsReceived / product.groupMembers) * 100)}%` : 0;
 	};
 
+	const handleClick = (e: Event | undefined) => {
+		console.log('navvvvv');
+		void router.push(`/groups/${product.title}`);
+		e?.stopPropagation();
+	};
+
 	return (
 		<>
-			<div className="grid grid-cols-10 gap-4 p-4 bg-light-grey min-w-full min-h-[90px] rounded-md">
+			<div
+				className="grid grid-cols-10 gap-4 p-4 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer"
+				// @ts-ignore
+				onClick={(e) => handleClick(e)}
+			>
 				<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded"></div>
 				<div className="col-span-2 flex flex-col justify-center">
 					<p className="font-bold">{product?.title}</p>
@@ -41,7 +54,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
 					{product?.itemsReceived ? <p>{completedPercentage()}</p> : /* Progress bar */ null}
 				</div>
 				<div className="col-span-2 flex items-center">
-					<BasicButton type="secondary" onClick={toggleModal}>
+					<BasicButton type="secondary" onClick={(e) => handleClick(e)}>
 						View details
 					</BasicButton>
 				</div>

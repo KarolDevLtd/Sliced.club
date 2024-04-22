@@ -17,7 +17,14 @@ export const InlineLink = ({
 }) => {
 	return (
 		<span className="inline-block">
-			<Link className="text-orange hover:underline flex items-center w-fit" href={href} target={target}>
+			<Link
+				className="text-orange hover:underline flex items-center w-fit"
+				href={href}
+				target={target}
+				onClick={(e) => {
+					e?.stopPropagation();
+				}}
+			>
 				{children}
 				{external ? (
 					<span className="text-black ms-1 text-sm">
