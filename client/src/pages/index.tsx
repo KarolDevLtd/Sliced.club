@@ -9,6 +9,8 @@ import { DashboardHeader } from '~/app/_components/dashboard/DashboardHeader';
 import Carousel from '~/app/_components/ui/Carousel';
 import ProductList from '~/app/_components/products/ProductList';
 import { type Product } from '~/types/product-types';
+import PaymentList from '~/app/_components/payments/PaymentList';
+import { type Payment } from '~/types/payment-types';
 
 export default function Dashboard() {
 	const router = useRouter();
@@ -69,6 +71,33 @@ export default function Dashboard() {
 		},
 	] as Product[];
 
+	const myPayments = [
+		{
+			amountDue: 18.27,
+			nextPaymentDue: new Date('2024-04-30'),
+			product: {
+				title: 'Xbox Series X|S',
+				groupOrganiser: 'Microsoft',
+				price: 475,
+				category: 'Gaming Consoles',
+				groupMembers: 26,
+				itemsReceived: 14,
+			},
+		},
+		{
+			amountDue: 10.48,
+			nextPaymentDue: new Date('2024-04-30'),
+			product: {
+				title: 'HERO 12 Black',
+				groupOrganiser: 'GoPro',
+				price: 429.99,
+				category: 'Cameras',
+				groupMembers: 41,
+				itemsReceived: 36,
+			},
+		},
+	] as Payment[];
+
 	return (
 		<div className="flex flex-col gap-4 min-h-full max-h-full">
 			<DashboardHeader />
@@ -106,7 +135,9 @@ export default function Dashboard() {
 						<ProductList heading="My Products" products={myProducts} />
 						<ProductList heading="Available Groups" products={availableGroups} />
 					</div>
-					<div className="col-span-1 bg-light-grey rounded-md mb-4"></div>
+					<div className="col-span-1 mb-4">
+						<PaymentList heading="Next Payments" payments={myPayments} />
+					</div>
 				</div>
 			</div>
 		</div>
