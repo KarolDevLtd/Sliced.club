@@ -5,6 +5,7 @@ import { BasicButton } from '../ui/basic-button';
 import { type Product } from '~/types/product-types';
 import { BasicModal } from '../ui/basic-modal';
 import { formatCurrency } from '~/helpers/currency-helper';
+import { InlineLink } from '../ui/inline-link';
 
 type ProductItemProps = {
 	product: Product;
@@ -23,14 +24,14 @@ const ProductItem = ({ product }: ProductItemProps) => {
 
 	return (
 		<>
-			<div className="grid grid-cols-10 gap-4 p-2 bg-light-grey min-w-full min-h-[90px] rounded-md">
-				<div className="col-span-2 w-12 min-h-full min-w-full bg-medium-grey rounded"></div>
+			<div className="grid grid-cols-10 gap-4 p-4 bg-light-grey min-w-full min-h-[90px] rounded-md">
+				<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded"></div>
 				<div className="col-span-2 flex flex-col justify-center">
 					<p className="font-bold">{product?.title}</p>
-					<p>{product?.groupOrganiser}</p>
+					<p className="text-sm text-dark-grey">{product?.groupOrganiser}</p>
 				</div>
 				<div className="col-span-2 flex items-center">
-					<p>{product?.category}</p>
+					<InlineLink href={`categories/${product.category}`}>{product?.category}</InlineLink>
 				</div>
 				<div className="col-span-1 flex items-center gap-1">
 					<FaUserGroup />

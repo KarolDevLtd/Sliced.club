@@ -9,7 +9,7 @@ type PaymentItemProps = {
 
 const PaymentItem = ({ payment }: PaymentItemProps) => {
 	return (
-		<div className="flex gap-4 items-center p-2 bg-light-grey min-w-full min-h-[90px] rounded-md">
+		<div className="flex gap-4 items-center p-4 bg-light-grey min-w-full min-h-[90px] rounded-md">
 			<div className="h-12 w-12 bg-medium-grey rounded-md"></div>
 			<div>
 				<p>
