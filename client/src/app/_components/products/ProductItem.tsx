@@ -9,6 +9,7 @@ import { type Product } from '~/types/product-types';
 import { BasicModal } from '../ui/basic-modal';
 import { formatCurrency } from '~/helpers/currency-helper';
 import { InlineLink } from '../ui/inline-link';
+import ProgressBar from '../ui/ProgressBar';
 
 type ProductItemProps = {
 	product: Product;
@@ -21,12 +22,13 @@ const ProductItem = ({ product }: ProductItemProps) => {
 		setDisplayModal(!displayModal);
 	};
 
+	const completedRatio = product?.itemsReceived ? (product.itemsReceived / product.groupMembers) * 100 : 0;
+
 	const completedPercentage = () => {
-		return product.itemsReceived ? `${Math.round((product.itemsReceived / product.groupMembers) * 100)}%` : 0;
+		return product.itemsReceived ? `${Math.round(completedRatio)}%` : 0;
 	};
 
 	const handleClick = (e: Event | undefined) => {
-		console.log('navvvvv');
 		void router.push(`/groups/${product.title}`);
 		e?.stopPropagation();
 	};
@@ -51,7 +53,12 @@ const ProductItem = ({ product }: ProductItemProps) => {
 					<p>{product?.groupMembers}</p>
 				</div>
 				<div className="col-span-1 flex items-center">
-					{product?.itemsReceived ? <p>{completedPercentage()}</p> : /* Progress bar */ null}
+					{product?.itemsReceived ? (
+						<div>
+							<p>{completedPercentage()}</p>
+							<ProgressBar progress={completedRatio} />
+						</div>
+					) : null}
 				</div>
 				<div className="col-span-2 flex items-center">
 					<BasicButton type="secondary" onClick={(e) => handleClick(e)}>
