@@ -120,7 +120,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		try {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to like a comment')) return;
 			await likePostToFirebase
-				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
+				.mutateAsync({ postId: currentPost.hash, userId: walletAddress!.toString() })
 				.then(() => {
 					setIsLiked(true);
 					setLikeCount(likeCount + 1);
@@ -136,7 +136,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		try {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to unlike a comment')) return;
 			await unlikePostToFirebase
-				.mutateAsync({ postId: currentPost.hash, userId: walletAddress.toString() })
+				.mutateAsync({ postId: currentPost.hash, userId: walletAddress!.toString() })
 				.then(() => {
 					setIsLiked(false);
 					setLikeCount(likeCount - 1);
@@ -181,14 +181,16 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						<div className="flex inline-block justify-center">
 							{imageData.map(function (value, index) {
 								return (
-									<div key={value} className="m-w-1 flex justify-center">
-										<ZoomableImage
-											source={value}
-											width={100}
-											height={100}
-											alt={`Uploaded image ${index}`}
-										/>
-									</div>
+									value != null && (
+										<div key={index} className="m-w-1 flex justify-center">
+											<ZoomableImage
+												source={value}
+												width={100}
+												height={100}
+												alt={`Uploaded image ${index}`}
+											/>
+										</div>
+									)
 								);
 							})}
 						</div>

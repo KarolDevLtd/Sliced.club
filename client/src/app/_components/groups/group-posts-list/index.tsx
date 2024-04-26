@@ -49,7 +49,13 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 			) : (
 				<ul className="overflow-auto flex flex-col">
 					{posts.map((post) => (
-						<GroupPostItem key={post.hash} posterKey={post.posterKey} hash={post.hash} group={post.group} />
+						<GroupPostItem
+							key={post.hash}
+							posterKey={post.posterKey}
+							hash={post.hash}
+							imageHash={post.imageHash}
+							group={post.group}
+						/>
 					))}
 				</ul>
 			)}
