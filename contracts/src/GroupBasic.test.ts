@@ -12,7 +12,7 @@ import {
 } from 'o1js';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 
-let proofsEnabled = false;
+let proofsEnabled = true;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -43,11 +43,11 @@ describe('GroupBasic', () => {
     .mul(new UInt32(2));
 
   beforeAll(async () => {
-    // if (proofsEnabled) {
-    await GroupBasic.compile();
-    await FungibleToken.compile();
-    console.log('compiled');
-    // }
+    if (proofsEnabled) {
+      await GroupBasic.compile();
+      await FungibleToken.compile();
+      console.log('compiled');
+    }
     const Local = await Mina.LocalBlockchain({ proofsEnabled });
     Mina.setActiveInstance(Local);
     [deployer, admin, organiser, alexa, billy, charlie, jackie] = testAccounts =
