@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import router from 'next/router';
 
 import { FaUserGroup } from 'react-icons/fa6';
-import { BasicButton } from '../ui/basic-button';
+import { BasicButton } from '../ui/BasicButton';
 import { type Product } from '~/types/product-types';
-import { BasicModal } from '../ui/basic-modal';
+import { BasicModal } from '../ui/BasicModal';
 import { formatCurrency } from '~/helpers/currency-helper';
-import { InlineLink } from '../ui/inline-link';
+import { InlineLink } from '../ui/InlineLink';
 import ProgressBar from '../ui/ProgressBar';
 
 type ProductItemProps = {

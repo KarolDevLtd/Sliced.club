@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-import { InlineLink } from '../inline-link';
+import { InlineLink } from './InlineLink';
 
 type TextInputProps = {
 	label?: string;

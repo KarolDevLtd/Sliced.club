@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import React, { type ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { BasicButton } from '../basic-button';
-import { SelectOption } from '../select-option';
+import { BasicButton } from './BasicButton';
+import { SelectOption } from './SelectOption';
 
 import { FaWallet } from 'react-icons/fa';
 import { GoArrowSwitch } from 'react-icons/go';
