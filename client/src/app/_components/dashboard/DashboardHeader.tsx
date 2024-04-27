@@ -13,6 +13,7 @@ export const DashboardHeader = ({}: DashboardHeaderProps) => {
 
 	useEffect(() => {
 		const greetings = [
+			// Feel free to add more
 			"It's good to see you again",
 			'Welcome back',
 			'Wag1',
