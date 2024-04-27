@@ -136,7 +136,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			if (images) {
 				postImgsIPFS = await saveImages();
 				//map ipfsHashes of all uploaded images to array
-				imageHashes = postImgsIPFS.map(function (item) {
+				imageHashes = postImgsIPFS.map((item) => {
 					return item.data.IpfsHash;
 				});
 			}

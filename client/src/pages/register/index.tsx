@@ -10,9 +10,9 @@ import { Checkbox } from '~/app/_components/ui/Checkbox';
 import { InlineLink } from '~/app/_components/ui/InlineLink';
 import { SelectOption } from '~/app/_components/ui/SelectOption';
 import { TextInput } from '~/app/_components/ui/TextInput';
-import DefaultLayout from '~/layouts/default';
+import { DefaultLayout } from '~/layouts/default';
 
-export default function Register() {
+const Register = () => {
 	const router = useRouter();
 
 	const { logInUser } = useUserStore((state) => state);
@@ -165,8 +165,10 @@ export default function Register() {
 			</div>
 		</div>
 	);
-}
+};
 
 Register.getLayout = function getLayout(page) {
 	return <DefaultLayout>{page}</DefaultLayout>;
 };
+
+export default Register;

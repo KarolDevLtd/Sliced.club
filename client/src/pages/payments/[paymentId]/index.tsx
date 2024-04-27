@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import { PageHeader } from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
-export default function Payment() {
+const Payment = () => {
 	const router = useRouter();
 
 	const paymentId = router.query.paymentId;
@@ -14,8 +14,10 @@ export default function Payment() {
 			</div>
 		</div>
 	);
-}
+};
 
 Payment.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
+
+export default Payment;

@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import { InlineLink } from '~/app/_components/ui/InlineLink';
 import PlatformLayout from '~/layouts/platform';
 
-export default function Profile() {
+const Profile = () => {
 	const router = useRouter();
 
 	const userId = router.query.userId;
@@ -23,8 +23,10 @@ export default function Profile() {
 			</ul>
 		</div>
 	);
-}
+};
 
 Profile.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
+
+export default Profile;

@@ -12,7 +12,7 @@ import { type Product } from '~/types/product-types';
 import PaymentList from '~/app/_components/payments/PaymentList';
 import { type Payment } from '~/types/payment-types';
 
-export default function Dashboard() {
+const Dashboard = () => {
 	const router = useRouter();
 
 	useEffect(() => {
@@ -142,8 +142,10 @@ export default function Dashboard() {
 			</div>
 		</div>
 	);
-}
+};
 
 Dashboard.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
+
+export default Dashboard;

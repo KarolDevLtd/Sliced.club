@@ -7,7 +7,7 @@ import { BasicButton } from '~/app/_components/ui/BasicButton';
 import { PageHeader } from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
-export default function Group() {
+const Group = () => {
 	const router = useRouter();
 	const [refreshPosts, setRefreshPosts] = useState(false);
 
@@ -69,8 +69,10 @@ export default function Group() {
 			</div>
 		</div>
 	);
-}
+};
 
 Group.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
+
+export default Group;
