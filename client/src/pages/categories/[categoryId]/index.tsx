@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { PageHeader } from '~/app/_components/ui/PageHeader';
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
 const Category = () => {

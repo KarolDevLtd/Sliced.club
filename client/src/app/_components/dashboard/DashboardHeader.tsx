@@ -6,7 +6,7 @@ import { type UserState } from '~/stores/userStore';
 
 type DashboardHeaderProps = object;
 
-export const DashboardHeader = ({}: DashboardHeaderProps) => {
+const DashboardHeader = ({}: DashboardHeaderProps) => {
 	const [greetingMessage, setGreetingMessage] = useState('');
 
 	const userFirstName = useStore(useUserStore, (state: UserState) => state.userFirstName);
@@ -38,3 +38,5 @@ export const DashboardHeader = ({}: DashboardHeaderProps) => {
 		</div>
 	);
 };
+
+export default DashboardHeader;

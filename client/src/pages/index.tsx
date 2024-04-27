@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 
 import PlatformLayout from '~/layouts/platform';
-import { DashboardHeader } from '~/app/_components/dashboard/DashboardHeader';
+import DashboardHeader from '~/app/_components/dashboard/DashboardHeader';
 import Carousel from '~/app/_components/ui/Carousel';
 import ProductList from '~/app/_components/products/ProductList';
 import { type Product } from '~/types/product-types';

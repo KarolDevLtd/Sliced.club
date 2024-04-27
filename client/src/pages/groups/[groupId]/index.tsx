@@ -3,8 +3,8 @@ import { useState } from 'react';
 import GroupPost from '~/app/_components/groups/GroupPost';
 // import GroupPostInput from '~/app/_components/groups/group-post-input';
 import GroupPostsList from '~/app/_components/groups/GroupPostsList';
-import { BasicButton } from '~/app/_components/ui/BasicButton';
-import { PageHeader } from '~/app/_components/ui/PageHeader';
+import BasicButton from '~/app/_components/ui/BasicButton';
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
 const Group = () => {

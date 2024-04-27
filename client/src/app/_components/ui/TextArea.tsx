@@ -36,7 +36,7 @@ type TextAreaProps = {
 	errors?: any;
 };
 
-export const TextArea = ({
+const TextArea = ({
 	label,
 	id,
 	name,
@@ -94,3 +94,5 @@ export const TextArea = ({
 		</div>
 	);
 };
+
+export default TextArea;
