@@ -17,12 +17,10 @@ import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
 import { useWallet } from '~/providers/walletprovider';
 import PostComment from '../post-comment';
+import PostCommentList from '../post-comments-list';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../../ui/zoomable-image';
-import GenericList from '../../ui/generic-list';
-import { type FirebaseCommentModel } from '~/models/firebase-comment-model';
-import PostCommentItem from '../post-comment-item';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -183,14 +181,16 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						<div className="flex inline-block justify-center">
 							{imageData.map(function (value, index) {
 								return (
-									<div key={value} className="m-w-1 flex justify-center">
-										<ZoomableImage
-											source={value}
-											width={100}
-											height={100}
-											alt={`Uploaded image ${index}`}
-										/>
-									</div>
+									value != null && (
+										<div key={index} className="m-w-1 flex justify-center">
+											<ZoomableImage
+												source={value}
+												width={100}
+												height={100}
+												alt={`Uploaded image ${index}`}
+											/>
+										</div>
+									)
 								);
 							})}
 						</div>
@@ -219,18 +219,10 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 								postId={currentPost.hash}
 								refetchComments={() => handleCommentSubmission(true)}
 							/>
-							<GenericList<FirebaseCommentModel>
-								query={api.FirebasePost.getComments.useQuery}
-								renderItem={(comment) => (
-									<PostCommentItem
-										key={comment.hash}
-										hash={comment.hash}
-										posterKey={comment.posterKey}
-									/>
-								)}
-								refreshData={refreshComments}
+							<PostCommentList
+								postId={currentPost.hash}
+								refreshComments={refreshComments}
 								onRefresh={() => handleCommentSubmission(false)}
-								queryParameters={{ parentMessageId: currentPost.hash }}
 							/>
 						</div>
 					) : null}
