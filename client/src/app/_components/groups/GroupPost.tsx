@@ -13,17 +13,17 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 
-import { TextInput } from '../../ui/text-input';
-import { TextArea } from '../../ui/text-area';
-import { BasicButton } from '../../ui/basic-button';
-import { BasicModal } from '../../ui/basic-modal';
+import { TextInput } from '../ui/text-input';
+import { TextArea } from '../ui/text-area';
+import { BasicButton } from '../ui/basic-button';
+import { BasicModal } from '../ui/basic-modal';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { compressImage } from '~/helpers/compressor';
-import { Spinner } from '../../ui/spinner';
-import DragDrop from '../../ui/drag-drop';
+import { Spinner } from '../ui/spinner';
+import DragDrop from '../ui/drag-drop';
 
 type GroupPostProps = {
 	groupId: string;

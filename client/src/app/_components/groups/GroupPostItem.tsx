@@ -12,15 +12,15 @@ import { type UserState } from '~/stores/userStore';
 import { type FirebasePostModel } from '~/models/firebase-post-model';
 import { type IPFSPostModel } from '~/models/ipfs-post-model';
 import { api } from '~/trpc/react';
-import { BasicButton } from '../../ui/basic-button';
+import { BasicButton } from '../ui/basic-button';
 import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
 import { useWallet } from '~/providers/walletprovider';
-import PostComment from '../post-comment';
-import PostCommentList from '../post-comments-list';
+import PostComment from './PostComment';
+import PostCommentList from './PostCommentList';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
-import ZoomableImage from '../../ui/zoomable-image';
+import ZoomableImage from '../ui/zoomable-image';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
