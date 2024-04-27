@@ -80,51 +80,6 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
 							},
 						}}
 					/>
-					<TextInput
-						id="product-name"
-						name="product-name"
-						type="text"
-						label="Product Name"
-						required={true}
-						errors={errors}
-						register={register}
-						validationSchema={{
-							required: 'Product Name is required',
-							minLength: {
-								value: 1,
-								message: `Product Name must be at least 1 character`,
-							},
-						}}
-					/>
-					<TextInput
-						id="product-producer"
-						name="product-producer"
-						type="text"
-						label="Product Producer"
-						required={true}
-						errors={errors}
-						register={register}
-						validationSchema={{
-							required: 'Product Producer is required',
-							minLength: {
-								value: 1,
-								message: 'Product Producer must be at least 1 character',
-							},
-						}}
-					/>
-					<SelectOption
-						id="product-category"
-						name="product-category"
-						placeholder="-- Please select a product category --"
-						defaultValue=""
-						options={ProductCategoryOptions}
-						required={true}
-						errors={errors}
-						register={register}
-						validationSchema={{
-							required: 'Product Category is required',
-						}}
-					/>
 					{/* TODO Number validation checks */}
 					<TextInput
 						id="instalments"
@@ -156,6 +111,23 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
 							minLength: {
 								value: 1,
 								message: 'Price Per Instalment must be greater than 0',
+							},
+						}}
+					/>
+					{/* TODO Number validation checks w. currency */}
+					<TextInput
+						id="duration"
+						name="duration"
+						type="number"
+						label="Duration (in weeks)"
+						required={true}
+						errors={errors}
+						register={register}
+						validationSchema={{
+							required: 'Duration is required',
+							minLength: {
+								value: 1,
+								message: 'Duration must be greater than 0',
 							},
 						}}
 					/>
