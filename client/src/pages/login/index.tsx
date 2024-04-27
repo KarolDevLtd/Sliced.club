@@ -15,7 +15,7 @@ import { InlineLink } from '~/app/_components/ui/InlineLink';
 import { TextInput } from '~/app/_components/ui/TextInput';
 
 import { preventActionWalletNotConnected } from '~/helpers/user-helper';
-import { DefaultLayout } from '~/layouts/default';
+import DefaultLayout from '~/layouts/default';
 
 const Login = () => {
 	const router = useRouter();

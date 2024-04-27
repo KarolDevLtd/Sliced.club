@@ -10,7 +10,7 @@ import { Checkbox } from '~/app/_components/ui/Checkbox';
 import { InlineLink } from '~/app/_components/ui/InlineLink';
 import { SelectOption } from '~/app/_components/ui/SelectOption';
 import { TextInput } from '~/app/_components/ui/TextInput';
-import { DefaultLayout } from '~/layouts/default';
+import DefaultLayout from '~/layouts/default';
 
 const Register = () => {
 	const router = useRouter();
