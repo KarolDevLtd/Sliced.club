@@ -92,7 +92,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 				})
 				.then(async (response) => {
 					await postToFirebase.mutateAsync({
-						posterKey: walletAddress.toString(),
+						posterKey: walletAddress!.toString(),
 						groupId: groupId,
 						messageHash: response.data.IpfsHash,
 						dateTime: DateTime.now().toString(),
