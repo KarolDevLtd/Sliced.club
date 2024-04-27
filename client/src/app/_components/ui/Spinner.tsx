@@ -5,7 +5,7 @@ type SpinnerProps = {
 	text?: string;
 };
 
-export const Spinner = ({ text, size = 'md' }: SpinnerProps) => {
+const Spinner = ({ text, size = 'md' }: SpinnerProps) => {
 	const spinnerSizeMap = {
 		sm: 'w-5 h-5',
 		md: 'w-8 h-8',
@@ -31,3 +31,5 @@ export const Spinner = ({ text, size = 'md' }: SpinnerProps) => {
 		</div>
 	);
 };
+
+export default Spinner;

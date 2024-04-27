@@ -11,8 +11,8 @@ import { useState } from 'react';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-import { TextInput } from './ui/text-input';
-import { BasicButton } from './ui/basic-button';
+import TextInput from './ui/TextInput';
+import BasicButton from './ui/BasicButton';
 import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 

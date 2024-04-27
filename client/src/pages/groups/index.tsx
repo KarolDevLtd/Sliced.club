@@ -1,7 +1,7 @@
-import { InlineLink } from '~/app/_components/ui/inline-link';
+import InlineLink from '~/app/_components/ui/InlineLink';
 import PlatformLayout from '~/layouts/platform';
 
-export default function Groups() {
+const Groups = () => {
 	const groupId = '69';
 
 	return (
@@ -11,8 +11,10 @@ export default function Groups() {
 			</li>
 		</ul>
 	);
-}
+};
 
 Groups.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
+
+export default Groups;
