@@ -3,8 +3,6 @@ import { useForm } from 'react-hook-form';
 
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 
-import { toast } from 'react-toastify';
-
 import BasicButton from '~/app/_components/ui/BasicButton';
 import Checkbox from '~/app/_components/ui/Checkbox';
 import InlineLink from '~/app/_components/ui/InlineLink';
