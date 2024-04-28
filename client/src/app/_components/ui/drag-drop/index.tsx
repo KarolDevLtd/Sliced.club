@@ -1,58 +1,78 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import React, { useState } from 'react';
+import React, { Dispatch, useState } from 'react';
 import Image from 'next/image';
 import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
+import { compressImage } from '~/helpers/image-helper';
+import { toast } from 'react-toastify';
 
 type DragDropProps = {
 	images: File[];
-	handleSetImages: (files: any, removing: boolean) => void;
+	setImages: Dispatch<File[]>;
 	includeButton: boolean;
 };
 
-const DragDrop = ({ images, handleSetImages, includeButton }: DragDropProps) => {
-	const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+const DragDrop = ({ images, setImages, includeButton }: DragDropProps) => {
+	const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
 		event.preventDefault();
 		const files = Array.from(event.dataTransfer.files);
-		handleFiles(files);
+		await handleFiles(files);
 	};
 
-	const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+	const changeHandler = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files) {
 			const files = Array.from(event.target.files);
 			if (files && files.length > 0) {
-				handleFiles(files);
+				await handleFiles(files);
 			}
 		}
 	};
 
-	const handleFiles = (files: File[]) => {
+	const handleSetImages = async (images: File[], removing: boolean) => {
+		try {
+			//on removing from previw no need to compress
+			if (!removing) {
+				const compressedImages = await Promise.all(
+					images.map(async (file) => {
+						return await compressImage(file);
+					})
+				);
+				// Update images state with the compressed images
+				setImages((prevImages) => [...prevImages, ...compressedImages]);
+			} else setImages(images);
+		} catch (err) {
+			console.log(err);
+			toast.error('Could not upload one or more of your images');
+		}
+	};
+
+	const handleFiles = async (files: File[]) => {
 		const validFiles = files.filter(
 			(file) => file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp'
 		);
 		const remainingSlots = 3 - images.length;
 		const newImages = validFiles.slice(0, remainingSlots);
-		handleSetImages(newImages, false);
+		await handleSetImages(newImages, false);
 	};
 
 	const removeImage = (index: number) => {
 		const updatedImages = [...images];
 		updatedImages.splice(index, 1);
-		handleSetImages(updatedImages, true);
+		setImages(images);
 	};
 
 	const removeImagePreview = (file: File) => {
 		const updatedImages = images.filter((image) => image !== file);
-		handleSetImages(updatedImages, true);
+		setImages(updatedImages);
 	};
 
 	return (
 		<div className="w-full">
 			{includeButton ? (
 				<div className="flex flex-col justify-center">
-					<label for="files" className="form-label">
+					<label htmlFor="files" className="form-label">
 						{'Choose File '}
 					</label>
 					<input type="file" id="files" accept="image/jpeg, image/png, image/webp" onChange={changeHandler} />

@@ -21,9 +21,9 @@ import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
-import { compressImage } from '~/helpers/compressor';
 import { Spinner } from '../../ui/spinner';
 import DragDrop from '../../ui/drag-drop';
+import { saveImages } from '~/helpers/image-helper';
 
 type GroupPostProps = {
 	groupId: string;
@@ -33,13 +33,14 @@ type GroupPostProps = {
 const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const [postOpen, setPostOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
+	const [images, setImages] = useState<File[]>([]);
+
 	const { isConnected, walletAddress } = useWallet();
 
 	const postToIPFS = api.PinataPost.postMessage.useMutation();
 	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
-	const [images, setImages] = useState<File[]>([]);
 
 	const hidePostInput = () => {
 		setPostOpen(false);
@@ -84,49 +85,6 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		}
 	};
 
-	const handleSetImages = async (images: File[], removing: boolean) => {
-		try {
-			//on removing from previw no need to compress
-			if (!removing) {
-				const compressedImages = await Promise.all(
-					images.map(async (file) => {
-						return await compressImage(file);
-					})
-				);
-				// Update images state with the compressed images
-				setImages((prevImages) => [...prevImages, ...compressedImages]);
-			} else setImages(images);
-		} catch (err) {
-			console.log(err);
-			toast.error('Could not upload one or more of your images');
-		}
-	};
-
-	const saveImages = async () => {
-		const imgArr: Response[] = [];
-		try {
-			for (const element of images) {
-				const body = new FormData();
-				body.set('file', element);
-				const response = await fetch('/api/upload', {
-					method: 'POST',
-					body,
-				});
-				if (!response.ok) {
-					throw new Error('Error uploading profile image');
-				}
-				const result: Response = await response.json();
-				if (!result) throw new Error('Error uploading profile image');
-				imgArr.push(result);
-			}
-			return imgArr;
-		} catch (error) {
-			console.log(error);
-			toast.error('Error pinning image');
-			return [];
-		}
-	};
-
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
@@ -134,7 +92,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			let imageHashes;
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			if (images) {
-				postImgsIPFS = await saveImages();
+				postImgsIPFS = await saveImages(images);
 				//map ipfsHashes of all uploaded images to array
 				imageHashes = postImgsIPFS.map(function (item) {
 					return item.data.IpfsHash;
@@ -207,9 +165,9 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							}}
 						/>
 						<div className="w-100 flex justify-end items-center gap-2">
-							<>
-								<DragDrop images={images} handleSetImages={handleSetImages} includeButton={true} />
-							</>
+							<div>
+								<DragDrop images={images} setImages={setImages} includeButton={true} />
+							</div>
 							<BasicButton
 								type="primary"
 								icon={isLoading ? <Spinner size="sm" /> : null}
