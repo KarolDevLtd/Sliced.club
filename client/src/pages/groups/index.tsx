@@ -7,7 +7,6 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import AddGroupModal from '~/app/_components/groups/AddGroupModal';
-
 export default function Groups() {
 	const groupId = '69';
 	const [groupOpen, setGroupOpen] = useState(false);

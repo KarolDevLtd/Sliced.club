@@ -39,6 +39,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 
 	const postToIPFS = api.PinataPost.postMessage.useMutation();
 	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
+
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
