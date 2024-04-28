@@ -1,9 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 
-import SidebarItem from './SidebarItem';
-import MinaButton from '../../ui/MinaButton';
-import LogoutButton from './LogoutButton';
+import { SidebarItem } from './sidebar-item';
+import { MinaButton } from '../../ui/mina-button';
+import { LogoutButton } from './logout-button';
 
 import { FaHome } from 'react-icons/fa';
 import { FaUserGroup } from 'react-icons/fa6';
@@ -18,7 +18,7 @@ type PlatformSidebarProps = {
 	hidden: boolean | undefined;
 };
 
-const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
+export const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 	return (
 		<aside
 			className={`${hidden ? 'hidden sm:flex' : null} fixed top-0 flex flex-col justify-between items-center pt-6 min-h-screen w-full sm:w-1/4 md:w-1/5 lg:w-1/6 bg-light-grey`}
@@ -43,5 +43,3 @@ const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 		</aside>
 	);
 };
-
-export default PlatformSidebar;

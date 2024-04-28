@@ -25,7 +25,7 @@ type SelectOptionProps = {
 	errors?: any;
 };
 
-const SelectOption = ({
+export const SelectOption = ({
 	id,
 	name,
 	placeholder,
@@ -73,5 +73,3 @@ const SelectOption = ({
 		</div>
 	);
 };
-
-export default SelectOption;

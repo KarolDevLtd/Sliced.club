@@ -8,7 +8,7 @@ type SidebarItemProps = {
 	icon: ReactElement;
 };
 
-const SidebarItem = ({ text, href, icon }: SidebarItemProps) => {
+export const SidebarItem = ({ text, href, icon }: SidebarItemProps) => {
 	const router = useRouter();
 
 	const activeLink = router.pathname.split('/')[1] === href.split('/')[1];
@@ -23,5 +23,3 @@ const SidebarItem = ({ text, href, icon }: SidebarItemProps) => {
 		</Link>
 	);
 };
-
-export default SidebarItem;

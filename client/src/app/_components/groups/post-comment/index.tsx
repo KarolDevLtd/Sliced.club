@@ -11,14 +11,14 @@ import { type UserState } from '~/stores/userStore';
 
 import { toast } from 'react-toastify';
 
-import TextArea from '../ui/TextArea';
-import BasicButton from '../ui/BasicButton';
+import { TextArea } from '../../ui/text-area';
+import { BasicButton } from '../../ui/basic-button';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { IoIosSend } from 'react-icons/io';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
-import Spinner from '../ui/Spinner';
+import { Spinner } from '../../ui/spinner';
 
 type PostCommentProps = {
 	postId: string;

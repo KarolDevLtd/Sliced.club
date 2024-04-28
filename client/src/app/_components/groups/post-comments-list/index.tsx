@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '~/trpc/react';
 import { type FirebaseCommentModel } from '~/models/firebase-comment-model';
-import PostCommentItem from './PostCommentItem';
+import PostCommentItem from '../post-comment-item';
 
 type PostCommentListProps = {
 	postId: string;

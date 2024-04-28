@@ -10,7 +10,7 @@ type BasicButtonProps = {
 	submitForm?: boolean;
 };
 
-const BasicButton = ({ children, onClick, type, icon, disabled, submitForm = false }: BasicButtonProps) => {
+export const BasicButton = ({ children, onClick, type, icon, disabled, submitForm = false }: BasicButtonProps) => {
 	const bgColour = {
 		primary: 'bg-purple',
 		secondary: 'bg-white',
@@ -50,5 +50,3 @@ const BasicButton = ({ children, onClick, type, icon, disabled, submitForm = fal
 		</button>
 	);
 };
-
-export default BasicButton;

@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { LiaExternalLinkAltSolid } from 'react-icons/lia';
 
-const InlineLink = ({
+export const InlineLink = ({
 	children,
 	href,
 	target = '_self',
@@ -35,5 +35,3 @@ const InlineLink = ({
 		</span>
 	);
 };
-
-export default InlineLink;
