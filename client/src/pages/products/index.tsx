@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import AddProductModal from '~/app/_components/products/add-product-modal';
+import AddProductModal from '~/app/_components/products/AddProductModal';
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { preventActionNotLoggedIn } from '~/helpers/user-helper';
 import PlatformLayout from '~/layouts/platform';
