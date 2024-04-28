@@ -1,6 +1,7 @@
 import { FirebasePostRouter } from './routers/firebase/posts';
 import { PinataPostRouter } from './routers/pinata/posts';
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
+import { PinataProductRouter } from './routers/pinata/products';
 
 /**
  * This is the primary router for your server.
@@ -10,6 +11,7 @@ import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 export const appRouter = createTRPCRouter({
 	FirebasePost: FirebasePostRouter,
 	PinataPost: PinataPostRouter,
+	PinataProduct: PinataProductRouter,
 });
 
 // export type definition of API
