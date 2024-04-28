@@ -22,6 +22,7 @@ import DragDrop from '../ui/drag-drop';
 import { saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/walletprovider';
+import { DateTime } from 'luxon';
 
 type AddProductModalTypes = {
 	productOpen: boolean;
@@ -32,8 +33,8 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 
-	const postToIPFS = api.PinataProduct.postProduct.useMutation();
-	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
+	const productToIPFS = api.PinataProduct.postProduct.useMutation();
+	const productToFirebase = api.FirebaseProduct.productToCollection.useMutation();
 
 	const { isConnected, walletAddress } = useWallet();
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
@@ -67,20 +68,17 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 			}
 			// 	//DO WE WANT CONTENT CHECK HERE?
 			// 	// Save to IPFS
-			const postProduct = await postToIPFS.mutateAsync({
+			const postProductToIPFS = await productToIPFS.mutateAsync({
 				name: name,
 				price: price.toString(),
 				category: category,
-				organiser: walletAddress!.toString(),
 				imageHash: imageHashes,
 			});
-			// await postToFirebase.mutateAsync({
-			// 	posterKey: walletAddress!.toString(),
-			// 	groupId: groupId,
-			// 	messageHash: postMsgIPFS.data.IpfsHash,
-			// 	imageHash: imageHashes,
-			// 	dateTime: DateTime.now().toString(),
-			// });
+			await productToFirebase.mutateAsync({
+				creatorKey: walletAddress!.toString(),
+				productHash: postProductToIPFS.data.IpfsHash,
+				dateTime: DateTime.now().toString(),
+			});
 		} catch (err) {
 			console.log(err);
 			toast.error('Error saving product');
