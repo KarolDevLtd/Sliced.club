@@ -4,5 +4,5 @@ export interface IPFSUserCreatedProductModel {
 	category: string;
 	organiser: string;
 	imageHash: string[] | null;
-	currentMembers: string;
+	currentMembers: string[] | null;
 }
