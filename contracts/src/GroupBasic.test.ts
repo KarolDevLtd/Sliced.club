@@ -176,4 +176,46 @@ describe('GroupBasic', () => {
       initialBalanceGroup + paymentAmount.toBigint()
     );
   });
+  const alexaBid = UInt64.from(2);
+  it('correctly joins the auction', async () => {
+    const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
+    const initialBalanceGroup = (
+      await tokenApp.getBalanceOf(groupAddress)
+    ).toBigInt();
+    const txn = await Mina.transaction(alexa, async () => {
+      // AccountUpdate.fundNewAccount(alexa);
+      await group.joinAuction(GROUP_SETTINGS, alexaBid);
+    });
+    await txn.prove();
+    await txn.sign([alexa.key]).send();
+    expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
+      initialBalanceAlexa - paymentAmount.toBigint()
+    );
+    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+      initialBalanceGroup + paymentAmount.toBigint()
+    );
+  });
+  it('correctly chooses the auction winner', async () => {
+    // const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
+    // const initialBalanceGroup = (
+    //   await tokenApp.getBalanceOf(groupAddress)
+    // ).toBigInt();
+    const randomIndex = Math.floor(Math.random() * 100);
+    const txn = await Mina.transaction(admin, async () => {
+      // AccountUpdate.fundNewAccount(alexa);
+      await group.getResults(
+        GROUP_SETTINGS,
+        admin.key,
+        UInt64.from(randomIndex)
+      );
+    });
+    await txn.prove();
+    await txn.sign([admin.key]).send();
+    // expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
+    //   initialBalanceAlexa - alexaBid.toBigInt()
+    // );
+    // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+    //   initialBalanceGroup + alexaBid.toBigInt()
+    // );
+  });
 });
