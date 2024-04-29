@@ -10,7 +10,7 @@ const Payment = () => {
 	return (
 		<div className="flex flex-col gap-4 min-h-full max-h-full">
 			<div className="flex justify-between items-center">
-				<PageHeader>{paymentId}</PageHeader>
+				<PageHeader text={paymentId ? paymentId?.toString() : 'Category'} />
 			</div>
 		</div>
 	);
