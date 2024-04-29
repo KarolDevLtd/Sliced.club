@@ -1,14 +1,10 @@
-import { useRouter } from 'next/router';
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
 const EditProfile = () => {
-	const router = useRouter();
-
-	const userId = router.query.userId;
-
 	return (
 		<div>
-			<h1>User ID: {userId}</h1>
+			<PageHeader text="Edit Profile" />
 		</div>
 	);
 };

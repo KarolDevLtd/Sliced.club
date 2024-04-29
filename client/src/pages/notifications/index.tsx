@@ -1,9 +1,10 @@
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
 const Notifications = () => {
 	return (
 		<div>
-			<h1>Notifications</h1>
+			<PageHeader text="Notifications" />
 		</div>
 	);
 };

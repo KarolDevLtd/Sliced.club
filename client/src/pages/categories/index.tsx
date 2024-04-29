@@ -1,9 +1,10 @@
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
 const Categories = () => {
 	return (
 		<div>
-			<h1>Categories</h1>
+			<PageHeader text="Categories" />
 		</div>
 	);
 };

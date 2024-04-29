@@ -1,9 +1,10 @@
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
 const Payments = () => {
 	return (
 		<div>
-			<h1>Payments</h1>
+			<PageHeader text="My Payments" />
 		</div>
 	);
 };

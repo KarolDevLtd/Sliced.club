@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import InlineLink from '~/app/_components/ui/InlineLink';
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
 const Profile = () => {
@@ -9,8 +10,7 @@ const Profile = () => {
 
 	return (
 		<div>
-			<h1>My Profile</h1>
-			<p>User ID: {userId}</p>
+			<PageHeader text="My Profile" subtext={`User ID: ${userId ? userId?.toString() : '69'}`} />
 			<ul>
 				<li>
 					<InlineLink href={`/profile/${userId?.toString()}/edit`}>Edit</InlineLink>
