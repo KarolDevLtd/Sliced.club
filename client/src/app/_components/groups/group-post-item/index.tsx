@@ -21,6 +21,7 @@ import PostCommentList from '../post-comments-list';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../../ui/zoomable-image';
+import { fetchImageData } from '~/helpers/image-helper';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -43,7 +44,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
 
 	//Get data from Firebase
-	const fetchImageData = useCallback(async () => {
+	const fetchAndDisplayImages = useCallback(async () => {
 		setIsLoading(true);
 		try {
 			if (postData) {
@@ -51,11 +52,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 				//Fetch post image if exists
 				if (currentPost.imageHash!.length > 0) {
 					setHasImage(true);
-					if (Array.isArray(currentPost.imageHash)) {
-						currentPost.imageHash.forEach(async (element: string) => {
-							await fetchImages(element, currentPost.imageHash);
-						});
-					}
+					await fetchImageData(currentPost, setHasImage, setImageData, setImageError);
 				}
 			}
 		} catch (err) {
@@ -63,36 +60,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			toast.error('Error fetching one or more images');
 		}
 		setIsLoading(false);
-	}, [currentPost.imageHash, postData]);
-
-	//Get image from IPFS
-	const fetchImages = async (imageHash: string, imageHashes) => {
-		try {
-			const response = await fetch(`/api/upload?imageHash=${imageHash}`);
-			if (response.ok) {
-				const blob = await response.blob();
-				const imageUrl = URL.createObjectURL(blob);
-				//Below used to render images in the order they were uploaded to db...
-				// Find the index of the current imageHash in the imageHashes array
-				const index = imageHashes.indexOf(imageHash);
-				if (index !== -1) {
-					// Update the state at the corresponding index
-					setImageData((prevImageData) => {
-						const newData = [...prevImageData];
-						newData[index] = imageUrl;
-						return newData;
-					});
-				} else {
-					console.log('Image hash not found in imageHashes array');
-				}
-			} else {
-				console.log('Error fetching image');
-				setImageError(true);
-			}
-		} catch (err) {
-			console.log(err);
-		}
-	};
+	}, [currentPost, postData]);
 
 	//Get likes from Firebase
 	const fetchLikeData = useCallback(async () => {
@@ -158,8 +126,8 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 
 	useEffect(() => {
 		//Use void here as do not need result, use state set inside result
-		void fetchImageData();
-	}, [fetchImageData, postData]);
+		void fetchAndDisplayImages();
+	}, [fetchAndDisplayImages, postData]);
 
 	useEffect(() => {
 		void fetchLikeData();

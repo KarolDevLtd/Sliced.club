@@ -12,6 +12,7 @@ import { api } from '~/trpc/react';
 import { type IPFSProductModel } from '~/models/ipfs-product-model';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../ui/zoomable-image';
+import { fetchImageData } from '~/helpers/image-helper';
 
 type ProductItemProps = {
 	currentProduct: string;
@@ -42,23 +43,13 @@ const ProductItem = ({ currentProduct }: ProductItemProps) => {
 	};
 
 	//Get data from Firebase
-	const fetchImageData = useCallback(async () => {
+	const fetchAndDisplayImages = useCallback(async () => {
 		setIsLoading(true);
 		try {
 			if (productData) {
 				const currProd = productData.product as unknown as IPFSProductModel;
 				setProduct(productData.product);
-				// Fetch post image if exists
-				if (currProd && currProd.imageHash!.length > 0) {
-					setHasImage(true);
-					if (Array.isArray(currProd.imageHash)) {
-						await Promise.all(
-							currProd.imageHash.map(async (element: string) => {
-								await fetchImages(element, currProd.imageHash);
-							})
-						);
-					}
-				}
+				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 		} catch (err) {
 			console.log(err);
@@ -68,39 +59,10 @@ const ProductItem = ({ currentProduct }: ProductItemProps) => {
 		}
 	}, [productData]);
 
-	//Get image from IPFS
-	const fetchImages = async (imageHash: string, imageHashes) => {
-		try {
-			const response = await fetch(`/api/upload?imageHash=${imageHash}`);
-			if (response.ok) {
-				const blob = await response.blob();
-				const imageUrl = URL.createObjectURL(blob);
-				//Below used to render images in the order they were uploaded to db...
-				// Find the index of the current imageHash in the imageHashes array
-				const index = imageHashes.indexOf(imageHash);
-				if (index !== -1) {
-					// Update the state at the corresponding index
-					setImageData((prevImageData) => {
-						const newData = [...prevImageData];
-						newData[index] = imageUrl;
-						return newData;
-					});
-				} else {
-					console.log('Image hash not found in imageHashes array');
-				}
-			} else {
-				console.log('Error fetching image');
-				setImageError(true);
-			}
-		} catch (err) {
-			console.log(err);
-		}
-	};
-
 	useEffect(() => {
 		//Use void here as do not need result, use state set inside result
-		void fetchImageData();
-	}, [fetchImageData, productData]);
+		void fetchAndDisplayImages();
+	}, [fetchAndDisplayImages, productData]);
 
 	return (
 		// <div>{currentProduct}</div>
@@ -108,6 +70,7 @@ const ProductItem = ({ currentProduct }: ProductItemProps) => {
 			{isLoading ? (
 				'Loading...'
 			) : (
+				//TODO - BUG here, should be able to zoom image without triggering parent onClick
 				<div
 					className="grid grid-cols-10 gap-4 p-4 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer"
 					// @ts-ignore
