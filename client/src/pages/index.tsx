@@ -11,8 +11,13 @@ import ProductList from '~/app/_components/products/ProductList';
 import { type Product } from '~/types/product-types';
 import PaymentList from '~/app/_components/payments/PaymentList';
 import { type Payment } from '~/types/payment-types';
+import useStore from '~/stores/utils/useStore';
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { type UserState } from '~/stores/userStore';
 
 export default function Dashboard() {
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
+
 	const router = useRouter();
 
 	useEffect(() => {
@@ -132,8 +137,8 @@ export default function Dashboard() {
 				</div>
 				<div className="row-span-2 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
-						<ProductList heading="My Products" products={myProducts} />
-						<ProductList heading="Available Groups" products={availableGroups} />
+						{walletConnected ? <ProductList heading="My Products" /> : 'Log in to see all your products'}
+						{/* <ProductList heading="Available Groups" products={availableGroups} /> */}
 					</div>
 					<div className="col-span-1 mb-4">
 						<PaymentList heading="Next Payments" payments={myPayments} />
