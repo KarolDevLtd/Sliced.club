@@ -4,7 +4,7 @@ import 'react-medium-image-zoom/dist/styles.css';
 import Image from 'next/image';
 
 type ZoomableImageProps = {
-	source: string;
+	source: string | null;
 	width: number;
 	height: number;
 	alt: string;
@@ -19,9 +19,11 @@ const ZoomableImage = ({ source, width, height, alt }: ZoomableImageProps) => {
 
 	return (
 		<div className="w-3/4">
-			<ControlledZoom isZoomed={isZoomed} onZoomChange={handleZoomChange}>
-				<Image src={source} width={width} height={height} alt={alt} />
-			</ControlledZoom>
+			{source ? (
+				<ControlledZoom isZoomed={isZoomed} onZoomChange={handleZoomChange}>
+					<Image src={source} width={width} height={height} alt={alt} />
+				</ControlledZoom>
+			) : null}
 		</div>
 	);
 };
