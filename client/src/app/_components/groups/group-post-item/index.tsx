@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -43,7 +43,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const unlikePostToFirebase = api.FirebasePost.unlikePost.useMutation();
 
 	//Get data from Firebase
-	const fetchImageData = async () => {
+	const fetchImageData = useCallback(async () => {
 		setIsLoading(true);
 		try {
 			if (postData) {
@@ -63,7 +63,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			toast.error('Error fetching one or more images');
 		}
 		setIsLoading(false);
-	};
+	}, [currentPost.imageHash, postData]);
 
 	//Get image from IPFS
 	const fetchImages = async (imageHash: string, imageHashes) => {
@@ -95,7 +95,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	};
 
 	//Get likes from Firebase
-	const fetchLikeData = async () => {
+	const fetchLikeData = useCallback(async () => {
 		setIsLoading(true);
 		try {
 			if (postData) {
@@ -113,7 +113,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			toast.warn('Error fetching likes for post');
 		}
 		setIsLoading(false);
-	};
+	}, [likesData?.likes, postData, walletAddress]);
 
 	const onLike = async () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to like a comment')) return;
@@ -159,11 +159,11 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	useEffect(() => {
 		//Use void here as do not need result, use state set inside result
 		void fetchImageData();
-	}, [postData]);
+	}, [fetchImageData, postData]);
 
 	useEffect(() => {
 		void fetchLikeData();
-	}, [likesData?.likes, postData, walletAddress]);
+	}, [fetchLikeData, likesData?.likes, postData, walletAddress]);
 
 	return (
 		<div className="flex flex-col my-2 rounded-xl shadow-sm bg-white border-solid border-2 border-indigo-100">
