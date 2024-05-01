@@ -157,15 +157,14 @@ describe('GroupBasic', () => {
 
     expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
   });
-
-  it('correctly makes a payment', async () => {
+  it('correctly makes a payment, without bids', async () => {
     const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
     const initialBalanceGroup = (
       await tokenApp.getBalanceOf(groupAddress)
     ).toBigInt();
     const txn = await Mina.transaction(alexa, async () => {
       AccountUpdate.fundNewAccount(alexa);
-      await group.makePayment(GROUP_SETTINGS);
+      await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
     });
     await txn.prove();
     await txn.sign([alexa.key]).send();
@@ -176,26 +175,27 @@ describe('GroupBasic', () => {
       initialBalanceGroup + paymentAmount.toBigint()
     );
   });
+
   const alexaBid = UInt64.from(2);
-  it('correctly joins the auction', async () => {
-    const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
-    const initialBalanceGroup = (
-      await tokenApp.getBalanceOf(groupAddress)
-    ).toBigInt();
-    const txn = await Mina.transaction(alexa, async () => {
-      // AccountUpdate.fundNewAccount(alexa);
-      await group.joinAuction(GROUP_SETTINGS, alexaBid);
-    });
-    await txn.prove();
-    await txn.sign([alexa.key]).send();
-    expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
-      initialBalanceAlexa - paymentAmount.toBigint()
-    );
-    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-      initialBalanceGroup + paymentAmount.toBigint()
-    );
-  });
-  it('correctly chooses the auction winner', async () => {
+  // it('correctly joins the auction', async () => {
+  //   const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
+  //   const initialBalanceGroup = (
+  //     await tokenApp.getBalanceOf(groupAddress)
+  //   ).toBigInt();
+  //   const txn = await Mina.transaction(alexa, async () => {
+  //     // AccountUpdate.fundNewAccount(alexa);
+  //     await group.joinAuction(GROUP_SETTINGS, alexaBid);
+  //   });
+  //   await txn.prove();
+  //   await txn.sign([alexa.key]).send();
+  //   expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
+  //     initialBalanceAlexa - paymentAmount.toBigint()
+  //   );
+  //   expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+  //     initialBalanceGroup + paymentAmount.toBigint()
+  //   );
+  // });
+  it('correctly chooses the winners', async () => {
     // const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
     // const initialBalanceGroup = (
     //   await tokenApp.getBalanceOf(groupAddress)

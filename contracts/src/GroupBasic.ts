@@ -123,64 +123,6 @@ export class GroupBasic extends SmartContract {
     this.groupSettingsHash.set(groupSettings.hash());
   }
 
-  @method
-  async makePayment(_groupSettings: GroupSettings) {
-    //TODO ensure user in the group
-    let senderAddr = this.sender.getAndRequireSignature();
-    let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
-    groupSettingsHash.assertEquals(_groupSettings.hash());
-
-    //TODO get payment round ensure not yet paid ? nullifier?
-    let currentPaymentRound = this.paymentRound.getAndRequireEquals();
-    let paymentAmount = this.getPaymentAmount(_groupSettings);
-    // Provable.log('paymentAmount', paymentAmount);
-    const token = new FungibleToken(_groupSettings.tokenAddress);
-    await token.transfer(senderAddr, this.address, paymentAmount);
-    this.reducer.dispatch(
-      new Entry(senderAddr, UInt64.zero, currentPaymentRound)
-    );
-  }
-
-  // @method
-  // async getLotteryResult(_groupSettings: GroupSettings) {
-  //   let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
-  //   groupSettingsHash.assertEquals(_groupSettings.hash());
-
-  //   this.paymentRound.set(this.paymentRound.getAndRequireEquals().add(1));
-  // }
-
-  @method
-  async joinAuction(_groupSettings: GroupSettings, amountOfBids: UInt64) {
-    amountOfBids.assertGreaterThan(new UInt64(0));
-    let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
-    groupSettingsHash.assertEquals(_groupSettings.hash());
-    let adminPubKey = this.admin.getAndRequireEquals();
-    let senderPubKey = this.sender.getAndRequireSignature();
-    let currentPaymentRound = this.paymentRound.getAndRequireEquals();
-    let paymentAmount = this.getPaymentAmount(_groupSettings);
-    const token = new FungibleToken(_groupSettings.tokenAddress);
-
-    //get payment round ? 2nd nullfiier?
-
-    //check if has the actual bidding amount
-    let balance = await token.getBalanceOf(senderPubKey);
-
-    balance.assertGreaterThanOrEqual(paymentAmount.mul(amountOfBids));
-
-    //but transfer only single one
-    await token.transfer(senderPubKey, this.address, paymentAmount);
-
-    //encrypt bidding info
-    let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
-
-    this.reducer.dispatch(
-      new Entry(senderPubKey, amountOfBids, currentPaymentRound)
-    );
-    // this.lotteryReducer.
-    // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
-    // adminPubKey;
-  }
-
   //attempt to try to combine the two entries into one
   @method
   async roundPayment(_groupSettings: GroupSettings, amountOfBids: UInt64) {
@@ -235,7 +177,7 @@ export class GroupBasic extends SmartContract {
     adminPubKey.assertEquals(adminPrivKey.toPublicKey());
 
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
-
+    Provable.log('randomValue', randomValue);
     // get all actions
     let actions = this.reducer.getActions();
 
@@ -245,21 +187,16 @@ export class GroupBasic extends SmartContract {
     let auctionWinner: PublicKey = PublicKey.empty();
     let lotteryWinner: PublicKey = PublicKey.empty();
     let iter = actions.startIterating(); // or from last, to check
-    let distanceFromRandom = UInt64.from(MAX_UPDATES_WITH_ACTIONS);
-    // const roundParticipants = Provable.Array(
-    //   PublicKey,
-    //   MAX_UPDATES_WITH_ACTIONS
-    // );
-    // what if win lottery but also auctiopn
-    // let counterPatricipants = UInt32.zero;
+    let distanceFromRandom = UInt64.from(999);
+    let currentDistance = UInt64.from(999);
+    // TODO what if win lottery but also auction
+
     // iterate over actions of encrypted bids
     // decrypt the bid and assert earliest highest bid
-    //set winner?
-
-    //based on the DISTANCE from random number, set the lottery winner
 
     for (let i = 0; i < MAX_UPDATES_WITH_ACTIONS; i++) {
       //can i use i or should I use
+      let iterIndex = UInt64.from(i);
       // let iterIndex = iter._index('next');
       let merkleActions = iter.next();
       let innerIter = merkleActions.startIterating();
@@ -281,29 +218,51 @@ export class GroupBasic extends SmartContract {
           currentHighestBid
         );
         // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
-        // we require that every action is greater than the previous one, except for dummy (0) actions
-        // this checks that actions are applied in the right order
-        // assert(action.equals(0).or(action.greaterThan(lastAction)));
-        // lastAction = action;
+
+        //based on the DISTANCE from random number, set the lottery winner
+        currentDistance = Provable.if(
+          iterIndex.greaterThanOrEqual(randomValue),
+          iterIndex.sub(randomValue),
+          randomValue.sub(iterIndex)
+        );
+        // Provable.asProver(() => {
+        //   if (iterIndex.greaterThanOrEqual(randomValue).toBoolean()) {
+        //     Provable.log('yes', iterIndex);
+        //   } else {
+        //     Provable.log('no', iterIndex);
+        //   }
+        // });
+
         lotteryWinner = Provable.if(
           action.message
             .equals(UInt64.zero)
             .and(action.paymentRound.equals(currentPaymentRound))
             .and(
-              UInt64.from(i).equals(randomValue)
-              // .or() // diffrence between random value and current index
+              iterIndex
+                .equals(randomValue)
+                .or(currentDistance.lessThan(distanceFromRandom))
             ),
           action.publicKey,
           lotteryWinner
         );
-        // distanceFromRandom = Provable.if(
-        //   action.message.equals(UInt64.zero).and(action.paymentRound.equals(currentPaymentRound))
-        // )
+        distanceFromRandom = Provable.if(
+          action.message
+            .equals(UInt64.zero)
+            .and(action.paymentRound.equals(currentPaymentRound))
+            .and(
+              iterIndex
+                .equals(randomValue)
+                .or(currentDistance.lessThan(distanceFromRandom))
+            ),
+          currentDistance,
+          distanceFromRandom
+        );
       }
       innerIter.assertAtEnd();
     }
     iter.assertAtEnd();
     Provable.log('auctionWinner', auctionWinner);
+    Provable.log('lotteryWinner', lotteryWinner);
 
     //double check logic for this
     let advanceRound = Provable.if(
@@ -323,6 +282,4 @@ export class GroupBasic extends SmartContract {
   //TODO joinGroup()
   //TODO claimLottery()
   //TODO claimAuction()
-
-  //for bid, we can take single deposit but can check if have bidded amount in wallet
 }
