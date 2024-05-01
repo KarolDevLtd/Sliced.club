@@ -39,6 +39,10 @@ type TextInputProps = {
 			value?: RegExp;
 			message?: string;
 		};
+		min?: {
+			value?: number;
+			message?: string;
+		};
 	};
 	register?: any;
 	errors?: any;
@@ -100,6 +104,9 @@ export const TextInput = ({
 					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 				{errors && errors[name]?.type === 'minLength' && (
+					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+				)}
+				{errors && errors[name]?.type === 'min' && (
 					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 			</div>
