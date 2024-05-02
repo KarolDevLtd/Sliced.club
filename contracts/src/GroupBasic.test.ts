@@ -12,7 +12,7 @@ import {
 } from 'o1js';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 
-let proofsEnabled = true;
+let proofsEnabled = false;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -99,8 +99,8 @@ describe('GroupBasic', () => {
     // const groupToken = group.tokenAddress.get();
     // expect(groupToken).toEqual(tokenAddress);
     const groupAdmin = group.admin.get();
-    console.log(group.paymentRound.get().toBigInt());
-    console.log(groupAdmin.toBase58());
+    // console.log(group.paymentRound.get().toBigInt());
+    // console.log(groupAdmin.toBase58());
     expect(groupAdmin.toBase58()).toEqual(admin.toBase58());
   });
 
@@ -126,7 +126,7 @@ describe('GroupBasic', () => {
     );
 
     const userAmount = new UInt64(2000);
-    for (let i = 3; i < 5; i++) {
+    for (let i = 3; i < 7; i++) {
       const transferTx = await Mina.transaction(
         {
           sender: admin,
@@ -176,46 +176,59 @@ describe('GroupBasic', () => {
     );
   });
 
-  const alexaBid = UInt64.from(2);
-  // it('correctly joins the auction', async () => {
-  //   const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
-  //   const initialBalanceGroup = (
-  //     await tokenApp.getBalanceOf(groupAddress)
-  //   ).toBigInt();
-  //   const txn = await Mina.transaction(alexa, async () => {
-  //     // AccountUpdate.fundNewAccount(alexa);
-  //     await group.joinAuction(GROUP_SETTINGS, alexaBid);
-  //   });
-  //   await txn.prove();
-  //   await txn.sign([alexa.key]).send();
-  //   expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
-  //     initialBalanceAlexa - paymentAmount.toBigint()
-  //   );
-  //   expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-  //     initialBalanceGroup + paymentAmount.toBigint()
-  //   );
-  // });
+  const billyBid = UInt64.from(2);
+  it('1st user correctly joins the auction', async () => {
+    const initialBalanceBilly = (await tokenApp.getBalanceOf(billy)).toBigInt();
+    const initialBalanceGroup = (
+      await tokenApp.getBalanceOf(groupAddress)
+    ).toBigInt();
+    const txn = await Mina.transaction(billy, async () => {
+      // AccountUpdate.fundNewAccount(billy);
+      await group.roundPayment(GROUP_SETTINGS, billyBid);
+    });
+    await txn.prove();
+    await txn.sign([billy.key]).send();
+    expect((await tokenApp.getBalanceOf(billy)).toBigInt()).toEqual(
+      initialBalanceBilly - paymentAmount.mul(2).toBigint()
+    );
+    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+      initialBalanceGroup + paymentAmount.mul(2).toBigint()
+    );
+  });
+  const charlieBid = UInt64.from(3);
+  it('2nd user (higher bidder) correctly joins the auction', async () => {
+    const initialBalanceCharlie = (
+      await tokenApp.getBalanceOf(charlie)
+    ).toBigInt();
+    const initialBalanceGroup = (
+      await tokenApp.getBalanceOf(groupAddress)
+    ).toBigInt();
+    const txn = await Mina.transaction(charlie, async () => {
+      // AccountUpdate.fundNewAccount(charlie);
+      await group.roundPayment(GROUP_SETTINGS, charlieBid);
+    });
+    await txn.prove();
+    await txn.sign([charlie.key]).send();
+    expect((await tokenApp.getBalanceOf(charlie)).toBigInt()).toEqual(
+      initialBalanceCharlie - paymentAmount.mul(2).toBigint()
+    );
+    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+      initialBalanceGroup + paymentAmount.mul(2).toBigint()
+    );
+  });
   it('correctly chooses the winners', async () => {
-    // const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
-    // const initialBalanceGroup = (
-    //   await tokenApp.getBalanceOf(groupAddress)
-    // ).toBigInt();
-    const randomIndex = Math.floor(Math.random() * 100);
+    const paymentRound = group.paymentRound.get();
+    const randomIndex = Math.floor(Math.random() * 20);
     const txn = await Mina.transaction(admin, async () => {
-      // AccountUpdate.fundNewAccount(alexa);
       await group.getResults(
         GROUP_SETTINGS,
         admin.key,
-        UInt64.from(randomIndex)
+        Field.from(randomIndex)
       );
     });
     await txn.prove();
     await txn.sign([admin.key]).send();
-    // expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
-    //   initialBalanceAlexa - alexaBid.toBigInt()
-    // );
-    // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-    //   initialBalanceGroup + alexaBid.toBigInt()
-    // );
+    const newPaymentRound = group.paymentRound.get();
+    expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
   });
 });

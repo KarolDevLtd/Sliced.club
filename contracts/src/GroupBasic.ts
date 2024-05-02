@@ -36,7 +36,7 @@ type CipherText = {
 };
 export class Entry extends Struct({
   publicKey: PublicKey,
-  // message: {
+  // message: { //TODO
   //   publicKey: Group,
   //   cipherText: Field[],
   // },
@@ -93,7 +93,7 @@ export class GroupSettings extends Struct({
     ) as any;
   }
 }
-const MAX_UPDATES_WITH_ACTIONS = 100;
+const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
 export class GroupBasic extends SmartContract {
   // a commitment is a cryptographic primitive that allows us to commit to data, with the ability to "reveal" it later
@@ -106,7 +106,7 @@ export class GroupBasic extends SmartContract {
   // state ipfs hash?
 
   async deploy(args: DeployArgs & { admin: PublicKey }) {
-    super.deploy(args);
+    await super.deploy(args);
     this.admin.set(args.admin);
     this.merkleRoot.set(initialCommitment);
     this.paymentRound.set(UInt64.zero);
@@ -123,7 +123,6 @@ export class GroupBasic extends SmartContract {
     this.groupSettingsHash.set(groupSettings.hash());
   }
 
-  //attempt to try to combine the two entries into one
   @method
   async roundPayment(_groupSettings: GroupSettings, amountOfBids: UInt64) {
     //TODO ensure user in the group
@@ -169,7 +168,7 @@ export class GroupBasic extends SmartContract {
   async getResults(
     _groupSettings: GroupSettings,
     adminPrivKey: PrivateKey,
-    randomValue: UInt64 // it has to be constraint to max updates 0-100
+    randomValue: Field // it has to be constraint to max updates 0-100
   ) {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
@@ -187,8 +186,8 @@ export class GroupBasic extends SmartContract {
     let auctionWinner: PublicKey = PublicKey.empty();
     let lotteryWinner: PublicKey = PublicKey.empty();
     let iter = actions.startIterating(); // or from last, to check
-    let distanceFromRandom = UInt64.from(999);
-    let currentDistance = UInt64.from(999);
+    let distanceFromRandom = Field.from(999);
+    let currentDistance = Field.from(999);
     // TODO what if win lottery but also auction
 
     // iterate over actions of encrypted bids
@@ -196,10 +195,17 @@ export class GroupBasic extends SmartContract {
 
     for (let i = 0; i < MAX_UPDATES_WITH_ACTIONS; i++) {
       //can i use i or should I use
-      let iterIndex = UInt64.from(i);
+      let iterIndex = Field.from(i);
       // let iterIndex = iter._index('next');
       let merkleActions = iter.next();
       let innerIter = merkleActions.startIterating();
+      //based on the DISTANCE from random number, set the lottery winner
+      currentDistance = Provable.if(
+        iterIndex.greaterThanOrEqual(randomValue),
+        iterIndex.sub(randomValue),
+        randomValue.sub(iterIndex)
+      );
+
       for (let j = 0; j < MAX_ACTIONS_PER_UPDATE; j++) {
         //can I ensure order of action in an update
         let action = innerIter.next();
@@ -218,53 +224,42 @@ export class GroupBasic extends SmartContract {
           currentHighestBid
         );
         // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
-
-        //based on the DISTANCE from random number, set the lottery winner
-        currentDistance = Provable.if(
-          iterIndex.greaterThanOrEqual(randomValue),
-          iterIndex.sub(randomValue),
-          randomValue.sub(iterIndex)
-        );
-        // Provable.asProver(() => {
-        //   if (iterIndex.greaterThanOrEqual(randomValue).toBoolean()) {
-        //     Provable.log('yes', iterIndex);
-        //   } else {
-        //     Provable.log('no', iterIndex);
-        //   }
-        // });
-
-        lotteryWinner = Provable.if(
-          action.message
-            .equals(UInt64.zero)
-            .and(action.paymentRound.equals(currentPaymentRound))
-            .and(
-              iterIndex
-                .equals(randomValue)
-                .or(currentDistance.lessThan(distanceFromRandom))
-            ),
-          action.publicKey,
-          lotteryWinner
-        );
         distanceFromRandom = Provable.if(
           action.message
-            .equals(UInt64.zero)
+            .equals(UInt64.zero) //i can't have zero as all of them are 0, let's add flag lottery TODO
             .and(action.paymentRound.equals(currentPaymentRound))
-            .and(
-              iterIndex
-                .equals(randomValue)
-                .or(currentDistance.lessThan(distanceFromRandom))
-            ),
+            .and(currentDistance.lessThan(distanceFromRandom)),
           currentDistance,
           distanceFromRandom
         );
+        lotteryWinner = Provable.if(
+          currentDistance.equals(distanceFromRandom),
+          action.publicKey,
+          lotteryWinner
+        );
+
+        //this may still be correct
+        // lotteryWinner = Provable.if(
+        //   action.message
+        //     .equals(UInt64.zero)
+        //     .and(action.paymentRound.equals(currentPaymentRound))
+        //     .and(
+        //       currentDistance
+        //         .equals(Field(0))
+        //         .or(currentDistance.lessThan(distanceFromRandom))
+        //     ),
+        //   action.publicKey,
+        //   lotteryWinner
+        // );
       }
       innerIter.assertAtEnd();
     }
     iter.assertAtEnd();
     Provable.log('auctionWinner', auctionWinner);
     Provable.log('lotteryWinner', lotteryWinner);
+    Provable.log('distanceFromRandom', distanceFromRandom);
 
-    //double check logic for this
+    //TODO double check logic for this
     let advanceRound = Provable.if(
       lotteryWinner.equals(PublicKey.empty()),
       UInt64.zero,
