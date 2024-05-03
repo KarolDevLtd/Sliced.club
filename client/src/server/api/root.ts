@@ -3,6 +3,8 @@ import { PinataPostRouter } from './routers/pinata/posts';
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 import { PinataProductRouter } from './routers/pinata/products';
 import { FirebaseProductRouter } from './routers/firebase/products';
+import { FirebaseGroupRouter } from './routers/firebase/groups';
+import { PinataGroupRouter } from './routers/pinata/groups';
 
 /**
  * This is the primary router for your server.
@@ -12,8 +14,10 @@ import { FirebaseProductRouter } from './routers/firebase/products';
 export const appRouter = createTRPCRouter({
 	FirebasePost: FirebasePostRouter,
 	FirebaseProduct: FirebaseProductRouter,
+	FirebaseGroup: FirebaseGroupRouter,
 	PinataPost: PinataPostRouter,
 	PinataProduct: PinataProductRouter,
+	PinataGroup: PinataGroupRouter,
 });
 
 // export type definition of API
