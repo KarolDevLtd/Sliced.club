@@ -44,12 +44,11 @@ export const FirebaseGroupRouter = createTRPCRouter({
 			);
 			const groups: FirebaseGroupModel[] = [];
 			await getDocs(q).then((response) => {
-				// console.log(response);
 				response.forEach((doc) => {
 					groups.push({
 						name: doc.data().name as string,
 						creatorKey: input.creatorKey!,
-						// groupHash: doc.data().groupHash as string,
+						groupHash: doc.data().groupHash as string,
 					});
 				});
 			});
