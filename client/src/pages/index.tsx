@@ -14,6 +14,7 @@ import { type Payment } from '~/types/payment-types';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
+import GroupList from '~/app/_components/groups/GroupList';
 
 export default function Dashboard() {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
@@ -138,6 +139,7 @@ export default function Dashboard() {
 				<div className="row-span-2 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
 						{walletConnected ? <ProductList heading="My Products" /> : 'Log in to see all your products'}
+						{walletConnected ? <GroupList heading="My Groups" /> : 'Log in to see all your groups'}
 						{/* <ProductList heading="Available Groups" products={availableGroups} /> */}
 					</div>
 					<div className="col-span-1 mb-4">
