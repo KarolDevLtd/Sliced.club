@@ -75,6 +75,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 				imageHash: imageHashes,
 			});
 			await productToFirebase.mutateAsync({
+				name: name,
 				creatorKey: walletAddress!.toString(),
 				productHash: postProductToIPFS.data.IpfsHash,
 				dateTime: DateTime.now().toString(),
@@ -94,7 +95,6 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create product')) return;
 			await saveProduct(data['product-name'], data['product-price'], data['product-category']);
-			console.log(JSON.stringify(data));
 			reset();
 			hideProduct();
 			// refetchPosts();
