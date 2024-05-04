@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router';
-import PageHeader from '~/app/_components/ui/PageHeader';
+import { PageHeader } from '~/app/_components/ui/page-header';
 import PlatformLayout from '~/layouts/platform';
 
-const Category = () => {
+export default function Category() {
 	const router = useRouter();
 
 	const categoryId = router.query.categoryId;
@@ -14,10 +14,8 @@ const Category = () => {
 			</div>
 		</div>
 	);
-};
+}
 
 Category.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
-
-export default Category;

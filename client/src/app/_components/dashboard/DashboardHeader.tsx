@@ -8,14 +8,13 @@ import { type UserState } from '~/stores/userStore';
 
 type DashboardHeaderProps = object;
 
-const DashboardHeader = ({}: DashboardHeaderProps) => {
+export const DashboardHeader = ({}: DashboardHeaderProps) => {
 	const [greetingMessage, setGreetingMessage] = useState('');
 
 	const userFirstName = useStore(useUserStore, (state: UserState) => state.userFirstName);
 
 	useEffect(() => {
 		const greetings = [
-			// Feel free to add more
 			"It's good to see you again",
 			'Welcome back',
 			'Wag1',
@@ -35,5 +34,3 @@ const DashboardHeader = ({}: DashboardHeaderProps) => {
 
 	return <PageHeader text={`Hello ${userFirstName}!`} subtext={greetingMessage} />;
 };
-
-export default DashboardHeader;

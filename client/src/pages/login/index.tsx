@@ -9,15 +9,15 @@ import { type UserState } from '~/stores/userStore';
 
 import { toast } from 'react-toastify';
 
-import BasicButton from '~/app/_components/ui/BasicButton';
-import Checkbox from '~/app/_components/ui/Checkbox';
-import InlineLink from '~/app/_components/ui/InlineLink';
-import TextInput from '~/app/_components/ui/TextInput';
+import { BasicButton } from '~/app/_components/ui/basic-button';
+import { Checkbox } from '~/app/_components/ui/checkbox';
+import { InlineLink } from '~/app/_components/ui/inline-link';
+import { TextInput } from '~/app/_components/ui/text-input';
 
 import { preventActionWalletNotConnected } from '~/helpers/user-helper';
 import DefaultLayout from '~/layouts/default';
 
-const Login = () => {
+export default function Login() {
 	const router = useRouter();
 
 	const { logInUser } = useUserStore((state) => state);
@@ -108,10 +108,8 @@ const Login = () => {
 			</div>
 		</div>
 	);
-};
+}
 
 Login.getLayout = function getLayout(page) {
 	return <DefaultLayout>{page}</DefaultLayout>;
 };
-
-export default Login;

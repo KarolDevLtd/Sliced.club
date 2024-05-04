@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import PlatformLayout from '~/layouts/platform';
 
-const GroupClaim = () => {
+export default function GroupClaim() {
 	const router = useRouter();
 
 	const groupId = router.query.groupId;
@@ -12,10 +12,8 @@ const GroupClaim = () => {
 			<p>Group ID: {groupId}</p>
 		</div>
 	);
-};
+}
 
 GroupClaim.getLayout = function getLayout(page) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
-
-export default GroupClaim;
