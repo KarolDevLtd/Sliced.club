@@ -22,7 +22,7 @@ export default function Products() {
 	};
 
 	return (
-		<div>
+		<>
 			<PageHeader text="My Products" subtext="Check the details of your products" />
 			<div className="p-1">
 				<BasicButton type="primary" onClick={showProduct}>
@@ -30,7 +30,7 @@ export default function Products() {
 				</BasicButton>
 			</div>
 			<AddProductModal productOpen={productOpen} hideProduct={hideProduct} />
-		</div>
+		</>
 	);
 }
 

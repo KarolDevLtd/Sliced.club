@@ -24,7 +24,7 @@ export default function Groups() {
 	};
 
 	return (
-		<div>
+		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
 			<InlineLink href={`groups/${groupId}`}>Group 69</InlineLink>
 			<div className="p-1">
@@ -33,7 +33,7 @@ export default function Groups() {
 				</BasicButton>
 			</div>
 			<AddGroupModal groupOpen={groupOpen} hideGroup={hideGroup} />
-		</div>
+		</>
 	);
 }
 

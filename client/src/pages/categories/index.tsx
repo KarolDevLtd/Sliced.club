@@ -3,9 +3,9 @@ import PlatformLayout from '~/layouts/platform';
 
 export default function Categories() {
 	return (
-		<div>
+		<>
 			<PageHeader text="Categories" />
-		</div>
+		</>
 	);
 }
 
