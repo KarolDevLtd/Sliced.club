@@ -3,9 +3,9 @@ import PlatformLayout from '~/layouts/platform';
 
 export default function Settings() {
 	return (
-		<div>
+		<>
 			<PageHeader text="Settings" />
-		</div>
+		</>
 	);
 }
 

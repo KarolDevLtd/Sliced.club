@@ -3,9 +3,9 @@ import PlatformLayout from '~/layouts/platform';
 
 export default function EditProfile() {
 	return (
-		<div>
+		<>
 			<PageHeader text="Edit Profile" />
-		</div>
+		</>
 	);
 }
 

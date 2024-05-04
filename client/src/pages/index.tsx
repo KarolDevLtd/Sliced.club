@@ -105,7 +105,7 @@ export default function Dashboard() {
 	] as Payment[];
 
 	return (
-		<div className="flex flex-col gap-4 min-h-full max-h-full">
+		<>
 			<DashboardHeader />
 			<div className="grid grid-rows-3 gap-4 min-h-full flex-1">
 				<div className="row-span-1 grid grid-cols-3 gap-4">
@@ -147,7 +147,7 @@ export default function Dashboard() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }
 

@@ -9,7 +9,7 @@ export default function Profile() {
 	const userId = router.query.userId;
 
 	return (
-		<div>
+		<>
 			<PageHeader text="My Profile" subtext={`User ID: ${userId ? userId?.toString() : '69'}`} />
 			<ul>
 				<li>
@@ -21,7 +21,7 @@ export default function Profile() {
 					</InlineLink>
 				</li>
 			</ul>
-		</div>
+		</>
 	);
 }
 
