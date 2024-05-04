@@ -4,7 +4,7 @@ import GroupPost from '~/app/_components/groups/group-post';
 // import GroupPostInput from '~/app/_components/groups/group-post-input';
 import GroupPostsList from '~/app/_components/groups/group-posts-list';
 import { BasicButton } from '~/app/_components/ui/basic-button';
-import { PageHeader } from '~/app/_components/ui/page-header';
+import PageHeader from '~/app/_components/ui/page-header';
 import PlatformLayout from '~/layouts/platform';
 
 export default function Group() {

@@ -1,4 +1,4 @@
-import PageHeader from '~/app/_components/ui/PageHeader';
+import PageHeader from '~/app/_components/ui/page-header';
 import PlatformLayout from '~/layouts/platform';
 
 export default function Settings() {
