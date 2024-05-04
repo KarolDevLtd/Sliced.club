@@ -3,14 +3,17 @@ import { useForm } from 'react-hook-form';
 
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 
-import BasicButton from '~/app/_components/ui/BasicButton';
-import Checkbox from '~/app/_components/ui/Checkbox';
-import InlineLink from '~/app/_components/ui/InlineLink';
-import SelectOption from '~/app/_components/ui/SelectOption';
-import TextInput from '~/app/_components/ui/TextInput';
-import DefaultLayout from '~/layouts/default';
+import { toast } from 'react-toastify';
 
-const Register = () => {
+import { BasicButton } from '~/app/_components/ui/basic-button';
+import { Checkbox } from '~/app/_components/ui/checkbox';
+import { InlineLink } from '~/app/_components/ui/inline-link';
+import { SelectOption } from '~/app/_components/ui/select-option';
+import { TextInput } from '~/app/_components/ui/text-input';
+import DefaultLayout from '~/layouts/default';
+import { CountryOptions } from '~/models/country-options';
+
+export default function Register() {
 	const router = useRouter();
 
 	const { logInUser } = useUserStore((state) => state);
@@ -94,40 +97,7 @@ const Register = () => {
 							name="country"
 							placeholder="-- Please select a country --"
 							defaultValue=""
-							options={[
-								{
-									value: 'AR',
-									name: 'Argentina',
-								},
-								{
-									value: 'BR',
-									name: 'Brazil',
-								},
-								{
-									value: 'FR',
-									name: 'France',
-								},
-								{
-									value: 'DE',
-									name: 'Germany',
-								},
-								{
-									value: 'IE',
-									name: 'Ireland',
-								},
-								{
-									value: 'PL',
-									name: 'Poland',
-								},
-								{
-									value: 'UK',
-									name: 'United Kingdom',
-								},
-								{
-									value: 'US',
-									name: 'United States',
-								},
-							]}
+							options={CountryOptions}
 							required={true}
 							errors={errors}
 							register={register}
@@ -163,10 +133,8 @@ const Register = () => {
 			</div>
 		</div>
 	);
-};
+}
 
 Register.getLayout = function getLayout(page) {
 	return <DefaultLayout>{page}</DefaultLayout>;
 };
-
-export default Register;
