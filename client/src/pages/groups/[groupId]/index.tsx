@@ -21,7 +21,7 @@ const Group = () => {
 	return (
 		<div className="flex flex-col gap-4 min-h-full max-h-full">
 			<div className="flex justify-between items-center">
-				<PageHeader text="Group Name" subtext="Check out which groups you want to join" />
+				<PageHeader text="Group Name" hideQuickLinks={true} />
 				<BasicButton type="secondary">Leave group</BasicButton>
 			</div>
 
