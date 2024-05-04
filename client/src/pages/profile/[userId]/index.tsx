@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import PageHeader from '~/app/_components/ui/page-header';
 import { InlineLink } from '~/app/_components/ui/inline-link';
 import PlatformLayout from '~/layouts/platform';
 
@@ -9,8 +10,7 @@ export default function Profile() {
 
 	return (
 		<div>
-			<h1>My Profile</h1>
-			<p>User ID: {userId}</p>
+			<PageHeader text="My Profile" subtext={`User ID: ${userId ? userId?.toString() : '69'}`} />
 			<ul>
 				<li>
 					<InlineLink href={`/profile/${userId?.toString()}/edit`}>Edit</InlineLink>

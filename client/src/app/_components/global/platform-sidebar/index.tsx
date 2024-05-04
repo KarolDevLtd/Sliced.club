@@ -31,7 +31,7 @@ export const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 				<SidebarItem text="Groups" href="/groups" icon={<FaUserGroup />} />
 				<SidebarItem text="My Products" href="/products" icon={<FaShoppingCart />} />
 				<SidebarItem text="My Payments" href="/payments" icon={<FaMoneyBill />} />
-				<SidebarItem text="My Profile" href="/profile/69/edit" icon={<FaUser />} />
+				<SidebarItem text="My Profile" href="/profile/69" icon={<FaUser />} />
 				<SidebarItem text="Categories" href="/categories" icon={<FaSearch />} />
 				<SidebarItem text="Notifications" href="/notifications" icon={<IoMdNotifications />} />
 				<SidebarItem text="Settings" href="/settings" icon={<IoIosSettings />} />

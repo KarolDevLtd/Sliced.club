@@ -4,7 +4,7 @@ import GroupPost from '~/app/_components/groups/group-post';
 // import GroupPostInput from '~/app/_components/groups/group-post-input';
 import GroupPostsList from '~/app/_components/groups/group-posts-list';
 import { BasicButton } from '~/app/_components/ui/basic-button';
-import { PageHeader } from '~/app/_components/ui/page-header';
+import PageHeader from '~/app/_components/ui/page-header';
 import PlatformLayout from '~/layouts/platform';
 
 export default function Group() {
@@ -21,7 +21,7 @@ export default function Group() {
 	return (
 		<div className="flex flex-col gap-4 min-h-full max-h-full">
 			<div className="flex justify-between items-center">
-				<PageHeader>Group Name</PageHeader>
+				<PageHeader text="Group Name" hideQuickLinks={true} />
 				<BasicButton type="secondary">Leave group</BasicButton>
 			</div>
 

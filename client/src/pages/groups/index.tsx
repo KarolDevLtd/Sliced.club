@@ -1,3 +1,4 @@
+import PageHeader from '~/app/_components/ui/page-header';
 import { useState } from 'react';
 import { BasicButton } from '~/app/_components/ui/basic-button';
 import { InlineLink } from '~/app/_components/ui/inline-link';
@@ -23,17 +24,16 @@ export default function Groups() {
 	};
 
 	return (
-		<ul>
-			<li>
-				<InlineLink href={`groups/${groupId}`}>Group 69</InlineLink>
-			</li>
+		<div>
+			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
+			<InlineLink href={`groups/${groupId}`}>Group 69</InlineLink>
 			<div className="p-1">
 				<BasicButton type="primary" onClick={showGroup}>
 					Add Group
 				</BasicButton>
 			</div>
 			<AddGroupModal groupOpen={groupOpen} hideGroup={hideGroup} />
-		</ul>
+		</div>
 	);
 }
 

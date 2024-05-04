@@ -1,9 +1,10 @@
+import PageHeader from '~/app/_components/ui/page-header';
 import PlatformLayout from '~/layouts/platform';
 
 export default function Settings() {
 	return (
 		<div>
-			<h1>Settings</h1>
+			<PageHeader text="Settings" />
 		</div>
 	);
 }

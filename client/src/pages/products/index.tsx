@@ -1,3 +1,4 @@
+import PageHeader from '~/app/_components/ui/page-header';
 import { useState } from 'react';
 import AddProductModal from '~/app/_components/products/AddProductModal';
 import { BasicButton } from '~/app/_components/ui/basic-button';
@@ -22,7 +23,7 @@ export default function Products() {
 
 	return (
 		<div>
-			<h1>Products</h1>
+			<PageHeader text="My Products" subtext="Check the details of your products" />
 			<div className="p-1">
 				<BasicButton type="primary" onClick={showProduct}>
 					Add Product

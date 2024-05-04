@@ -1,9 +1,10 @@
+import PageHeader from '~/app/_components/ui/page-header';
 import PlatformLayout from '~/layouts/platform';
 
 export default function Notifications() {
 	return (
 		<div>
-			<h1>Notifications</h1>
+			<PageHeader text="Notifications" />
 		</div>
 	);
 }
