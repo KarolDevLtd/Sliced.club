@@ -5,6 +5,12 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../../trpc';
 
+const productAttributesSchema = z.object({
+	propertyName: z.string(),
+	propertyValue: z.string().nullish(),
+});
+const productsAttributesSchema = z.array(productAttributesSchema);
+
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 export const PinataProductRouter = createTRPCRouter({
 	postProduct: publicProcedure
@@ -14,6 +20,7 @@ export const PinataProductRouter = createTRPCRouter({
 				price: z.string(),
 				category: z.string(),
 				imageHash: z.array(z.string()),
+				productAttributes: productsAttributesSchema,
 			})
 		)
 		.mutation(async ({ input }) => {
