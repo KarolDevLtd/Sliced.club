@@ -23,7 +23,7 @@ type TextInputProps = {
 	onChange?: (e: any) => any;
 	disabled?: boolean;
 	required?: boolean;
-	// value?: string;
+	value?: string;
 
 	// React Hook Form Props
 	validationSchema?: {
@@ -60,7 +60,7 @@ export const TextInput = ({
 	onChange,
 	disabled,
 	required = false,
-	// value,
+	value,
 	// React Hook Form Props
 	validationSchema,
 	register = () => [],
@@ -94,7 +94,7 @@ export const TextInput = ({
 					onChange={onChange}
 					disabled={disabled}
 					required={required}
-					// value={value}
+					value={value}
 					// React Hook Form
 					{...register(name, validationSchema)}
 				></input>
