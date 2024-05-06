@@ -23,13 +23,14 @@ import { saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/walletprovider';
 import { DateTime } from 'luxon';
+import ProductFields from './ProductFields';
 
-type AddProductModalTypes = {
+type AddProductModalProps = {
 	productOpen: boolean;
 	hideProduct: () => void;
 };
 
-const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => {
+const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 
@@ -38,6 +39,10 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 
 	const { isConnected, walletAddress } = useWallet();
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
+
+	const [displayTailoredFields, setDisplayTailoredFields] = useState(false);
+
+	const [attributes, setAttributes] = useState([]);
 
 	const {
 		register,
@@ -52,6 +57,10 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 		// https://react-hook-form.com/docs/useform#resolver
 		// resolver: {}
 	});
+
+	const assignAttributeValue = (value) => {
+		setAttributes(value);
+	};
 
 	const saveProduct = async (name: string, price: number, category: string) => {
 		try {
@@ -73,6 +82,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 				price: price.toString(),
 				category: category,
 				imageHash: imageHashes,
+				productAttributes: attributes,
 			});
 			await productToFirebase.mutateAsync({
 				name: name,
@@ -87,6 +97,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 		} finally {
 			setIsLoading(false);
 			setImages([]);
+			setAttributes([]);
 		}
 	};
 
@@ -157,6 +168,18 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 							required: 'Product Category is required',
 						}}
 					/>
+					<div>
+						<BasicButton type={'tertiary'} onClick={() => setDisplayTailoredFields(true)}>
+							Add Product Fields
+						</BasicButton>
+					</div>
+					{displayTailoredFields ? (
+						<ProductFields
+							onClose={() => setDisplayTailoredFields(false)}
+							attributes={attributes}
+							setAttributes={assignAttributeValue}
+						/>
+					) : null}
 					<div className="w-100 flex justify-end items-center gap-2">
 						<div>
 							<DragDrop images={images} setImages={setImages} includeButton={true} />
