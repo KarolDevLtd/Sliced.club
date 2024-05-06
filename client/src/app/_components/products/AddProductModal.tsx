@@ -78,6 +78,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalTypes) => 
 				name: name,
 				creatorKey: walletAddress!.toString(),
 				productHash: postProductToIPFS.data.IpfsHash,
+				price: price.toString(),
 				dateTime: DateTime.now().toString(),
 			});
 		} catch (err) {
