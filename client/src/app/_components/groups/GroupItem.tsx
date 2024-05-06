@@ -53,8 +53,8 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 		setIsLoading(true);
 		try {
 			if (groupData) {
-				const currProd = groupData.group as unknown as IPFSGroupModel;
-				setGroup(groupData.group);
+				const currGroup = groupData.group as unknown as IPFSGroupModel;
+				setGroup(currGroup);
 				// await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 		} catch (err) {
@@ -66,10 +66,9 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 	}, [groupData]);
 
 	useEffect(() => {
-		console.log(creatorId);
 		//Use void here as do not need result, use state set inside result
 		void fetchInfo();
-	}, [fetchInfo]);
+	}, [fetchInfo, group]);
 
 	return (
 		// <div>{currentProduct}</div>
@@ -98,7 +97,6 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 						</p>
 						<strong>Duration:</strong> <p>{group?.duration}</p>
 						<strong>Participants:</strong> <p>{group?.participants}</p>
-						<strong>Country:</strong> <p>{group?.country}</p>
 						<strong>Product Hash:</strong> <p>{group?.productHash}</p>
 						{/* <p className="text-sm text-dark-grey">{creatorId}</p> */}
 					</div>

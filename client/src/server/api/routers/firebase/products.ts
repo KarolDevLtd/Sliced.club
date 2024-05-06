@@ -14,6 +14,7 @@ export const FirebaseProductRouter = createTRPCRouter({
 				name: z.string(),
 				creatorKey: z.string(),
 				productHash: z.string(),
+				price: z.string(),
 				dateTime: z.string(),
 			})
 		)
@@ -22,6 +23,7 @@ export const FirebaseProductRouter = createTRPCRouter({
 				name: input.name,
 				creatorId: input.creatorKey,
 				productHash: input.productHash,
+				price: input.price,
 				datetime: input.dateTime,
 			};
 			//https://stackoverflow.com/questions/55558875/void-before-promise-syntax
@@ -49,6 +51,7 @@ export const FirebaseProductRouter = createTRPCRouter({
 					products.push({
 						name: doc.data().name as string,
 						creatorKey: input.creatorKey!,
+						price: doc.data().price as string,
 						productHash: doc.data().productHash as string,
 					});
 				});

@@ -12,7 +12,7 @@ import { Checkbox } from '../ui/checkbox';
 import { InlineLink } from '../ui/inline-link';
 import { SelectOption } from '../ui/select-option';
 import { TextInput } from '../ui/text-input';
-import { useState } from 'react';
+import { type ChangeEvent, useState, useEffect } from 'react';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
@@ -25,13 +25,15 @@ import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/walletprovider';
 import { type FirebaseProductModel } from '~/models/firebase-product-model';
 import { DateTime } from 'luxon';
+import BasicSlider from '~/app/_components/ui/InstalmentSlider';
+import { type DropDownContentModel } from '~/models/dropdown-content-model';
 
-type AddGroupModalTypes = {
+type AddGroupModalProps = {
 	groupOpen: boolean;
 	hideGroup: () => void;
 };
 
-const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
+const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
 	const { data: fbProductData } = api.FirebaseProduct.getProducts.useQuery({
@@ -53,27 +55,36 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
 		// https://react-hook-form.com/docs/useform#resolver
 		// resolver: {}
 	});
+	const [participants, setParticipants] = useState(12);
+	const [duration, setDuration] = useState(6);
+	const [instalments, setInstalments] = useState<number | null>();
+	const updateParticipantDuration = (sliderVal: number) => {
+		setDuration(sliderVal);
+		setParticipants(2 * sliderVal);
+	};
+	const [currentSelectedProduct, setCurrentSelectedProduct] = useState<FirebaseProductModel | null>();
+	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+		//TODO: This filter on name should be replaced with filter on id?
+		const selectedProduct = fbProductData?.products.find((p) => p.name === event.target.value)!;
+		setCurrentSelectedProduct(selectedProduct);
+	};
 
 	const saveGroup = async (
 		name: string,
-		currency: string,
 		price: string,
 		duration: string,
 		participants: string,
-		country: string,
 		product: FirebaseProductModel
 	) => {
 		try {
 			setIsLoading(true);
-			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save product')) return;
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
 			const groupProductToIPFS = await groupToIPFS.mutateAsync({
 				name: name,
-				currency: currency,
 				price: price,
 				duration: duration,
 				participants: participants,
-				country: country,
-				product: product.productHash,
+				productHash: product.productHash,
 			});
 			await groupToFirebase.mutateAsync({
 				name: name,
@@ -83,7 +94,7 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
 			});
 		} catch (err) {
 			console.log(err);
-			toast.error('Error saving product');
+			toast.error('Error saving group');
 			throw err;
 		} finally {
 			setIsLoading(false);
@@ -93,17 +104,14 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
 	const onSubmit = async (data: any) => {
 		try {
 			setIsLoading(true);
-			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
+			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
 			await saveGroup(
 				data['group-name'] as string,
-				data.currency as string,
-				`${data['instalments-larger-unit']}.${data['instalments-smaller-unit']}`,
-				data.duration as string,
-				data.participants as string,
-				data.country as string,
-				fbProductData?.products.find((p) => p.name === data.product)!
+				currentSelectedProduct?.price!,
+				duration.toString(),
+				participants.toString(),
+				currentSelectedProduct!
 			);
-			console.log(JSON.stringify(data));
 			reset();
 			hideGroup();
 			// refetchPosts();
@@ -114,6 +122,21 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
 			setIsLoading(false);
 		}
 	};
+
+	const serializeList = (list: FirebaseProductModel[]): DropDownContentModel[] => {
+		return list.map((item) => ({
+			name: item.name,
+			value: item.name,
+		}));
+	};
+
+	//Serialize products to a list of suitable drop down models
+	const productList = serializeList(fbProductData?.products ?? []);
+
+	useEffect(() => {
+		//TO DO : fix this cast
+		setInstalments(((currentSelectedProduct as unknown as number) / participants) * duration);
+	}, [participants, duration, currentSelectedProduct]);
 
 	return (
 		<BasicModal
@@ -138,108 +161,30 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
 							},
 						}}
 					/>
-
-					<div className="flex items-end">
-						<div className="w-40">
+					{productList.length > 0 ? (
+						<div>
 							<SelectOption
-								id="currency"
-								name="currency"
-								label="Payment Instalments"
-								defaultValue="£"
-								displayKey="symbol"
-								options={CurrencyOptions}
-								required={true}
-								errors={errors}
-								register={register}
-								validationSchema={{
-									required: 'Currency is required',
-								}}
+								id="product"
+								name="product"
+								placeholder="-- Please select a product --"
+								defaultValue=""
+								value={currentSelectedProduct?.name}
+								onChange={(e) => handleSelectChange(e)}
+								options={productList}
 							/>
+							<div>
+								<BasicSlider
+									participants={participants}
+									duration={duration}
+									onSlide={updateParticipantDuration}
+								/>
+								<div>{`Product price ${currentSelectedProduct?.price}`}</div>
+								<div>{`Installment price per user ${(currentSelectedProduct?.price as unknown as number) / (participants * duration)}`}</div>
+							</div>
 						</div>
-						<div className="px-2">
-							<TextInput
-								id="instalments-larger-unit"
-								name="instalments-larger-unit"
-								type="number"
-								required={true}
-								errors={errors}
-								register={register}
-								validationSchema={{
-									required: 'Payment Instalments is required',
-									minLength: {
-										value: 1,
-										message: 'Number Instalments must be greater than 0',
-									},
-									min: {
-										value: 0,
-										message: 'Cannot have negative numbers',
-									},
-								}}
-							/>
-						</div>
-						.
-						<div className="px-2">
-							<TextInput
-								id="instalments-smaller-unit"
-								name="instalments-smaller-unit"
-								type="number"
-								label=" "
-								// required={true}
-								errors={errors}
-								register={register}
-								validationSchema={{
-									min: {
-										value: 0,
-										message: 'Cannot have negative numbers',
-									},
-								}}
-							/>
-						</div>
-					</div>
-					{/* TODO Number validation checks w. currency */}
-					<div className="flex">
-						<div className="w-48 px-2">
-							<TextInput
-								id="duration"
-								name="duration"
-								type="number"
-								label="Duration (in weeks)"
-								required={true}
-								errors={errors}
-								register={register}
-								validationSchema={{
-									required: 'Duration is required',
-									minLength: {
-										value: 1,
-										message: 'Duration must be greater than 0',
-									},
-									min: {
-										value: 0,
-										message: 'Cannot have negative numbers',
-									},
-								}}
-							/>
-						</div>
-						{/* TODO Number validation checks */}
-						<div className="w-48">
-							<TextInput
-								id="participants"
-								name="participants"
-								type="number"
-								label="Number of Participants"
-								required={true}
-								errors={errors}
-								register={register}
-								validationSchema={{
-									required: 'Price Per Instalment is required',
-									minLength: {
-										value: 1,
-										message: 'Price Per Instalment must be greater than 0',
-									},
-								}}
-							/>
-						</div>
-					</div>
+					) : (
+						`No products`
+					)}
 					{/* TODO replace with flag package */}
 					<SelectOption
 						id="country"
@@ -255,21 +200,6 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalTypes) => {
 							required: 'Country is required',
 						}}
 					/>
-					<SelectOption
-						id="product"
-						name="product"
-						placeholder="-- Please select a product --"
-						defaultValue=""
-						options={fbProductData?.products}
-						displayKey="name"
-						required={true}
-						errors={errors}
-						register={register}
-						validationSchema={{
-							required: 'Product is required',
-						}}
-					/>
-
 					{/* TODO replace youtube link */}
 					<Checkbox id={'tandc'} name={'tand'}>
 						I confirm my legal abilities to sell the goods and agree to
