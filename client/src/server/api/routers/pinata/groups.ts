@@ -14,7 +14,7 @@ export const PinataGroupRouter = createTRPCRouter({
 				price: z.string(),
 				duration: z.string(),
 				participants: z.string(),
-				product: z.string(),
+				productHash: z.string(),
 			})
 		)
 		.mutation(async ({ input }) => {
