@@ -12,7 +12,7 @@ import { Checkbox } from '../ui/checkbox';
 import { InlineLink } from '../ui/inline-link';
 import { SelectOption } from '../ui/select-option';
 import { TextInput } from '../ui/text-input';
-import { type ChangeEvent, useState } from 'react';
+import { type ChangeEvent, useState, useEffect } from 'react';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
@@ -57,6 +57,7 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 	});
 	const [participants, setParticipants] = useState(12);
 	const [duration, setDuration] = useState(6);
+	const [instalments, setInstalments] = useState<number | null>();
 	const updateParticipantDuration = (sliderVal: number) => {
 		setDuration(sliderVal);
 		setParticipants(2 * sliderVal);
@@ -83,7 +84,7 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 				price: price,
 				duration: duration,
 				participants: participants,
-				product: product.productHash,
+				productHash: product.productHash,
 			});
 			await groupToFirebase.mutateAsync({
 				name: name,
@@ -132,6 +133,11 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 	//Serialize products to a list of suitable drop down models
 	const productList = serializeList(fbProductData?.products ?? []);
 
+	useEffect(() => {
+		//TO DO : fix this cast
+		setInstalments(((currentSelectedProduct as unknown as number) / participants) * duration);
+	}, [participants, duration, currentSelectedProduct]);
+
 	return (
 		<BasicModal
 			isOpen={groupOpen}
@@ -155,22 +161,30 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 							},
 						}}
 					/>
-					<SelectOption
-						id="product"
-						name="product"
-						value={currentSelectedProduct?.name}
-						onChange={(e) => handleSelectChange(e)}
-						options={productList}
-					/>
-					<div>
-						<BasicSlider
-							participants={participants}
-							duration={duration}
-							onSlide={updateParticipantDuration}
-						/>
-						<div>{`Product price ${currentSelectedProduct?.price}`}</div>
-						<div>{`Installment price per user ${(currentSelectedProduct?.price as unknown as number) / (participants * duration)}`}</div>
-					</div>
+					{productList.length > 0 ? (
+						<div>
+							<SelectOption
+								id="product"
+								name="product"
+								placeholder="-- Please select a product --"
+								defaultValue=""
+								value={currentSelectedProduct?.name}
+								onChange={(e) => handleSelectChange(e)}
+								options={productList}
+							/>
+							<div>
+								<BasicSlider
+									participants={participants}
+									duration={duration}
+									onSlide={updateParticipantDuration}
+								/>
+								<div>{`Product price ${currentSelectedProduct?.price}`}</div>
+								<div>{`Installment price per user ${(currentSelectedProduct?.price as unknown as number) / (participants * duration)}`}</div>
+							</div>
+						</div>
+					) : (
+						`No products`
+					)}
 					{/* TODO replace with flag package */}
 					<SelectOption
 						id="country"
