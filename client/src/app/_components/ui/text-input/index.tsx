@@ -59,7 +59,6 @@ export const TextInput = ({
 	onChange,
 	disabled,
 	required = false,
-
 	// React Hook Form Props
 	validationSchema,
 	register = () => [],

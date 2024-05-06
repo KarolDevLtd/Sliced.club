@@ -11,12 +11,9 @@ export const PinataGroupRouter = createTRPCRouter({
 		.input(
 			z.object({
 				name: z.string(),
-				currency: z.string(),
 				price: z.string(),
 				duration: z.string(),
 				participants: z.string(),
-				country: z.string(),
-				// product: z.string(),
 				product: z.string(),
 			})
 		)
