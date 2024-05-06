@@ -128,7 +128,7 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 									<strong>Group name:</strong> <p>{group?.name}</p>
 								</div>
 								<div className="flex items-center gap-1">
-									<strong>Organiser:</strong> <p>{groupData?.group.creatorId}</p>
+									<strong>Organiser:</strong> <p>{groupData?.group?.creatorId}</p>
 									<strong>:</strong> <p>{group?.country}</p>
 								</div>
 								<div className="flex items-center gap-1">
