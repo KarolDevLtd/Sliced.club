@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 
 import { SidebarItem } from './SidebarItem';
-import { MinaButton } from '../../ui/mina-button';
+import { MinaButton } from '../../ui/MinaButton';
 import { LogoutButton } from './LogoutButton';
 
 import { FaHome } from 'react-icons/fa';

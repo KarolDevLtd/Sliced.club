@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import PageHeader from '~/app/_components/ui/page-header';
+import PageHeader from '~/app/_components/ui/PageHeader';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';

@@ -1,4 +1,4 @@
-import PageHeader from '~/app/_components/ui/page-header';
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
 export default function Payments() {

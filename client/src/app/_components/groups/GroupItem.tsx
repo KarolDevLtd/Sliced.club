@@ -12,7 +12,7 @@ import router from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { type IPFSGroupModel } from '~/models/ipfs-group-model';
 import { api } from '~/trpc/react';
-import { BasicModal } from '../ui/basic-modal';
+import { BasicModal } from '../ui/BasicModal';
 import { toast } from 'react-toastify';
 // import { type IPFSProductModel } from '~/models/ipfs-product-model';
 // import { toast } from 'react-toastify';
