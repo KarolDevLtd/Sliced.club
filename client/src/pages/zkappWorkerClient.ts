@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { fetchAccount, PublicKey, Field } from 'o1js';
+import { fetchAccount, PublicKey, Field, UInt64 } from 'o1js';
 
 import type { ZkappWorkerRequest, ZkappWorkerReponse, WorkerFunctions } from './zkappWorker';
 
 export default class ZkappWorkerClient {
 	// ---------------------------------------------------------------------------------------
 
-	setActiveInstanceToDevnet() {
-		return this._call('setActiveInstanceToDevnet', {});
+	setActiveInstanceToLightnet() {
+		return this._call('setActiveInstanceToLightnet', {});
 	}
 
 	loadContract() {
@@ -33,11 +35,17 @@ export default class ZkappWorkerClient {
 		});
 	}
 
-	// async getNum(): Promise<Field> {
-	// 	const result = await this._call('getNum', {});
-	// 	return Field.fromJSON(JSON.parse(result as string));
-	// }
+	async getSupply(): Promise<UInt64> {
+		const result = await this._call('getSupply', {});
+		return UInt64.fromJSON(JSON.parse(result as string));
+	}
 
+	async getBalanceOf(publicKey: PublicKey): Promise<Field> {
+		const result = await this._call('getBalanceOf', {
+			publicKey58: publicKey.toBase58(),
+		});
+		return UInt64.fromJSON(JSON.parse(result as string));
+	}
 	// createUpdateTransaction() {
 	// 	return this._call('createUpdateTransaction', {});
 	// }
@@ -67,7 +75,7 @@ export default class ZkappWorkerClient {
 		this.nextId = 0;
 
 		this.worker.onmessage = (event: MessageEvent<ZkappWorkerReponse>) => {
-			this.promises[event.data.id].resolve(event.data.data);
+			this.promises[event.data.id]?.resolve(event.data.data);
 			delete this.promises[event.data.id];
 		};
 	}

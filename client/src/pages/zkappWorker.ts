@@ -19,13 +19,18 @@ const state = {
 // ---------------------------------------------------------------------------------------
 
 const functions = {
-	setActiveInstanceToDevnet: async (args: {}) => {
-		const Network = Mina.Network('https://api.minascan.io/node/devnet/v1/graphql');
-		console.log('Devnet network instance configured.');
+	setActiveInstanceToLightnet: async (args: {}) => {
+		const Network = Mina.Network({
+			networkId: 'testnet',
+			mina: 'http://localhost:8080/graphql',
+			archive: 'http://localhost:8282',
+			lightnetAccountManager: 'http://localhost:8181',
+		});
+		console.log('Lightnet network instance configured.');
 		Mina.setActiveInstance(Network);
 	},
 	loadContract: async (args: {}) => {
-		const { FungibleToken } = await import('../../../contracts/src/token/FungibleToken.js');
+		const { FungibleToken } = await import('../../../contracts/src/token/FungibleToken');
 		state.FungibleToken = FungibleToken;
 	},
 	compileContract: async (args: {}) => {
@@ -39,10 +44,15 @@ const functions = {
 		const publicKey = PublicKey.fromBase58(args.publicKey58);
 		state.zkapp = new state.FungibleToken!(publicKey);
 	},
-	// getNum: async (args: {}) => {
-	// 	const currentNum = await state.zkapp!.num.get();
-	// 	return JSON.stringify(currentNum.toJSON());
-	// },
+	getSupply: async (args: {}) => {
+		const currentSupply = await state.zkapp!.getSupply();
+		return JSON.stringify(currentSupply.toJSON());
+	},
+	getBalanceOf: async (args: { publicKey58: string }) => {
+		const publicKey = PublicKey.fromBase58(args.publicKey58);
+		const balance = await state.zkapp!.getBalanceOf(publicKey);
+		return JSON.stringify(balance.toJSON());
+	},
 	// createUpdateTransaction: async (args: {}) => {
 	// 	const transaction = await Mina.transaction(async () => {
 	// 		await state.zkapp!.update();
