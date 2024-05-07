@@ -1,9 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 
-import { SidebarItem } from './sidebar-item';
+import { SidebarItem } from './SidebarItem';
 import { MinaButton } from '../../ui/mina-button';
-import { LogoutButton } from './logout-button';
+import { LogoutButton } from './LogoutButton';
 
 import { FaHome } from 'react-icons/fa';
 import { FaUserGroup } from 'react-icons/fa6';
