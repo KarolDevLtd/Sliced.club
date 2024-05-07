@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import React, { Dispatch, useState } from 'react';
+import React, { type Dispatch } from 'react';
 import Image from 'next/image';
 import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
 import { compressImage } from '~/helpers/image-helper';
 import { toast } from 'react-toastify';
+import { IoClose } from 'react-icons/io5';
 
 type DragDropProps = {
 	images: File[];
@@ -60,7 +61,7 @@ const DragDrop = ({ images, setImages, includeButton }: DragDropProps) => {
 	const removeImage = (index: number) => {
 		const updatedImages = [...images];
 		updatedImages.splice(index, 1);
-		setImages(images);
+		setImages(updatedImages);
 	};
 
 	const removeImagePreview = (file: File) => {
@@ -89,23 +90,29 @@ const DragDrop = ({ images, setImages, includeButton }: DragDropProps) => {
 				<div className="flex">
 					{images.map((image, index) => (
 						<div key={index}>
-							<Zoom>
-								<Image
-									src={URL.createObjectURL(image)}
-									alt={`Preview ${index}`}
-									width={100}
-									height={100}
-								/>
-							</Zoom>
-							<button
-								className="flex justtify-center"
-								onClick={() => {
-									removeImagePreview(image);
-									removeImage(index);
-								}}
-							>
-								Remove
-							</button>
+							<div className="flex flex-col">
+								<div className="cursor:pointer">
+									<div
+										className="bg-black text-white"
+										onClick={() => {
+											removeImagePreview(image);
+											removeImage(index);
+										}}
+									>
+										<IoClose />
+									</div>
+									<Zoom>
+										<div className="w-10 h-50">
+											<Image
+												src={URL.createObjectURL(image)}
+												alt={`Preview ${index}`}
+												width={100}
+												height={100}
+											/>
+										</div>
+									</Zoom>
+								</div>
+							</div>
 						</div>
 					))}
 				</div>

@@ -181,10 +181,10 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 							setAttributes={assignAttributeValue}
 						/>
 					) : null}
+					<div>
+						<DragDrop images={images} setImages={setImages} includeButton={true} />
+					</div>
 					<div className="w-100 flex justify-end items-center gap-2">
-						<div>
-							<DragDrop images={images} setImages={setImages} includeButton={true} />
-						</div>
 						<BasicButton
 							type="primary"
 							icon={isLoading ? <Spinner size="sm" /> : null}
