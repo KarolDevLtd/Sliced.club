@@ -17,7 +17,7 @@ import { TextInput } from '../../ui/text-input';
 import { TextArea } from '../../ui/text-area';
 import { BasicButton } from '../../ui/basic-button';
 import { BasicModal } from '../../ui/basic-modal';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '../../../../providers/WalletProvider/index';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';

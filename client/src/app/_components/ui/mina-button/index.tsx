@@ -7,7 +7,7 @@ import { SelectOption } from '../select-option';
 import { FaWallet } from 'react-icons/fa';
 import { GoArrowSwitch } from 'react-icons/go';
 
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '../../../../providers/WalletProvider/index';
 import { MinaChainOptions } from '~/models/chain-options';
 
 type MinaButtonTypes = 'chain' | 'connect';

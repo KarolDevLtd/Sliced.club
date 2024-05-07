@@ -8,7 +8,7 @@
       "feepayerKeyPath": "/home/karol/.cache/zkapp-cli/keys/lightnet1.json",
       "feepayerAlias": "lightnet1",
       "fee": "0.01",
-      "smartContract": "Add"
+      "smartContract": "FungibleToken"
     }
   }
 }

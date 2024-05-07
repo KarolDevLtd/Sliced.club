@@ -15,7 +15,7 @@ import { api } from '~/trpc/react';
 import { BasicButton } from '../../ui/basic-button';
 import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '../../../../providers/WalletProvider/index';
 import PostComment from '../post-comment';
 import PostCommentList from '../post-comments-list';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';

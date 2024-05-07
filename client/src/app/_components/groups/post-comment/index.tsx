@@ -13,7 +13,7 @@ import { toast } from 'react-toastify';
 
 import { TextArea } from '../../ui/text-area';
 import { BasicButton } from '../../ui/basic-button';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '../../../../providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { IoIosSend } from 'react-icons/io';

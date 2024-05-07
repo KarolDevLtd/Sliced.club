@@ -22,7 +22,7 @@ import { CountryOptions } from '~/models/country-options';
 import { Spinner } from '../ui/spinner';
 import { CurrencyOptions } from '~/models/currency-options';
 import { api } from '~/trpc/react';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '../../../providers/WalletProvider/index';
 import { type FirebaseProductModel } from '~/models/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
