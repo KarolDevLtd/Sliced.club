@@ -22,7 +22,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 		<RootLayout>
 			<Providers>
 				<UserStoreStatus />
-				<div className="min-h-screen max-h-screen min-w-screen relative flex">
+				<div data-theme="light" className="min-h-screen max-h-screen min-w-screen relative flex">
 					<div className="absolute p-2 right-0 z-50 sm:hidden text-4xl">
 						{showNav ? (
 							<IoIosClose onClick={() => setShowNav(false)} />
