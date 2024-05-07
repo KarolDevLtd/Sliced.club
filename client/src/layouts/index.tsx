@@ -1,7 +1,7 @@
 import { Bounce, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<>
 			<ToastContainer
@@ -20,4 +20,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			{children}
 		</>
 	);
-}
+};
+
+export default RootLayout;

@@ -1,29 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// https:jujuontheweb.medium.com/how-to-use-react-hook-form-with-your-custom-form-components-a86a1a77cf3c
 
-import React from 'react';
+import React, { type ChangeEvent, useState } from 'react';
 
-import { InlineLink } from '../inline-link';
-
-type TextInputProps = {
+type TextAreaProps = {
 	label?: string;
-	link?: {
-		text: string;
-		external?: boolean;
-		href: string;
-	};
 	id: string;
 	name: string;
-	// Feel free to add more types to this enum as we need them
-	type: 'text' | 'email' | 'password' | 'number';
-	autoComplete?: string;
 	placeholder?: string;
+	rows?: number;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	onChange?: (e: any) => any;
 	disabled?: boolean;
 	required?: boolean;
-	value?: string;
+	showCharacterCount?: boolean;
 
 	// React Hook Form Props
 	validationSchema?: {
@@ -40,34 +31,36 @@ type TextInputProps = {
 			value?: RegExp;
 			message?: string;
 		};
-		min?: {
-			value?: number;
-			message?: string;
-		};
 	};
 	register?: any;
 	errors?: any;
 };
 
-export const TextInput = ({
+const TextArea = ({
 	label,
-	link,
 	id,
 	name,
-	type,
-	autoComplete,
 	placeholder,
+	rows = 5,
 	onChange,
 	disabled,
 	required = false,
-	value,
+	showCharacterCount = false,
+
 	// React Hook Form Props
 	validationSchema,
 	register = () => [],
 	errors,
-}: TextInputProps) => {
+}: TextAreaProps) => {
+	const [characterCount, setCharacterCount] = useState(0);
+
+	const handleOnChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+		onChange;
+		setCharacterCount(e.target.value.length);
+	};
+
 	return (
-		<div>
+		<div className="w-full p-2">
 			<div className="flex items-center justify-between">
 				{label ? (
 					<label htmlFor={id} className="block text-sm font-medium leading-6 text-gray-900">
@@ -75,43 +68,31 @@ export const TextInput = ({
 						{required && '*'}
 					</label>
 				) : null}
-				{link ? (
-					<div className="text-sm">
-						<InlineLink href={link.href} external={link.external}>
-							{link.text}
-						</InlineLink>
-					</div>
-				) : null}
 			</div>
 			<div className="mt-1">
-				<input
+				<textarea
 					className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 					id={id}
 					name={name}
-					type={type}
-					autoComplete={autoComplete}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
-					onChange={onChange}
+					rows={rows}
 					disabled={disabled}
 					required={required}
-					value={value}
 					// React Hook Form
 					{...register(name, validationSchema)}
-				></input>
+					onChange={handleOnChange}
+				></textarea>
+				{showCharacterCount && <p className="text-sm text-light-grey">Character count: {characterCount}</p>}
 				{/* React Hook Form Errors */}
 				{errors && errors[name]?.type === 'required' && (
 					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
-				{errors && errors[name]?.type === 'pattern' && (
-					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
-				)}
 				{errors && errors[name]?.type === 'minLength' && (
-					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
-				)}
-				{errors && errors[name]?.type === 'min' && (
 					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 				)}
 			</div>
 		</div>
 	);
 };
+
+export default TextArea;

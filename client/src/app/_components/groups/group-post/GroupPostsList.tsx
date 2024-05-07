@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '~/trpc/react';
 import { type FirebasePostModel } from '../../../../models/firebase-post-model';
-import GroupPostItem from '../group-post-item';
+import GroupPostItem from './GroupPostItem';
 
 type GroupPostsListProps = {
 	groupId: string;

@@ -5,7 +5,7 @@ import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 
 import { RiLogoutBoxFill } from 'react-icons/ri';
 
-export const LogoutButton = () => {
+const LogoutButton = () => {
 	const { logOutUser } = useUserStore((state) => state);
 
 	const handleLogOut = () => {
@@ -25,3 +25,5 @@ export const LogoutButton = () => {
 		</div>
 	);
 };
+
+export default LogoutButton;

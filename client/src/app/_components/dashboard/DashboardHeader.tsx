@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import PageHeader from '~/app/_components/ui/page-header';
+import PageHeader from '~/app/_components/ui/PageHeader';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -8,7 +8,7 @@ import { type UserState } from '~/stores/userStore';
 
 type DashboardHeaderProps = object;
 
-export const DashboardHeader = ({}: DashboardHeaderProps) => {
+const DashboardHeader = ({}: DashboardHeaderProps) => {
 	const [greetingMessage, setGreetingMessage] = useState('');
 
 	const userFirstName = useStore(useUserStore, (state: UserState) => state.userFirstName);
@@ -34,3 +34,5 @@ export const DashboardHeader = ({}: DashboardHeaderProps) => {
 
 	return <PageHeader text={`Hello ${userFirstName}!`} subtext={greetingMessage} />;
 };
+
+export default DashboardHeader;

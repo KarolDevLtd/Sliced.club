@@ -4,9 +4,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useEffect, useState } from 'react';
-import { TextInput } from '../ui/text-input';
+import TextInput from '../ui/TextInput';
 import { BsFillTrashFill } from 'react-icons/bs';
-import { BasicButton } from '../ui/basic-button';
+import BasicButton from '../ui/BasicButton';
 import { toast } from 'react-toastify';
 
 type ProductFieldsProps = {

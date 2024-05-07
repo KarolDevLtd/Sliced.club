@@ -1,7 +1,7 @@
-import PageHeader from '~/app/_components/ui/page-header';
+import PageHeader from '~/app/_components/ui/PageHeader';
 import { useState } from 'react';
 import AddProductModal from '~/app/_components/products/AddProductModal';
-import { BasicButton } from '~/app/_components/ui/basic-button';
+import BasicButton from '~/app/_components/ui/BasicButton';
 import { preventActionNotLoggedIn } from '~/helpers/user-helper';
 import PlatformLayout from '~/layouts/platform';
 import useStore from '~/stores/utils/useStore';

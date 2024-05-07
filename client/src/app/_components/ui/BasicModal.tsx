@@ -10,7 +10,7 @@ interface BasicModalProps {
 	onClose: () => void;
 }
 
-export const BasicModal = ({ isOpen, onClose, header, footer, content }: BasicModalProps) => {
+const BasicModal = ({ isOpen, onClose, header, footer, content }: BasicModalProps) => {
 	const [isOverlayClicked, setIsOverlayClicked] = useState(false);
 
 	const handleOverlayClick = () => {
@@ -41,3 +41,5 @@ export const BasicModal = ({ isOpen, onClose, header, footer, content }: BasicMo
 		</>
 	);
 };
+
+export default BasicModal;

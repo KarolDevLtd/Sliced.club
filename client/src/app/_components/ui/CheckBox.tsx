@@ -18,7 +18,7 @@ type CheckboxProps = {
 	errors?: any;
 };
 
-export const Checkbox = ({
+const Checkbox = ({
 	children,
 	id,
 	name,
@@ -54,3 +54,5 @@ export const Checkbox = ({
 		</div>
 	);
 };
+
+export default Checkbox;

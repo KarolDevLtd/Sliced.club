@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
-import { PlatformSidebar } from '~/app/_components/global/platform-sidebar';
+import PlatformSidebar from '~/app/_components/global/platform-sidebar/PlatformSidebar';
 import { UserStoreStatus } from '~/app/_components/temp-user-store-status';
 import Providers from '~/providers';
 import RootLayout from '..';
@@ -9,7 +9,7 @@ import RootLayout from '..';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { IoIosClose } from 'react-icons/io';
 
-export default function PlatformLayout({ children }: { children: React.ReactNode }) {
+const PlatformLayout = ({ children }: { children: React.ReactNode }) => {
 	const pathname = usePathname();
 
 	const [showNav, setShowNav] = useState(false);
@@ -38,4 +38,6 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 			</Providers>
 		</RootLayout>
 	);
-}
+};
+
+export default PlatformLayout;
