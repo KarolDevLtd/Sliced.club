@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-import { InlineLink } from './InlineLink';
+import InlineLink from './InlineLink';
 
 type TextInputProps = {
 	label?: string;
@@ -49,7 +49,7 @@ type TextInputProps = {
 	errors?: any;
 };
 
-export const TextInput = ({
+const TextInput = ({
 	label,
 	link,
 	id,
@@ -115,3 +115,5 @@ export const TextInput = ({
 		</div>
 	);
 };
+
+export default TextInput;

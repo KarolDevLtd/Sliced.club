@@ -6,12 +6,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useForm } from 'react-hook-form';
-import { BasicButton } from '../ui/BasicButton';
-import { BasicModal } from '../ui/BasicModal';
-import { Checkbox } from '../ui/CheckBox';
-import { InlineLink } from '../ui/InlineLink';
-import { SelectOption } from '../ui/SelectOption';
-import { TextInput } from '../ui/TextInput';
+import BasicButton from '../ui/BasicButton';
+import BasicModal from '../ui/BasicModal';
+import Checkbox from '../ui/Checkbox';
+import InlineLink from '../ui/InlineLink';
+import SelectOption from '../ui/SelectOption';
+import TextInput from '../ui/TextInput';
 import { type ChangeEvent, useState, useEffect } from 'react';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -19,7 +19,7 @@ import { type UserState } from '~/stores/userStore';
 import { preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
 import { CountryOptions } from '~/models/country-options';
-import { Spinner } from '../ui/Spinner';
+import Spinner from '../ui/Spinner';
 import { CurrencyOptions } from '~/models/currency-options';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/walletprovider';

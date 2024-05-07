@@ -26,7 +26,7 @@ type SelectOptionProps = {
 	displayKey?: 'value' | 'name' | 'symbol'; // Allow 'value', 'name', or 'symbol'
 };
 
-export const SelectOption = ({
+const SelectOption = ({
 	id,
 	name,
 	label,
@@ -80,3 +80,5 @@ export const SelectOption = ({
 		</div>
 	);
 };
+
+export default SelectOption;

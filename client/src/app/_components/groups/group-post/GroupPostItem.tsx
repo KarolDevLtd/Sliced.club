@@ -12,7 +12,7 @@ import { type UserState } from '~/stores/userStore';
 import { type FirebasePostModel } from '~/models/firebase-post-model';
 import { type IPFSPostModel } from '~/models/ipfs-post-model';
 import { api } from '~/trpc/react';
-import { BasicButton } from '../../ui/BasicButton';
+import BasicButton from '../../ui/BasicButton';
 import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
 import { CiHeart } from 'react-icons/ci';
 import { useWallet } from '~/providers/walletprovider';

@@ -13,15 +13,15 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 
-import { TextInput } from '../../ui/TextInput';
-import { TextArea } from '../../ui/TextArea';
-import { BasicButton } from '../../ui/BasicButton';
-import { BasicModal } from '../../ui/BasicModal';
+import TextInput from '../../ui/TextInput';
+import TextArea from '../../ui/TextArea';
+import BasicButton from '../../ui/BasicButton';
+import BasicModal from '../../ui/BasicModal';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
-import { Spinner } from '../../ui/Spinner';
+import Spinner from '../../ui/Spinner';
 import DragDrop from '../../ui/DragDrop';
 import { saveImages } from '~/helpers/image-helper';
 

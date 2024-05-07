@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import PageHeader from '~/app/_components/ui/PageHeader';
-import { InlineLink } from '~/app/_components/ui/InlineLink';
+import InlineLink from '~/app/_components/ui/InlineLink';
 import PlatformLayout from '~/layouts/platform';
 
 export default function Profile() {

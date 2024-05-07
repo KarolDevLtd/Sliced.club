@@ -6,8 +6,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import React, { useCallback, useEffect, useState } from 'react';
 import router from 'next/router';
-import { BasicModal } from '../ui/BasicModal';
-import { InlineLink } from '../ui/InlineLink';
+import BasicModal from '../ui/BasicModal';
+import InlineLink from '../ui/InlineLink';
 import { api } from '~/trpc/react';
 import { type IPFSProductModel } from '~/models/ipfs-product-model';
 import { toast } from 'react-toastify';
