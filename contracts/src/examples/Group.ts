@@ -168,7 +168,7 @@ export class Group extends SmartContract {
 
     // note: need to reverse here because `getActions()` returns the last pushed action last,
     // but MerkleList.from() wants it to be first to match the natural iteration order
-    let actionss = this.reducer.getActions().reverse();
+    let actionss = this.reducer.getActions(); //.reverse();
 
     // let actionsList = Provable.witness(PublicKey, () =>
     //   actions.map((as) => MerkleActions.from(as))

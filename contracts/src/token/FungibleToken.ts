@@ -1,5 +1,4 @@
 import {
-  Account,
   AccountUpdate,
   AccountUpdateForest,
   DeployArgs,
@@ -113,10 +112,11 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
 
   @method.returns(UInt64)
   async getBalanceOf(address: PublicKey): Promise<UInt64> {
-    const account = Account(address, this.deriveTokenId());
-    const balance = account.balance.get();
-    account.balance.requireEquals(balance);
-    return balance;
+    return AccountUpdate.create(
+      address,
+      this.deriveTokenId()
+    ).account.balance.getAndRequireEquals();
+    // Mina.getAccount(address, this.deriveTokenId()).balance;
   }
 
   @method.returns(UInt64)
