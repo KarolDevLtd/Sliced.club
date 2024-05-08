@@ -4,8 +4,9 @@ type BasicButtonProps = {
 	children: React.ReactNode;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	onClick?: (e: any) => any;
-	type: 'primary' | 'secondary' | 'accent' | 'neutral';
+	type: 'primary' | 'secondary' | 'accent' | 'neutral' | 'ghost';
 	size?: 'xs' | 'sm' | 'md' | 'lg';
+	iconBefore?: boolean;
 	icon?: ReactElement | null;
 	disabled?: boolean;
 	submitForm?: boolean;
@@ -17,6 +18,7 @@ const BasicButton = ({
 	type,
 	size = 'md',
 	icon,
+	iconBefore = false,
 	disabled,
 	submitForm = false,
 }: BasicButtonProps) => {
@@ -25,6 +27,7 @@ const BasicButton = ({
 		secondary: 'btn-secondary',
 		accent: 'btn-accent',
 		neutral: 'btn-neutral',
+		ghost: 'btn-ghost',
 	};
 
 	const sizeMap = {
@@ -42,8 +45,9 @@ const BasicButton = ({
 			type={submitForm ? 'submit' : 'button'}
 			formNoValidate={submitForm}
 		>
+			{icon && iconBefore ? <span className="ms-2">{icon}</span> : null}
 			{children}
-			{icon ? <span className="ms-2">{icon}</span> : null}
+			{icon && !iconBefore ? <span className="ms-2">{icon}</span> : null}
 		</button>
 	);
 };
