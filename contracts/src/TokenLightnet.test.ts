@@ -13,7 +13,6 @@ import {
   UInt64,
 } from 'o1js';
 
-let proofsEnabled = true;
 const DEFAULT_NETWORK_ID = 'testnet';
 type Config = {
   deployAliases: Record<
@@ -54,7 +53,7 @@ describe('FungibleToken testing on Lightnet', () => {
 
     deployerKey = PrivateKey.fromBase58(feepayerKeysBase58.privateKey);
     zkAppPrivateKey = PrivateKey.fromBase58(zkAppKeysBase58.privateKey);
-    if (proofsEnabled) await FungibleToken.compile();
+    await FungibleToken.compile();
 
     // set up Mina instance and contract we interact with
     const Network = Mina.Network({

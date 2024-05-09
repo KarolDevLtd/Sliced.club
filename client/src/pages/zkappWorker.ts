@@ -2,13 +2,16 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { Mina, PublicKey, fetchAccount } from 'o1js';
+import { Mina, PublicKey, UInt64, fetchAccount } from 'o1js';
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
 // ---------------------------------------------------------------------------------------
 
-import type { FungibleToken } from '../../../contracts/src/token/FungibleToken';
+import { FungibleToken } from '../../../contracts/src/token/FungibleToken';
+// import { FungibleToken } from './FungibleToken';
+// const { FungibleToken } =
+// await import("@/contracts/snapshotVoteProof");
 
 const state = {
 	FungibleToken: null as null | typeof FungibleToken,
@@ -30,7 +33,7 @@ const functions = {
 		Mina.setActiveInstance(Network);
 	},
 	loadContract: async (args: {}) => {
-		const { FungibleToken } = await import('../../../contracts/src/token/FungibleToken');
+		// const { FungibleToken } = await import('../../../contracts/src/token/FungibleToken');
 		state.FungibleToken = FungibleToken;
 	},
 	compileContract: async (args: {}) => {
@@ -53,20 +56,46 @@ const functions = {
 		const balance = await state.zkapp!.getBalanceOf(publicKey);
 		return JSON.stringify(balance.toJSON());
 	},
+	createTransferTransaction: async (args: { fromKey: string; toKey: string; amount: number }) => {
+		const transaction = await Mina.transaction(async () => {
+			const fromKey = PublicKey.fromBase58(args.fromKey);
+			const toKey = PublicKey.fromBase58(args.toKey);
+			const amount = UInt64.from(args.amount);
+			await state.zkapp!.transfer(fromKey, toKey, amount);
+		});
+		state.transaction = transaction;
+	},
 	// createUpdateTransaction: async (args: {}) => {
 	// 	const transaction = await Mina.transaction(async () => {
 	// 		await state.zkapp!.update();
 	// 	});
 	// 	state.transaction = transaction;
 	// },
-	proveUpdateTransaction: async (args: {}) => {
+	proveTransaction: async (args: {}) => {
 		await state.transaction!.prove();
 	},
 	getTransactionJSON: async (args: {}) => {
 		return state.transaction!.toJSON();
 	},
 };
+// let update = AccountUpdate.create(address, tokenId);
+// let accountIsNew = update.account.isNew.getAndRequireEquals();
+// if the account is new, we have to fund its creation
 
+// const target = await fetchAccount({ publicKey: targetPublicKey, tokenId });
+// const tx = await Mina.transaction(
+//  {
+//  sender: feePayer,
+//  fee: txFee,
+//  memo: '',
+//  },
+//  () => {
+//  if (!target.account) {
+//  AccountUpdate.fundNewAccount(feePayer);
+//  }
+//  transfer
+//  }
+// );
 // ---------------------------------------------------------------------------------------
 
 export type WorkerFunctions = keyof typeof functions;

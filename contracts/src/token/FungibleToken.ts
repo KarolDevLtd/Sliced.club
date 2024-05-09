@@ -10,7 +10,7 @@ import {
   TokenContract,
   UInt64,
 } from 'o1js';
-import type { FungibleTokenLike } from './FungibleTokenLike.js';
+import { FungibleTokenLike } from './FungibleTokenLike';
 
 export interface FungibleTokenDeployProps
   extends Exclude<DeployArgs, undefined> {

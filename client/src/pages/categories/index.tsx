@@ -12,6 +12,9 @@ import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 
 import { Field, Mina, PrivateKey, PublicKey, AccountUpdate, UInt32, UInt64, Signature, fetchAccount } from 'o1js';
+// const { Field, Mina, PrivateKey, PublicKey, AccountUpdate, UInt32, UInt64, Signature, fetchAccount } = await import(
+// 	'o1js'
+// );
 import PageHeader from '~/app/_components/ui/page-header';
 import PlatformLayout from '~/layouts/platform';
 import ZkappWorkerClient from '../zkappWorkerClient';
@@ -19,6 +22,10 @@ import ZkappWorkerClient from '../zkappWorkerClient';
 const ZKAPP_ADDRESS = 'B62qibDQ9yLEoLeHVQ3SuTdUDJMYv4xU1Av2HSugSDGu7BF3XxVEyye';
 
 export default function Categories() {
+	// (async () => {
+	// 	const { Field, Mina, PrivateKey, PublicKey, AccountUpdate, UInt32, UInt64, Signature, fetchAccount } =
+	// 		await import('o1js');
+	// })();
 	const [state, setState] = useState({
 		zkappWorkerClient: null as null | ZkappWorkerClient,
 		hasWallet: null as null | boolean,
@@ -99,8 +106,15 @@ export default function Categories() {
 				console.log('Getting zkApp state...');
 				setDisplayText('Getting zkApp state...');
 				await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey });
-				const currentSupply = await zkappWorkerClient.getSupply();
-				console.log(`Current supply in zkApp: ${currentSupply.toString()}`);
+
+				await zkappWorkerClient.createTransferTransaction(
+					publicKeyBase58,
+					'B62qq6LVZ2E3RgJoDMaCzQepYShJ339B6BW6myUrra9vgXMZbN2sGtE',
+					6
+				);
+
+				// const currentSupply = await zkappWorkerClient.getSupply();
+				// console.log(`Current supply in zkApp: ${currentSupply.toString()}`);
 				setDisplayText('');
 
 				setState({

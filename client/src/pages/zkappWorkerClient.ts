@@ -46,12 +46,16 @@ export default class ZkappWorkerClient {
 		});
 		return UInt64.fromJSON(JSON.parse(result as string));
 	}
-	// createUpdateTransaction() {
-	// 	return this._call('createUpdateTransaction', {});
-	// }
+	createTransferTransaction(fromKey: string, toKey: string, amount: number) {
+		return this._call('createTransferTransaction', {
+			fromKey,
+			toKey,
+			amount,
+		});
+	}
 
-	proveUpdateTransaction() {
-		return this._call('proveUpdateTransaction', {});
+	proveTransaction() {
+		return this._call('proveTransaction', {});
 	}
 
 	async getTransactionJSON() {
