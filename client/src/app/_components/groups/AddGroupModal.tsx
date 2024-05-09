@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable react-hooks/rules-of-hooks */
@@ -30,6 +30,7 @@ import { type FirebaseProductModel } from '~/models/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
+import { closeModal } from '~/helpers/modal-helper';
 
 type AddGroupModalProps = object;
 
@@ -114,7 +115,7 @@ const AddGroupModal = ({}: AddGroupModalProps) => {
 				currentSelectedProduct!
 			);
 			reset();
-			closeModal();
+			closeModal('add-group');
 			// refetchPosts();
 			toast.success('Posted successfully');
 		} catch (err) {
@@ -122,11 +123,6 @@ const AddGroupModal = ({}: AddGroupModalProps) => {
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const closeModal = () => {
-		// @ts-ignore
-		document?.getElementById('add-group')?.close();
 	};
 
 	const serializeList = (list: FirebaseProductModel[]): DropDownContentModel[] => {
@@ -222,12 +218,7 @@ const AddGroupModal = ({}: AddGroupModalProps) => {
 						>
 							Save
 						</BasicButton>
-						<BasicButton
-							type="secondary"
-							disabled={isLoading}
-							// @ts-ignore
-							onClick={closeModal}
-						>
+						<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-group')}>
 							Cancel
 						</BasicButton>
 					</div>

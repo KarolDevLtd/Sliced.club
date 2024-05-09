@@ -14,6 +14,7 @@ import { type IPFSGroupModel } from '~/models/ipfs-group-model';
 import { api } from '~/trpc/react';
 import BasicModal from '../ui/BasicModal';
 import { toast } from 'react-toastify';
+import { showModal } from '~/helpers/modal-helper';
 // import { type IPFSProductModel } from '~/models/ipfs-product-model';
 // import { toast } from 'react-toastify';
 // import ZoomableImage from '../ui/zoomable-image';
@@ -34,8 +35,7 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 	const [imageError, setImageError] = useState(false);
 
 	const openModal = () => {
-		// @ts-ignore
-		document?.getElementById('group-item')?.showModal();
+		showModal('group-item');
 	};
 
 	// const completedRatio = product?.itemsReceived ? (product.itemsReceived / product.groupMembers) * 100 : 0;

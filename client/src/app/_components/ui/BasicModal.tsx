@@ -12,8 +12,8 @@ interface BasicModalProps {
 
 const BasicModal = ({ id, header, content, footer, onClose }: BasicModalProps) => {
 	/*
-    To open modal: onClick={()=>document.getElementById('modal-id').showModal()}
-    To close modal: onClick={()=>document.getElementById('modal-id').close()}
+    To open modal: use showModal('modal-id') from modal-helper.ts
+    To close modal: use closeModal('modal-id') from modal-helper.ts
     */
 
 	return (

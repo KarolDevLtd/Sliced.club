@@ -10,6 +10,7 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import AddGroupModal from '~/app/_components/groups/AddGroupModal';
+import { showModal } from '~/helpers/modal-helper';
 export default function Groups() {
 	const groupId = '69';
 
@@ -17,8 +18,7 @@ export default function Groups() {
 
 	const showGroupModal = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
-		// @ts-ignore
-		document?.getElementById('add-group')?.showModal();
+		showModal('add-group');
 	};
 
 	return (

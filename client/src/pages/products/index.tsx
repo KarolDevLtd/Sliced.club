@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import PageHeader from '~/app/_components/ui/PageHeader';
 import AddProductModal from '~/app/_components/products/AddProductModal';
@@ -8,14 +7,14 @@ import PlatformLayout from '~/layouts/platform';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
+import { showModal } from '~/helpers/modal-helper';
 
 export default function Products() {
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
 	const showProduct = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a product')) return;
-		// @ts-ignore
-		document?.getElementById('add-product')?.showModal();
+		showModal('add-product');
 	};
 
 	return (

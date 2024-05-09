@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
@@ -25,6 +24,7 @@ import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/hel
 import Spinner from '../../ui/Spinner';
 import DragDrop from '../../ui/DragDrop';
 import { saveImages } from '~/helpers/image-helper';
+import { closeModal, showModal } from '~/helpers/modal-helper';
 
 type GroupPostProps = {
 	groupId: string;
@@ -52,8 +52,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 
 	const showPostInput = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
-		// @ts-ignore
-		document?.getElementById('add-post')?.showModal();
+		showModal('add-post');
 	};
 
 	const {
@@ -129,12 +128,6 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		unregister(['post-title', 'post-text']);
 	};
 
-	const closeModal = () => {
-		clearForm();
-		// @ts-ignore
-		document?.getElementById('add-post')?.close();
-	};
-
 	return (
 		<div className="flex flex-col w-1/3">
 			<BasicButton type="primary" onClick={showPostInput}>
@@ -190,7 +183,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							>
 								Save
 							</BasicButton>
-							<BasicButton type="secondary" disabled={isLoading} onClick={closeModal}>
+							<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-post')}>
 								Cancel
 							</BasicButton>
 						</div>

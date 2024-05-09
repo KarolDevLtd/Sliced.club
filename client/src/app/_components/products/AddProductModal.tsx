@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -25,6 +24,7 @@ import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/walletprovider';
 import { DateTime } from 'luxon';
 import ProductFields from './ProductFields';
+import { closeModal } from '~/helpers/modal-helper';
 
 type AddProductModalProps = object;
 
@@ -106,7 +106,7 @@ const AddProductModal = ({}: AddProductModalProps) => {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create product')) return;
 			await saveProduct(data['product-name'], data['product-price'], data['product-category']);
 			reset();
-			closeModal();
+			closeModal('add-product');
 			// refetchPosts();
 			toast.success('Product created successfully');
 		} catch (err) {
@@ -116,11 +116,6 @@ const AddProductModal = ({}: AddProductModalProps) => {
 		}
 	};
 
-	const closeModal = () => {
-		// @ts-ignore
-		document?.getElementById('add-product')?.close();
-    };
-    
 	return (
 		<BasicModal
 			id="add-product"
@@ -196,7 +191,7 @@ const AddProductModal = ({}: AddProductModalProps) => {
 						>
 							Save
 						</BasicButton>
-						<BasicButton type="secondary" disabled={isLoading} onClick={closeModal}>
+						<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-product')}>
 							Cancel
 						</BasicButton>
 					</div>
