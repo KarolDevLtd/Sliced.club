@@ -10,7 +10,7 @@ import { type UserState } from '~/stores/userStore';
 import { toast } from 'react-toastify';
 
 import BasicButton from '~/app/_components/ui/BasicButton';
-import Checkbox from '~/app/_components/ui/Checkbox';
+import CheckBox from '~/app/_components/ui/CheckBox';
 import InlineLink from '~/app/_components/ui/InlineLink';
 import TextInput from '~/app/_components/ui/TextInput';
 
@@ -89,9 +89,9 @@ export default function Login() {
 							}}
 						/>
 
-						<Checkbox id="remember-me" name="remember-me" errors={errors} register={register}>
+						<CheckBox id="remember-me" name="remember-me" errors={errors} register={register}>
 							Remember me
-						</Checkbox>
+						</CheckBox>
 					</div>
 
 					<BasicButton type="primary" submitForm={true}>

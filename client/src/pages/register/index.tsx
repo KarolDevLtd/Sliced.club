@@ -6,7 +6,7 @@ import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { toast } from 'react-toastify';
 
 import BasicButton from '~/app/_components/ui/BasicButton';
-import Checkbox from '~/app/_components/ui/Checkbox';
+import CheckBox from '~/app/_components/ui/CheckBox';
 import InlineLink from '~/app/_components/ui/InlineLink';
 import SelectOption from '~/app/_components/ui/SelectOption';
 import TextInput from '~/app/_components/ui/TextInput';
@@ -105,7 +105,7 @@ export default function Register() {
 								required: 'Country is required',
 							}}
 						/>
-						<Checkbox
+						<CheckBox
 							id="terms-and-condtions"
 							name="terms-and-conditions"
 							required={true}
@@ -116,7 +116,7 @@ export default function Register() {
 							}}
 						>
 							Agree to <InlineLink href="#">Terms and Conditions</InlineLink>
-						</Checkbox>
+						</CheckBox>
 					</div>
 
 					<BasicButton type="primary" submitForm={true}>

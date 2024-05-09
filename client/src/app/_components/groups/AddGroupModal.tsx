@@ -11,7 +11,7 @@
 import { useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import BasicModal from '../ui/BasicModal';
-import Checkbox from '../ui/Checkbox';
+import CheckBox from '../ui/CheckBox';
 import InlineLink from '../ui/InlineLink';
 import SelectOption from '../ui/SelectOption';
 import TextInput from '../ui/TextInput';
@@ -202,13 +202,19 @@ const AddGroupModal = ({}: AddGroupModalProps) => {
 						}}
 					/>
 					{/* TODO replace youtube link */}
-					<Checkbox id="tandc" name="tandc" errors={errors} register={register}>
+					<CheckBox type="secondary" id="tandc" name="tandc" errors={errors} register={register}>
 						I confirm my legal abilities to sell the goods and agree to
 						<InlineLink href={'https://youtube.com'}>T&Cs</InlineLink>
-					</Checkbox>
-					<Checkbox id="agree-contact" name="agree-contact" errors={errors} register={register}>
+					</CheckBox>
+					<CheckBox
+						type="secondary"
+						id="agree-contact"
+						name="agree-contact"
+						errors={errors}
+						register={register}
+					>
 						I agree to be contacted regarding my registration/eligibility and await to be contacted 
-					</Checkbox>
+					</CheckBox>
 					<div className="w-100 flex justify-end items-center gap-2">
 						<BasicButton
 							type="primary"
