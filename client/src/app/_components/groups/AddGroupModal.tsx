@@ -31,6 +31,7 @@ import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
 import { closeModal } from '~/helpers/modal-helper';
+import { FaUserGroup } from 'react-icons/fa6';
 
 type AddGroupModalProps = object;
 
@@ -148,6 +149,7 @@ const AddGroupModal = ({}: AddGroupModalProps) => {
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
 						id="group-name"
+						icon={<FaUserGroup />}
 						name="group-name"
 						type="text"
 						label="Group Name"
