@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
@@ -51,7 +52,8 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 
 	const showPostInput = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
-		setPostOpen(true);
+		// @ts-ignore
+		document?.getElementById('add-post')?.showModal();
 	};
 
 	const {
@@ -122,15 +124,26 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		}
 	};
 
+	const clearForm = () => {
+		// Clears form validation errors when closing modal
+		unregister(['post-title', 'post-text']);
+	};
+
+	const closeModal = () => {
+		clearForm();
+		// @ts-ignore
+		document?.getElementById('add-post')?.close();
+	};
+
 	return (
 		<div className="flex flex-col w-1/3">
 			<BasicButton type="primary" onClick={showPostInput}>
 				Add Post
 			</BasicButton>
 			<BasicModal
-				isOpen={postOpen}
+				id="add-post"
 				onClose={hidePostInput}
-				header={<h2 className="text-xl font-semibold">Add Post</h2>}
+				header="Add Post"
 				content={
 					<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 						<TextInput
@@ -177,7 +190,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							>
 								Save
 							</BasicButton>
-							<BasicButton type="secondary" disabled={isLoading} onClick={hidePostInput}>
+							<BasicButton type="secondary" disabled={isLoading} onClick={closeModal}>
 								Cancel
 							</BasicButton>
 						</div>

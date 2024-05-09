@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import PageHeader from '~/app/_components/ui/PageHeader';
-import { useState } from 'react';
 import AddProductModal from '~/app/_components/products/AddProductModal';
 import BasicButton from '~/app/_components/ui/BasicButton';
 import { preventActionNotLoggedIn } from '~/helpers/user-helper';
@@ -9,16 +10,12 @@ import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 
 export default function Products() {
-	const [productOpen, setProductOpen] = useState(false);
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
 	const showProduct = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a product')) return;
-		setProductOpen(true);
-	};
-
-	const hideProduct = () => {
-		setProductOpen(false);
+		// @ts-ignore
+		document?.getElementById('add-product')?.showModal();
 	};
 
 	return (
@@ -29,7 +26,7 @@ export default function Products() {
 					Add Product
 				</BasicButton>
 			</div>
-			<AddProductModal productOpen={productOpen} hideProduct={hideProduct} />
+			<AddProductModal />
 		</>
 	);
 }
