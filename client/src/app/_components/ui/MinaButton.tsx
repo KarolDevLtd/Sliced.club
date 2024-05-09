@@ -54,6 +54,7 @@ const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) =
 			{types.includes('connect') && (
 				<BasicButton
 					type="secondary"
+					size="sm"
 					icon={<FaWallet />}
 					disabled={disabled}
 					onClick={() => {
@@ -68,6 +69,7 @@ const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) =
 				<>
 					<BasicButton
 						type="secondary"
+						size="sm"
 						icon={<GoArrowSwitch />}
 						disabled={disabled}
 						onClick={() => {
@@ -78,6 +80,7 @@ const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) =
 						Switch Chain
 					</BasicButton>
 					<SelectOption
+						size="sm"
 						id="wallet-chain"
 						name="wallet-chain"
 						value={selectedValue}
