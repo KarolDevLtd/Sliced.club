@@ -69,6 +69,7 @@ export const FirebasePostRouter = createTRPCRouter({
 				response.forEach((doc) => {
 					// console.log(doc.data());
 					posts.push({
+						id: doc.id,
 						hash: doc.data().message as string,
 						group: doc.data().group as string,
 						posterKey: doc.data().poster as string,
@@ -131,6 +132,7 @@ export const FirebasePostRouter = createTRPCRouter({
 			await getDocs(q).then((response) => {
 				response.forEach((doc) => {
 					likes.push({
+						id: doc.id,
 						hash: doc.data().postId as string,
 						posterKey: doc.data().userId as string,
 					});
@@ -177,6 +179,7 @@ export const FirebasePostRouter = createTRPCRouter({
 			await getDocs(q).then((response) => {
 				response.forEach((doc) => {
 					comments.push({
+						id: doc.id,
 						hash: doc.data().commentContent as string,
 						posterKey: doc.data().poster as string,
 					});

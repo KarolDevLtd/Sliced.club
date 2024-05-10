@@ -49,6 +49,7 @@ export const FirebaseProductRouter = createTRPCRouter({
 				// console.log(response);
 				response.forEach((doc) => {
 					products.push({
+						id: doc.id,
 						name: doc.data().name as string,
 						creatorKey: input.creatorKey!,
 						price: doc.data().price as string,
