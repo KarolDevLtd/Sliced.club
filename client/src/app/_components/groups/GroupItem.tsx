@@ -4,10 +4,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// import React, { useCallback, useEffect, useState } from 'react';
-// import router from 'next/router';
-// import BasicModal from '../ui/basic-modal';
-// import InlineLink from '../ui/inline-link';
 import router from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
@@ -15,10 +11,6 @@ import { api } from '~/trpc/react';
 import BasicModal from '../ui/BasicModal';
 import { toast } from 'react-toastify';
 import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
-// import { type IPFSProductModel } from '~/models/ipfs-product-model';
-// import { toast } from 'react-toastify';
-// import ZoomableImage from '../ui/zoomable-image';
-// import { fetchImageData } from '~/helpers/image-helper';
 
 type GroupItemProps = {
 	firebaseGroup: FirebaseGroupModel;
@@ -41,7 +33,16 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 	// };
 
 	const handleClick = (e: Event | undefined) => {
-		void router.push(`/groups/${firebaseGroup.id}`);
+		//At this point we have all group information from firebase and IPFS
+		//Pass to reduce need to query?
+		void router.push({
+			pathname: `/groups/${firebaseGroup.id}`,
+			query: {
+				groupName: firebaseGroup.name,
+				groupHash: firebaseGroup.groupHash,
+				productHash: group?.productHash,
+			}, // Pass firebaseGroup data as query parameter
+		});
 		e?.stopPropagation();
 	};
 
@@ -50,9 +51,8 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 		setIsLoading(true);
 		try {
 			if (groupData) {
-				const currGroup = groupData.group as unknown as IPFSGroupModel;
+				const currGroup = groupData.group as IPFSGroupModel;
 				setGroup(currGroup);
-				// await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 		} catch (err) {
 			console.log(err);
@@ -63,7 +63,6 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 	}, [groupData]);
 
 	useEffect(() => {
-		//Use void here as do not need result, use state set inside result
 		void fetchInfo();
 	}, [fetchInfo, group]);
 
