@@ -48,7 +48,7 @@ const ProductList = ({ heading }: ProductListProps) => {
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{products ? (
 				products.map((product, index) => {
-					return <ProductItem key={index} currentProduct={product.productHash} />;
+					return <ProductItem key={index} firebaseProduct={product} />;
 				})
 			) : (
 				<p>No products found.</p>

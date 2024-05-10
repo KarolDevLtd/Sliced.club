@@ -13,13 +13,14 @@ import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
+import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 
 type ProductItemProps = {
-	currentProduct: string;
+	firebaseProduct: FirebaseProductModel;
 };
 
-const ProductItem = ({ currentProduct }: ProductItemProps) => {
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: currentProduct });
+const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
+	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: firebaseProduct.productHash });
 	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [product, setProduct] = useState<IPFSProductModel>();
@@ -38,7 +39,7 @@ const ProductItem = ({ currentProduct }: ProductItemProps) => {
 	// };
 
 	const handleClick = (e: Event | undefined) => {
-		void router.push(`/groups/${product?.name}`);
+		void router.push(`/groups/${firebaseProduct.id}`);
 		e?.stopPropagation();
 	};
 
