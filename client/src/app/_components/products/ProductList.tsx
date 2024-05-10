@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import ProductItem from './ProductItem';
 import { type Product } from '~/types/product-types';
 import { api } from '~/trpc/react';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '~/providers/WalletProvider';
 import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 
 type ProductListProps = {

@@ -21,7 +21,7 @@ import Spinner from '../ui/Spinner';
 import DragDrop from '../ui/DragDrop';
 import { saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '~/providers/WalletProvider';
 import { DateTime } from 'luxon';
 import ProductFields from './ProductFields';
 

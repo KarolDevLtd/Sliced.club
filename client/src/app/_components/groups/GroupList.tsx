@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 import { set } from 'zod';
 import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';
 import { group } from 'console';

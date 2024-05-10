@@ -8,7 +8,7 @@
 import { useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import BasicModal from '../ui/BasicModal';
-import Checkbox from '../ui/Checkbox';
+import Checkbox from '../ui/CheckBox';
 import InlineLink from '../ui/InlineLink';
 import SelectOption from '../ui/SelectOption';
 import TextInput from '../ui/TextInput';
@@ -22,7 +22,7 @@ import { CountryOptions } from '~/models/country-options';
 import Spinner from '../ui/Spinner';
 import { CurrencyOptions } from '~/models/currency-options';
 import { api } from '~/trpc/react';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '~/providers/WalletProvider';
 import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
