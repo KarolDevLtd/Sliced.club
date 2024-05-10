@@ -23,7 +23,7 @@ import Spinner from '../ui/Spinner';
 import { CurrencyOptions } from '~/models/currency-options';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/walletprovider';
-import { type FirebaseProductModel } from '~/models/firebase-product-model';
+import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';

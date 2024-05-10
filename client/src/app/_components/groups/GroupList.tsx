@@ -6,7 +6,7 @@
 // import { type Product } from '~/types/product-types';
 import { useEffect, useState } from 'react';
 import { set } from 'zod';
-import { type FirebaseGroupModel } from '~/models/firebase-group-model';
+import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
 import { useWallet } from '~/providers/walletprovider';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';

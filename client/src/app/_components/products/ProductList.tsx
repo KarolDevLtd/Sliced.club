@@ -6,7 +6,7 @@ import ProductItem from './ProductItem';
 import { type Product } from '~/types/product-types';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/walletprovider';
-import { type FirebaseProductModel } from '~/models/firebase-product-model';
+import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 
 type ProductListProps = {
 	heading?: string;

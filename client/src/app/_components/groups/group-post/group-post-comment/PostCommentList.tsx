@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React, { useEffect, useState } from 'react';
 import { api } from '~/trpc/react';
-import { type FirebaseCommentModel } from '~/models/firebase-comment-model';
+import { type FirebaseCommentModel } from '~/models/firebase/firebase-comment-model';
 import PostCommentItem from './PostCommentItem';
 
 type PostCommentListProps = {

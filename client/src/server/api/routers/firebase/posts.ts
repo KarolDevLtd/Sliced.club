@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { firestore } from 'src/firebaseConfig';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { addDoc, collection, getDocs, query as firestorequery, where, orderBy, deleteDoc } from 'firebase/firestore';
-import { type FirebasePostModel } from '~/models/firebase-post-model';
-import { type FirebaseLikeModel } from '~/models/firebase-like-model';
-import { type FirebaseCommentModel } from '~/models/firebase-comment-model';
+import { type FirebasePostModel } from '~/models/firebase/firebase-post-model';
+import { type FirebaseLikeModel } from '~/models/firebase/firebase-like-model';
+import { type FirebaseCommentModel } from '~/models/firebase/firebase-comment-model';
 
 const postCollection = collection(firestore, 'posts');
 const commentCollection = collection(firestore, 'comments');

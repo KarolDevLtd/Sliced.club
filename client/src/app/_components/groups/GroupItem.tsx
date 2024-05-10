@@ -10,7 +10,7 @@
 // import InlineLink from '../ui/inline-link';
 import router from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
-import { type IPFSGroupModel } from '~/models/ipfs-group-model';
+import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { api } from '~/trpc/react';
 import BasicModal from '../ui/BasicModal';
 import { toast } from 'react-toastify';

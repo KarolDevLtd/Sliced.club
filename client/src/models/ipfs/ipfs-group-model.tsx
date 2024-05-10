@@ -1,4 +1,5 @@
 export interface IPFSGroupModel {
+	id: string;
 	name: string;
 	currency: string;
 	price: string;

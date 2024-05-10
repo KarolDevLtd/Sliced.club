@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { firestore } from 'src/firebaseConfig';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { addDoc, collection, getDocs, query as firestorequery, where, orderBy } from 'firebase/firestore';
-import { type FirebaseProductModel } from '~/models/firebase-product-model';
+import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 
 const productsCollection = collection(firestore, 'products');
 

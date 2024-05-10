@@ -9,7 +9,7 @@ import router from 'next/router';
 import BasicModal from '../ui/BasicModal';
 import InlineLink from '../ui/InlineLink';
 import { api } from '~/trpc/react';
-import { type IPFSProductModel } from '~/models/ipfs-product-model';
+import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
