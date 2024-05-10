@@ -49,13 +49,11 @@ const GroupList = ({ heading }: GroupListProps) => {
 	}, [error]);
 
 	return (
-		// <div>Test</div>
 		<div className="flex flex-col gap-2 mb-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{groups ? (
 				groups.map((group, index) => {
-					console.log(group);
-					return <GroupItem key={index} currentGroup={group.groupHash} creatorId={group.creatorKey} />;
+					return <GroupItem key={index} firebaseGroup={group} />;
 				})
 			) : (
 				<p>No products found.</p>

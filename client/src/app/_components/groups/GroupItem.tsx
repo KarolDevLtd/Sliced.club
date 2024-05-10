@@ -14,24 +14,21 @@ import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { api } from '~/trpc/react';
 import BasicModal from '../ui/BasicModal';
 import { toast } from 'react-toastify';
+import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
 // import { type IPFSProductModel } from '~/models/ipfs-product-model';
 // import { toast } from 'react-toastify';
 // import ZoomableImage from '../ui/zoomable-image';
 // import { fetchImageData } from '~/helpers/image-helper';
 
 type GroupItemProps = {
-	currentGroup: string;
-	creatorId: string;
+	firebaseGroup: FirebaseGroupModel;
 };
 
-const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
-	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: currentGroup });
+const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: firebaseGroup.groupHash });
 	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
-	const [hasImage, setHasImage] = useState<boolean>(false);
-	const [imageData, setImageData] = useState<string[]>([]);
-	const [imageError, setImageError] = useState(false);
 
 	const toggleModal = () => {
 		setDisplayModal(!displayModal);
@@ -44,7 +41,7 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 	// };
 
 	const handleClick = (e: Event | undefined) => {
-		void router.push(`/groups/${group?.name}`);
+		void router.push(`/groups/${firebaseGroup.id}`);
 		e?.stopPropagation();
 	};
 
@@ -89,7 +86,7 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 					</div> */}
 					<div className="col-span-2 flex flex-col justify-center">
 						<strong>Group name:</strong> <p>{group?.name}</p>
-						<strong>Creator ID:</strong> <p>{creatorId}</p>
+						<strong>Creator ID:</strong> <p>{firebaseGroup.creatorKey}</p>
 						<strong>Price:</strong>{' '}
 						<p>
 							{group?.currency}
