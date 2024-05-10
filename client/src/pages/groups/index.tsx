@@ -8,6 +8,7 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import AddGroupModal from '~/app/_components/groups/AddGroupModal';
+import GroupList from '~/app/_components/groups/GroupList';
 export default function Groups() {
 	const groupId = '69';
 	const [groupOpen, setGroupOpen] = useState(false);
@@ -32,6 +33,7 @@ export default function Groups() {
 					Add Group
 				</BasicButton>
 			</div>
+			<GroupList />
 			<AddGroupModal groupOpen={groupOpen} hideGroup={hideGroup} />
 		</>
 	);

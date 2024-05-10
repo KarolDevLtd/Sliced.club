@@ -7,6 +7,7 @@ import PlatformLayout from '~/layouts/platform';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
+import ProductList from '~/app/_components/products/ProductList';
 
 export default function Products() {
 	const [productOpen, setProductOpen] = useState(false);
@@ -28,6 +29,7 @@ export default function Products() {
 				<BasicButton type="primary" onClick={showProduct}>
 					Add Product
 				</BasicButton>
+				<ProductList />
 			</div>
 			<AddProductModal productOpen={productOpen} hideProduct={hideProduct} />
 		</>
