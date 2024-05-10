@@ -11,6 +11,8 @@ import ProductList from '~/app/_components/products/ProductList';
 
 export default function Products() {
 	const [productOpen, setProductOpen] = useState(false);
+	const [shouldRefreshProducts, setShouldRefreshProducts] = useState(false);
+
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
 	const showProduct = () => {
@@ -22,6 +24,11 @@ export default function Products() {
 		setProductOpen(false);
 	};
 
+	const handleProductSubmitted = () => {
+		console.log('handleProductSubmitted');
+		setShouldRefreshProducts((prev) => !prev);
+	};
+
 	return (
 		<>
 			<PageHeader text="My Products" subtext="Check the details of your products" />
@@ -29,9 +36,13 @@ export default function Products() {
 				<BasicButton type="primary" onClick={showProduct}>
 					Add Product
 				</BasicButton>
-				<ProductList />
+				<ProductList key={shouldRefreshProducts ? 'refresh' : 'normal'} />
 			</div>
-			<AddProductModal productOpen={productOpen} hideProduct={hideProduct} />
+			<AddProductModal
+				productOpen={productOpen}
+				hideProduct={hideProduct}
+				onProductSubmitted={handleProductSubmitted}
+			/>
 		</>
 	);
 }

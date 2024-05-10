@@ -28,9 +28,10 @@ import ProductFields from './ProductFields';
 type AddProductModalProps = {
 	productOpen: boolean;
 	hideProduct: () => void;
+	onProductSubmitted: () => void;
 };
 
-const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => {
+const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 
@@ -115,6 +116,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 			console.log(err);
 		} finally {
 			setIsLoading(false);
+			onProductSubmitted();
 		}
 	};
 	return (

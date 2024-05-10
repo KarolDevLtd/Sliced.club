@@ -31,9 +31,10 @@ import { type DropDownContentModel } from '~/models/dropdown-content-model';
 type AddGroupModalProps = {
 	groupOpen: boolean;
 	hideGroup: () => void;
+	onGroupSubmitted: () => void;
 };
 
-const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
+const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
 	const { data: fbProductData } = api.FirebaseProduct.getProducts.useQuery({
@@ -120,6 +121,7 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 			console.log(err);
 		} finally {
 			setIsLoading(false);
+			onGroupSubmitted();
 		}
 	};
 

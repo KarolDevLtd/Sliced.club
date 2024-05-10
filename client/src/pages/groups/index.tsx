@@ -12,6 +12,7 @@ import GroupList from '~/app/_components/groups/GroupList';
 export default function Groups() {
 	const groupId = '69';
 	const [groupOpen, setGroupOpen] = useState(false);
+	const [shouldRefreshGroups, setShouldRefreshGroups] = useState(false);
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
@@ -24,6 +25,10 @@ export default function Groups() {
 		setGroupOpen(false);
 	};
 
+	const handleGroupSubmitted = () => {
+		setShouldRefreshGroups((prev) => !prev);
+	};
+
 	return (
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
@@ -33,8 +38,8 @@ export default function Groups() {
 					Add Group
 				</BasicButton>
 			</div>
-			<GroupList />
-			<AddGroupModal groupOpen={groupOpen} hideGroup={hideGroup} />
+			<GroupList key={shouldRefreshGroups ? 'refresh' : 'normal'} />
+			<AddGroupModal groupOpen={groupOpen} hideGroup={hideGroup} onGroupSubmitted={handleGroupSubmitted} />
 		</>
 	);
 }
