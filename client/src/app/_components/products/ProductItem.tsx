@@ -48,7 +48,7 @@ const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
 		setIsLoading(true);
 		try {
 			if (productData) {
-				const currProd = productData.product as unknown as IPFSProductModel;
+				const currProd = productData.product as IPFSProductModel;
 				setProduct(productData.product);
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
