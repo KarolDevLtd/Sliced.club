@@ -20,13 +20,13 @@ import { preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
 import { CountryOptions } from '~/models/country-options';
 import Spinner from '../ui/Spinner';
-import { CurrencyOptions } from '~/models/currency-options';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
 import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
+import TextArea from '../ui/TextArea';
 
 type AddGroupModalProps = {
 	groupOpen: boolean;
@@ -72,6 +72,7 @@ const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModal
 
 	const saveGroup = async (
 		name: string,
+		description: string,
 		price: string,
 		duration: string,
 		participants: string,
@@ -82,6 +83,7 @@ const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModal
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
 			const groupProductToIPFS = await groupToIPFS.mutateAsync({
 				name: name,
+				description: description,
 				price: price,
 				duration: duration,
 				participants: participants,
@@ -108,6 +110,7 @@ const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModal
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
 			await saveGroup(
 				data['group-name'] as string,
+				data['group-description'] as string,
 				currentSelectedProduct?.price!,
 				duration.toString(),
 				participants.toString(),
@@ -187,6 +190,26 @@ const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModal
 					) : (
 						`No products`
 					)}
+					<TextArea
+						id="group-description"
+						name="group-description"
+						label="Group Description"
+						required={true}
+						showCharacterCount={true}
+						errors={errors}
+						register={register}
+						validationSchema={{
+							required: 'Group Description is required',
+							minLength: {
+								value: 20,
+								message: 'Group Description must be at least 20 characters',
+							},
+							maxLength: {
+								value: 250,
+								message: 'Group Description must be at less than 250 characters',
+							},
+						}}
+					/>
 					{/* TODO replace with flag package */}
 					<SelectOption
 						id="country"
