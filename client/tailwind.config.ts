@@ -1,4 +1,5 @@
 import { type Config } from 'tailwindcss';
+import daisyui from 'daisyui';
 
 export default {
 	content: ['./src/**/*.tsx'],
@@ -7,24 +8,12 @@ export default {
 			fontFamily: {
 				sans: ['ui-sans-serif', 'system-ui'],
 				serif: ['ui-serif', 'Georgia'],
-				mono: ['ui-monospace', 'SFMono-Regular'],
+				mono: ['Monaco', 'ui-monospace', 'SFMono-Regular'],
 				display: ['Oswald'],
 				body: ['Open Sans'],
 			},
 		},
-		colors: {
-			white: '#ffffff',
-			black: '#000000',
-			'purple-light': '#d4d8f2',
-			purple: '#5362c8',
-			'purple-dark': '#3543a7',
-			orange: '#ff603b',
-			'orange-dark': '#ff451a',
-			'light-grey': '#cdcdcd',
-			'medium-grey': '#a9a9a9',
-			'dark-grey': '#767676',
-			'red-error': '#ff4c4c',
-		},
+		colors: {},
 		container: {
 			center: true,
 			padding: {
@@ -36,9 +25,22 @@ export default {
 			},
 		},
 	},
-	plugins: [require('daisyui')],
+	plugins: [daisyui],
 	daisyui: {
-		themes: true,
+		themes: [
+			{
+				sliced: {
+					primary: '#FFFFFF',
+					secondary: '#FF603B',
+					accent: '#193646',
+					neutral: '#6b7280',
+					'base-100': '#121A24',
+					info: '#f3f4f6',
+					success: '#22c55e',
+					warning: '#fde047',
+					error: '#ef4444',
+				},
+			},
+		],
 	},
-	themes: ['light', 'dark', 'cupcake'],
 } satisfies Config;

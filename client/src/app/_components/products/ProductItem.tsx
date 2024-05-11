@@ -20,16 +20,11 @@ type ProductItemProps = {
 
 const ProductItem = ({ currentProduct }: ProductItemProps) => {
 	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: currentProduct });
-	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [product, setProduct] = useState<IPFSProductModel>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
-
-	const toggleModal = () => {
-		setDisplayModal(!displayModal);
-	};
 
 	// const completedRatio = product?.itemsReceived ? (product.itemsReceived / product.groupMembers) * 100 : 0;
 
@@ -106,9 +101,8 @@ const ProductItem = ({ currentProduct }: ProductItemProps) => {
 					</BasicButton>
 				</div> */}
 					<BasicModal
-						isOpen={displayModal}
-						onClose={toggleModal}
-						header={<h2 className="text-xl font-semibold">Item Details</h2>}
+						id="product-item"
+						header="Item Details"
 						content={
 							<div>
 								<div className="flex items-center gap-1">

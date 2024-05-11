@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable react-hooks/rules-of-hooks */
@@ -8,7 +11,7 @@
 import { useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import BasicModal from '../ui/BasicModal';
-import Checkbox from '../ui/Checkbox';
+import CheckBox from '../ui/CheckBox';
 import InlineLink from '../ui/InlineLink';
 import SelectOption from '../ui/SelectOption';
 import TextInput from '../ui/TextInput';
@@ -27,13 +30,12 @@ import { type FirebaseProductModel } from '~/models/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
+import { closeModal } from '~/helpers/modal-helper';
+import { FaUserGroup } from 'react-icons/fa6';
 
-type AddGroupModalProps = {
-	groupOpen: boolean;
-	hideGroup: () => void;
-};
+type AddGroupModalProps = object;
 
-const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
+const AddGroupModal = ({}: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
 	const { data: fbProductData } = api.FirebaseProduct.getProducts.useQuery({
@@ -102,6 +104,7 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 	};
 
 	const onSubmit = async (data: any) => {
+		console.log('hello?');
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
@@ -113,7 +116,7 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 				currentSelectedProduct!
 			);
 			reset();
-			hideGroup();
+			closeModal('add-group');
 			// refetchPosts();
 			toast.success('Posted successfully');
 		} catch (err) {
@@ -140,13 +143,13 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 
 	return (
 		<BasicModal
-			isOpen={groupOpen}
-			onClose={hideGroup}
-			header={<h2 className="text-xl font-semibold">Add Group</h2>}
+			id="add-group"
+			header="Add Group"
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
 						id="group-name"
+						icon={<FaUserGroup />}
 						name="group-name"
 						type="text"
 						label="Group Name"
@@ -201,13 +204,19 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 						}}
 					/>
 					{/* TODO replace youtube link */}
-					<Checkbox id={'tandc'} name={'tand'}>
+					<CheckBox type="secondary" id="tandc" name="tandc" errors={errors} register={register}>
 						I confirm my legal abilities to sell the goods and agree to
 						<InlineLink href={'https://youtube.com'}>T&Cs</InlineLink>
-					</Checkbox>
-					<Checkbox id={''} name={''}>
+					</CheckBox>
+					<CheckBox
+						type="secondary"
+						id="agree-contact"
+						name="agree-contact"
+						errors={errors}
+						register={register}
+					>
 						I agree to be contacted regarding my registration/eligibility and await to be contacted 
-					</Checkbox>
+					</CheckBox>
 					<div className="w-100 flex justify-end items-center gap-2">
 						<BasicButton
 							type="primary"
@@ -217,7 +226,7 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 						>
 							Save
 						</BasicButton>
-						<BasicButton type="secondary" disabled={isLoading} onClick={hideGroup}>
+						<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-group')}>
 							Cancel
 						</BasicButton>
 					</div>

@@ -4,21 +4,27 @@ import Link from 'next/link';
 
 import { LiaExternalLinkAltSolid } from 'react-icons/lia';
 
-const InlineLink = ({
-	children,
-	href,
-	target = '_self',
-	external,
-}: {
+type InlineLinkProps = {
+	type?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'ghost';
 	children: React.ReactNode;
 	href: string;
 	target?: '_self' | '_blank';
 	external?: boolean;
-}) => {
+};
+
+const InlineLink = ({ type, children, href, target = '_self', external }: InlineLinkProps) => {
+	const colourMap = {
+		primary: 'btn-primary',
+		secondary: 'btn-secondary',
+		accent: 'btn-accent',
+		neutral: 'btn-neutral',
+		ghost: 'btn-ghost',
+	};
+
 	return (
 		<span className="inline-block">
 			<Link
-				className="text-orange hover:underline flex items-center w-fit"
+				className={`link ${type && colourMap[type]}`}
 				href={href}
 				target={target}
 				onClick={(e) => {

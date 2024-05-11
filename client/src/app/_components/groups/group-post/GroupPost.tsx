@@ -24,6 +24,7 @@ import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/hel
 import Spinner from '../../ui/Spinner';
 import DragDrop from '../../ui/DragDrop';
 import { saveImages } from '~/helpers/image-helper';
+import { closeModal, showModal } from '~/helpers/modal-helper';
 
 type GroupPostProps = {
 	groupId: string;
@@ -51,7 +52,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 
 	const showPostInput = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
-		setPostOpen(true);
+		showModal('add-post');
 	};
 
 	const {
@@ -122,15 +123,20 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		}
 	};
 
+	const clearForm = () => {
+		// Clears form validation errors when closing modal
+		unregister(['post-title', 'post-text']);
+	};
+
 	return (
 		<div className="flex flex-col w-1/3">
 			<BasicButton type="primary" onClick={showPostInput}>
 				Add Post
 			</BasicButton>
 			<BasicModal
-				isOpen={postOpen}
+				id="add-post"
 				onClose={hidePostInput}
-				header={<h2 className="text-xl font-semibold">Add Post</h2>}
+				header="Add Post"
 				content={
 					<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 						<TextInput
@@ -177,7 +183,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							>
 								Save
 							</BasicButton>
-							<BasicButton type="secondary" disabled={isLoading} onClick={hidePostInput}>
+							<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-post')}>
 								Cancel
 							</BasicButton>
 						</div>

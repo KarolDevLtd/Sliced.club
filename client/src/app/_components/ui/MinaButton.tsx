@@ -53,7 +53,8 @@ const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) =
 		<div className="flex flex-col gap-1">
 			{types.includes('connect') && (
 				<BasicButton
-					type="tertiary"
+					type="secondary"
+					size="sm"
 					icon={<FaWallet />}
 					disabled={disabled}
 					onClick={() => {
@@ -67,7 +68,8 @@ const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) =
 			{isConnected && types.includes('chain') && (
 				<>
 					<BasicButton
-						type="tertiary"
+						type="secondary"
+						size="sm"
 						icon={<GoArrowSwitch />}
 						disabled={disabled}
 						onClick={() => {
@@ -78,6 +80,7 @@ const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) =
 						Switch Chain
 					</BasicButton>
 					<SelectOption
+						size="sm"
 						id="wallet-chain"
 						name="wallet-chain"
 						value={selectedValue}

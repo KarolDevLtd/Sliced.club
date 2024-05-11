@@ -3,7 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import React from 'react';
 
-type CheckboxProps = {
+type CheckBoxProps = {
+	type?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'ghost';
 	children: React.ReactNode;
 	id: string;
 	name: string;
@@ -18,7 +19,8 @@ type CheckboxProps = {
 	errors?: any;
 };
 
-const Checkbox = ({
+const CheckBox = ({
+	type,
 	children,
 	id,
 	name,
@@ -29,25 +31,33 @@ const Checkbox = ({
 	validationSchema,
 	register = () => [],
 	errors,
-}: CheckboxProps) => {
+}: CheckBoxProps) => {
+	const colourMap = {
+		primary: 'checkbox-primary',
+		secondary: 'checkbox-secondary',
+		accent: 'checkbox-accent',
+		neutral: 'checkbox-neutral',
+		ghost: 'checkbox-ghost',
+	};
+
 	return (
-		<div>
-			<div className="flex items-center mt-2">
+		<div className="form-control">
+			<label htmlFor={id} className="label cursor-pointer">
+				<span className="label-text">
+					{children}
+					{required && '*'}
+				</span>
 				<input
-					className="me-2 hover:cursor-pointer"
 					id={id}
-					type="checkbox"
 					disabled={disabled}
 					required={required}
 					// React Hook Form
 					{...register(name, validationSchema)}
+					type="checkbox"
+					defaultChecked
+					className={`checkbox ${type && colourMap[type]}`}
 				/>
-				<label className="text-sm hover:cursor-pointer" htmlFor={id}>
-					{children}
-					{required && '*'}
-				</label>
-			</div>
-			{/* React Hook Form Errors */}
+			</label>
 			{errors && errors[name]?.type === 'required' && (
 				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 			)}
@@ -55,4 +65,4 @@ const Checkbox = ({
 	);
 };
 
-export default Checkbox;
+export default CheckBox;

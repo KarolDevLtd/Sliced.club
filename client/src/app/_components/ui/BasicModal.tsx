@@ -1,44 +1,43 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { IoIosClose } from 'react-icons/io';
 
 interface BasicModalProps {
-	header: React.ReactNode;
+	id: string;
+	header?: string;
 	content: React.ReactNode;
 	footer?: React.ReactNode;
-	isOpen: boolean;
-	onClose: () => void;
+	onClose?: () => void;
 }
 
-const BasicModal = ({ isOpen, onClose, header, footer, content }: BasicModalProps) => {
-	const [isOverlayClicked, setIsOverlayClicked] = useState(false);
-
-	const handleOverlayClick = () => {
-		if (!isOverlayClicked) {
-			onClose();
-		}
-	};
-
-	useEffect(() => {
-		handleOverlayClick;
-	}, [handleOverlayClick, isOverlayClicked]);
+const BasicModal = ({ id, header, content, footer, onClose }: BasicModalProps) => {
+	/*
+    To open modal: use showModal('modal-id') from modal-helper.ts
+    To close modal: use closeModal('modal-id') from modal-helper.ts
+    */
 
 	return (
-		<>
-			{isOpen && (
-				<div className="fixed inset-0 z-50 flex justify-center items-center">
-					<div className="fixed inset-0 bg-black opacity-50" onClick={() => handleOverlayClick()}></div>
-					<div className="relative bg-white rounded-lg p-8 lg:w-1/2 md:w-2/3 flex flex-col gap-4">
-						<button className="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onClick={onClose}>
-							<IoIosClose size={30} />
-						</button>
-						{header}
-						{content}
-						{footer}
-					</div>
-				</div>
-			)}
-		</>
+		<dialog id={id} className="modal">
+			<div className="modal-box">
+				<form id="modal-close" method="dialog">
+					<button
+						form="modal-close"
+						className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+						onClick={onClose}
+					>
+						<IoIosClose />
+					</button>
+				</form>
+				<h3 className="font-bold text-lg">{header}</h3>
+				{content}
+				{footer}
+				<form id="modal-backdrop" method="dialog" className="modal-backdrop">
+					<button form="modal-backdrop" onClick={onClose}>
+						close
+					</button>
+				</form>
+			</div>
+		</dialog>
 	);
 };
 

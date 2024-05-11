@@ -24,13 +24,11 @@ import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/walletprovider';
 import { DateTime } from 'luxon';
 import ProductFields from './ProductFields';
+import { closeModal } from '~/helpers/modal-helper';
 
-type AddProductModalProps = {
-	productOpen: boolean;
-	hideProduct: () => void;
-};
+type AddProductModalProps = object;
 
-const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => {
+const AddProductModal = ({}: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 
@@ -108,7 +106,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create product')) return;
 			await saveProduct(data['product-name'], data['product-price'], data['product-category']);
 			reset();
-			hideProduct();
+			closeModal('add-product');
 			// refetchPosts();
 			toast.success('Product created successfully');
 		} catch (err) {
@@ -117,11 +115,11 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 			setIsLoading(false);
 		}
 	};
+
 	return (
 		<BasicModal
-			isOpen={productOpen}
-			onClose={hideProduct}
-			header={<h2 className="text-xl font-semibold">Add Product</h2>}
+			id="add-product"
+			header="Add Product"
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
@@ -170,7 +168,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 						}}
 					/>
 					<div>
-						<BasicButton type={'tertiary'} onClick={() => setDisplayTailoredFields(true)}>
+						<BasicButton type={'accent'} onClick={() => setDisplayTailoredFields(true)}>
 							Add Product Fields
 						</BasicButton>
 					</div>
@@ -193,7 +191,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 						>
 							Save
 						</BasicButton>
-						<BasicButton type="secondary" disabled={isLoading} onClick={hideProduct}>
+						<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-product')}>
 							Cancel
 						</BasicButton>
 					</div>

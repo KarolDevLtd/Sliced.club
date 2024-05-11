@@ -14,10 +14,7 @@ const SidebarItem = ({ text, href, icon }: SidebarItemProps) => {
 	const activeLink = router.pathname.split('/')[1] === href.split('/')[1];
 
 	return (
-		<Link
-			className={`flex justify-center sm:justify-start items-center gap-2 px-4 py-2 w-100 ${activeLink ? 'bg-black text-white' : ''} ${!activeLink ? 'sm:hover:bg-medium-grey' : null} hover:cursor-pointer`}
-			href={href}
-		>
+		<Link className={`${activeLink ? 'active border-r' : ''} `} href={href}>
 			<span>{icon}</span>
 			<span>{text}</span>
 		</Link>

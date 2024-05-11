@@ -5,9 +5,14 @@
 import React, { type ChangeEvent, useState } from 'react';
 
 type TextAreaProps = {
-	label?: string;
+	type?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'ghost';
+	size?: 'xs' | 'sm' | 'md' | 'lg';
 	id: string;
 	name: string;
+	label?: string;
+	altLabel1?: string;
+	altLabel2?: string;
+	altLabel3?: string;
 	placeholder?: string;
 	rows?: number;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,9 +42,14 @@ type TextAreaProps = {
 };
 
 const TextArea = ({
-	label,
+	type,
+	size,
 	id,
 	name,
+	label,
+	altLabel1,
+	altLabel2,
+	altLabel3,
 	placeholder,
 	rows = 5,
 	onChange,
@@ -59,19 +69,37 @@ const TextArea = ({
 		setCharacterCount(e.target.value.length);
 	};
 
+	const colourMap = {
+		primary: 'select-primary',
+		secondary: 'select-secondary',
+		accent: 'select-accent',
+		neutral: 'select-neutral',
+		ghost: 'select-ghost',
+	};
+
+	const sizeMap = {
+		xs: 'select-xs',
+		sm: 'select-sm',
+		md: 'select-md',
+		lg: 'select-lg',
+	};
+
 	return (
-		<div className="w-full p-2">
-			<div className="flex items-center justify-between">
-				{label ? (
-					<label htmlFor={id} className="block text-sm font-medium leading-6 text-gray-900">
-						{label}
-						{required && '*'}
-					</label>
+		<div>
+			<label htmlFor={id} className="form-control">
+				{label ?? altLabel1 ? (
+					<div className="label">
+						{label ? (
+							<span className="label-text">
+								{label}
+								{required && '*'}
+							</span>
+						) : null}
+						{altLabel1 ? <span className="label-text-alt">{altLabel1}</span> : null}
+					</div>
 				) : null}
-			</div>
-			<div className="mt-1">
 				<textarea
-					className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]}`}
 					id={id}
 					name={name}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
@@ -82,15 +110,21 @@ const TextArea = ({
 					{...register(name, validationSchema)}
 					onChange={handleOnChange}
 				></textarea>
-				{showCharacterCount && <p className="text-sm text-light-grey">Character count: {characterCount}</p>}
-				{/* React Hook Form Errors */}
-				{errors && errors[name]?.type === 'required' && (
-					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
-				)}
-				{errors && errors[name]?.type === 'minLength' && (
-					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
-				)}
-			</div>
+				{altLabel2 ?? altLabel3 ? (
+					<div className="label">
+						{altLabel2 ? <span className="label-text-alt">{altLabel2}</span> : null}
+						{altLabel3 ? <span className="label-text-alt">{altLabel3}</span> : null}
+					</div>
+				) : null}
+			</label>
+			{showCharacterCount && <span className="label-text-alt">Character count: {characterCount}</span>}
+			{/* React Hook Form Errors */}
+			{errors && errors[name]?.type === 'required' && (
+				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+			)}
+			{errors && errors[name]?.type === 'minLength' && (
+				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+			)}
 		</div>
 	);
 };
