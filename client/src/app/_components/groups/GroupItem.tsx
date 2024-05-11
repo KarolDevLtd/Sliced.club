@@ -54,7 +54,6 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 	// Get data from Firebase
 	const fetchInfo = useCallback(async () => {
 		setIsLoading(true);
-		console.log(productData);
 		try {
 			if (groupData) {
 				const currGroup = groupData.group as IPFSGroupModel;
