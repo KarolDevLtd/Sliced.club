@@ -163,6 +163,10 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 									value: 20,
 									message: 'Post Content must be at least 20 characters',
 								},
+								maxLength: {
+									value: 250,
+									message: 'Post Content must be at less than 250 characters',
+								},
 							}}
 						/>
 						<div>

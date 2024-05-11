@@ -127,6 +127,10 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 							value: 1,
 							message: 'Comment must be at least 1 character',
 						},
+						maxLength: {
+							value: 250,
+							message: 'Comment must be at less than 250 characters',
+						},
 					}}
 				/>
 				<div className="p-3">
