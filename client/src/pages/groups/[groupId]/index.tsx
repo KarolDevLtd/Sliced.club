@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
@@ -11,18 +13,22 @@ import PageHeader from '~/app/_components/ui/PageHeader';
 import ZoomableImage from '~/app/_components/ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
 import PlatformLayout from '~/layouts/platform';
+import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { api } from '~/trpc/react';
 
 export default function Group() {
 	const router = useRouter();
 	const [refreshPosts, setRefreshPosts] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
 
 	const groupId = router.query.groupId;
-	const { groupName, groupHash, productHash } = router.query;
-
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: productHash });
+	const { groupHash } = router.query;
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupHash?.toString() });
+	const { data: productData } = api.PinataProduct.getProduct.useQuery({
+		hash: groupData == undefined ? '' : groupData?.group.productHash,
+	});
+	const [isLoading, setIsLoading] = useState(false);
+	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [product, setProduct] = useState<IPFSProductModel>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
@@ -33,9 +39,13 @@ export default function Group() {
 		setRefreshPosts(true);
 	};
 
-	const fetchAndDisplayImages = useCallback(async () => {
+	const fetchInfo = useCallback(async () => {
 		setIsLoading(true);
 		try {
+			if (groupData) {
+				const currGroup = groupData.group as IPFSGroupModel;
+				setGroup(currGroup);
+			}
 			if (productData) {
 				const currProd = productData.product as IPFSProductModel;
 				setProduct(productData.product);
@@ -43,21 +53,20 @@ export default function Group() {
 			}
 		} catch (err) {
 			console.log(err);
-			toast.error('Error fetching one or more images');
+			toast.error('Error fetching group item info');
 		} finally {
 			setIsLoading(false);
 		}
-	}, [productData]);
+	}, [groupData, productData]);
 
 	useEffect(() => {
-		//Use void here as do not need result, use state set inside result
-		void fetchAndDisplayImages();
-	}, [fetchAndDisplayImages, productData]);
+		void fetchInfo();
+	}, [fetchInfo, group]);
 
 	return (
 		<>
 			<div className="flex justify-between items-center">
-				<PageHeader text={groupName} hideQuickLinks={true} />
+				{/* <PageHeader text={groupData?.group.name} hideQuickLinks={true} /> */}
 				<BasicButton type="secondary">Leave group</BasicButton>
 			</div>
 
@@ -79,13 +88,12 @@ export default function Group() {
 							/>
 						</div>
 						<div className="w-2/3">
-							<h2>{product?.name}</h2>
-							<p>
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ac quam sed sem efficitur
-								scelerisque a eget nisi. Aliquam tincidunt euismod ligula, in rutrum metus auctor eu.
-								Proin ut mauris varius, ultrices risus eu, sagittis magna. Pellentesque nec mauris vel
-								felis pellentesque fermentum id nec lacus. Nam dui erat, bibendum ut tempus id, pretium.
-							</p>
+							<strong>{product?.name}</strong>
+							<div className="flex">{`${'Price (USD$)'} ${product?.price}`}</div>
+							<div className="flex">{`${'Duration'} ${group?.duration} months`}</div>
+							<div className="flex">{`${'Installments'} ${(group?.price as unknown as number) / (group?.participants * group?.duration)}`}</div>
+
+							<p>{groupData?.group.description}</p>
 						</div>
 					</div>
 
