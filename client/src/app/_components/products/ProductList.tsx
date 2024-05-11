@@ -46,7 +46,7 @@ const ProductList = ({ heading }: ProductListProps) => {
 	return (
 		<div className="flex flex-col gap-2 mb-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
-			{products ? (
+			{products.length > 0 ? (
 				products.map((product, index) => {
 					return <ProductItem key={index} firebaseProduct={product} />;
 				})
