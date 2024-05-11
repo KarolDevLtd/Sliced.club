@@ -43,9 +43,7 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 		void router.push({
 			pathname: `/groups/${firebaseGroup.id}`,
 			query: {
-				groupName: firebaseGroup.name,
 				groupHash: firebaseGroup.groupHash,
-				productHash: group?.productHash,
 			},
 		});
 		e?.stopPropagation();
