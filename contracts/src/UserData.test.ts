@@ -404,7 +404,7 @@ describe('Token account write', () => {
     const value1 = tokenAccount1.payments.get();
     console.log('value1', value1.toBigInt());
     const txn2 = await Mina.transaction(sender, async () => {
-      await tc.duddToken1(sender.key, derivedTokenId);
+      await tc.duddToken1(sender.key);
     });
     await txn2.prove();
     await txn2.sign([sender.key, tokenKey]).send();

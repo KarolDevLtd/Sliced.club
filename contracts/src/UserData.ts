@@ -124,14 +124,11 @@ export class TestContract extends TokenContract {
     Provable.log('x + 1: ', y);
   }
 
-  @method async duddToken1(user: PrivateKey, tokenId: Field) {
-    let ud = new UserData(user.toPublicKey(), tokenId);
-    // await ud.duddToken();
-    // this.approve(ud.)
-    // let acc = AccountUpdate.create(user.toPublicKey(), this.tokenId);
-    // acc.body.
+  @method async duddToken1(user: PrivateKey) {
+    let ud = new UserData(user.toPublicKey(), this.deriveTokenId());
     let payment = ud.payments.get();
     Provable.log('payment: ', payment);
+    // let update = AccountUpdate.createSigned(user.toPublicKey(), tokenId);
   }
 
   @method async initUser(user: PrivateKey, amount: Field) {
