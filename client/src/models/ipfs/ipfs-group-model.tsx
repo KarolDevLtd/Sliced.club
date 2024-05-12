@@ -1,5 +1,6 @@
 export interface IPFSGroupModel {
 	name: string;
+	description: string;
 	currency: string;
 	price: string;
 	duration: string;

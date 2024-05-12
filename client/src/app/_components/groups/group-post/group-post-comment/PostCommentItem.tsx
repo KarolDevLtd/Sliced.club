@@ -3,8 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useEffect, useState } from 'react';
-import { type FirebaseCommentModel } from '~/models/firebase-comment-model';
-import { IPFSPostModel } from '~/models/ipfs-post-model';
+import { type FirebaseCommentModel } from '~/models/firebase/firebase-comment-model';
+import { IPFSPostModel } from '~/models/ipfs/ipfs-post-model';
 import { api } from '~/trpc/react';
 
 const PostCommentItem = (currentComment: FirebaseCommentModel) => {

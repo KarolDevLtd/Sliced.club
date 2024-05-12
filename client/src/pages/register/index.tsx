@@ -1,17 +1,13 @@
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
-
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
-
-import { toast } from 'react-toastify';
-
 import BasicButton from '~/app/_components/ui/BasicButton';
-import CheckBox from '~/app/_components/ui/CheckBox';
 import InlineLink from '~/app/_components/ui/InlineLink';
 import SelectOption from '~/app/_components/ui/SelectOption';
 import TextInput from '~/app/_components/ui/TextInput';
 import DefaultLayout from '~/layouts/default';
 import { CountryOptions } from '~/models/country-options';
+import CheckBox from '~/app/_components/ui/CheckBox';
 
 export default function Register() {
 	const router = useRouter();

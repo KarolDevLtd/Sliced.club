@@ -21,14 +21,18 @@ import Spinner from '../ui/Spinner';
 import DragDrop from '../ui/DragDrop';
 import { saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '~/providers/WalletProvider';
 import { DateTime } from 'luxon';
 import ProductFields from './ProductFields';
 import { closeModal } from '~/helpers/modal-helper';
 
-type AddProductModalProps = object;
+type AddProductModalProps = {
+	productOpen: boolean;
+	hideProduct: () => void;
+	onProductSubmitted: () => void;
+};
 
-const AddProductModal = ({}: AddProductModalProps) => {
+const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 
@@ -113,13 +117,20 @@ const AddProductModal = ({}: AddProductModalProps) => {
 			console.log(err);
 		} finally {
 			setIsLoading(false);
+			onProductSubmitted();
 		}
+	};
+
+	const clearForm = () => {
+		reset();
+		unregister(['product-name', 'product-price', 'product-category']);
 	};
 
 	return (
 		<BasicModal
 			id="add-product"
 			header="Add Product"
+			onClose={clearForm}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
@@ -191,7 +202,14 @@ const AddProductModal = ({}: AddProductModalProps) => {
 						>
 							Save
 						</BasicButton>
-						<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-product')}>
+						<BasicButton
+							type="secondary"
+							disabled={isLoading}
+							onClick={() => {
+								clearForm();
+								closeModal('add-product');
+							}}
+						>
 							Cancel
 						</BasicButton>
 					</div>

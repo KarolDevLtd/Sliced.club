@@ -17,7 +17,7 @@ import TextInput from '../../ui/TextInput';
 import TextArea from '../../ui/TextArea';
 import BasicButton from '../../ui/BasicButton';
 import BasicModal from '../../ui/BasicModal';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
@@ -32,7 +32,6 @@ type GroupPostProps = {
 };
 
 const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
-	const [postOpen, setPostOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 
@@ -45,7 +44,6 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const hidePostInput = () => {
-		setPostOpen(false);
 		// Clears form validation errors when closing modal
 		unregister(['post-title', 'post-text']);
 	};
@@ -124,7 +122,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	};
 
 	const clearForm = () => {
-		// Clears form validation errors when closing modal
+		reset();
 		unregister(['post-title', 'post-text']);
 	};
 
@@ -135,7 +133,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			</BasicButton>
 			<BasicModal
 				id="add-post"
-				onClose={hidePostInput}
+				onClose={clearForm}
 				header="Add Post"
 				content={
 					<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
@@ -169,6 +167,10 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 									value: 20,
 									message: 'Post Content must be at least 20 characters',
 								},
+								maxLength: {
+									value: 250,
+									message: 'Post Content must be at less than 250 characters',
+								},
 							}}
 						/>
 						<div>
@@ -183,7 +185,14 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							>
 								Save
 							</BasicButton>
-							<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-post')}>
+							<BasicButton
+								type="secondary"
+								disabled={isLoading}
+								onClick={() => {
+									clearForm();
+									closeModal('add-post');
+								}}
+							>
 								Cancel
 							</BasicButton>
 						</div>

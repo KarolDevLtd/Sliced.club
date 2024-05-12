@@ -44,16 +44,20 @@ export const PinataProductRouter = createTRPCRouter({
 		}),
 
 	//TODO - Could this be refactored to be the same for posts, comments, products and groups?
-	getProduct: publicProcedure.input(z.object({ hash: z.string() })).query(async ({ input }) => {
+	getProduct: publicProcedure.input(z.object({ hash: z.string().nullish() })).query(async ({ input }) => {
 		let product;
-		try {
-			const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
-				method: 'GET',
-			});
-			product = await response.json(); // This parses the JSON from the response body
-		} catch (err) {
-			console.log('Error getting hash from IPFS');
+		if (input.hash != null) {
+			try {
+				const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
+					method: 'GET',
+				});
+				product = await response.json(); // This parses the JSON from the response body
+			} catch (err) {
+				console.log('Error getting hash from IPFS');
+			}
+			return { product };
+		} else {
+			console.log('sliced-server-msg:current query product id is null');
 		}
-		return { product };
 	}),
 });

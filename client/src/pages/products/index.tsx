@@ -8,13 +8,26 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import { showModal } from '~/helpers/modal-helper';
+import ProductList from '~/app/_components/products/ProductList';
+import { useState } from 'react';
 
 export default function Products() {
+	const [productOpen, setProductOpen] = useState(false);
+	const [shouldRefreshProducts, setShouldRefreshProducts] = useState(false);
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
 	const showProduct = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a product')) return;
 		showModal('add-product');
+	};
+
+	const handleProductSubmitted = () => {
+		console.log('handleProductSubmitted');
+		setShouldRefreshProducts((prev) => !prev);
+	};
+
+	const hideProduct = () => {
+		setProductOpen(false);
 	};
 
 	return (
@@ -24,8 +37,13 @@ export default function Products() {
 				<BasicButton type="primary" onClick={showProduct}>
 					Add Product
 				</BasicButton>
+				<ProductList key={shouldRefreshProducts ? 'refresh' : 'normal'} />
 			</div>
-			<AddProductModal />
+			<AddProductModal
+				productOpen={productOpen}
+				hideProduct={hideProduct}
+				onProductSubmitted={handleProductSubmitted}
+			/>
 		</>
 	);
 }
