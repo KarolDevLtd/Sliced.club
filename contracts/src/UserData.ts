@@ -17,6 +17,7 @@ import {
   Permissions,
   DeployArgs,
   fetchAccount,
+  AccountUpdateForest,
 } from 'o1js';
 
 import { PackedBoolFactory } from './lib/packed-types/PackedBool';
@@ -31,7 +32,7 @@ export const TokenField = {
 };
 
 // Contract. Gets deployed
-export class TestContract extends SmartContract {
+export class TestContract extends TokenContract {
   @state(Field) x = State<Field>();
   async deploy() {
     super.deploy();
@@ -43,8 +44,13 @@ export class TestContract extends SmartContract {
       send: Permissions.none(),
       receive: Permissions.none(),
       setPermissions: Permissions.none(),
-      incrementNonce: Permissions.proof(),
+      incrementNonce: Permissions.proofOrSignature(),
     });
+  }
+  @method
+  async approveBase(updates: AccountUpdateForest): Promise<void> {
+    this.checkZeroBalanceChange(updates);
+    // TODO: event emission here
   }
 
   @method async initialiseUserAccount(
@@ -63,36 +69,51 @@ export class TestContract extends SmartContract {
     //     incrementNonce: Permissions.proofOrSignature(),
     //   },
     // };
-
-    // update.body.update.appState[0] = { isSome: Bool(true), value };
-
-    const deployUpdate = AccountUpdate.createSigned(address, this.tokenId);
-    deployUpdate.account.permissions.set({
-      ...Permissions.default(),
-      receive: Permissions.none(),
-      send: Permissions.proof(),
-      editState: Permissions.proof(),
-      editActionState: Permissions.proof(),
-      setDelegate: Permissions.proof(),
-      setPermissions: Permissions.proof(),
-      setZkappUri: Permissions.proof(),
-      setTokenSymbol: Permissions.proof(),
-      incrementNonce: Permissions.proof(),
-      setVotingFor: Permissions.proof(),
-      setTiming: Permissions.proof(),
-      access: Permissions.none(),
-    });
-    deployUpdate.body.update.verificationKey = {
-      isSome: Bool(true),
-      value: vk,
-    };
+    const deployUpdate = this.internal.mint({ address, amount: 1 });
+    // const deployUpdate = AccountUpdate.createSigned(address, this.tokenId);
+    this.approve(deployUpdate);
+    // deployUpdate.account.permissions.set({
+    //   ...Permissions.default(),
+    //   receive: Permissions.none(),
+    //   send: Permissions.proof(),
+    //   editState: Permissions.proof(),
+    //   editActionState: Permissions.proof(),
+    //   setDelegate: Permissions.proof(),
+    //   setPermissions: Permissions.proof(),
+    //   setZkappUri: Permissions.proof(),
+    //   setTokenSymbol: Permissions.proof(),
+    //   incrementNonce: Permissions.proofOrSignature(),
+    //   setVotingFor: Permissions.proof(),
+    //   setTiming: Permissions.proof(),
+    //   access: Permissions.none(),
+    // });
+    // deployUpdate.body.update.verificationKey = {
+    //   isSome: Bool(true),
+    //   value: vk,
+    // };
     // deployUpdate.account.verificationKey.set(
     //   TokenContract.withDrawAccountVerifyKey
     // );
     // deployUpdate.account.isNew.assertEquals(Bool(true));
-    AccountUpdate.setValue(deployUpdate.body.update.appState[0], Field(1));
-    AccountUpdate.setValue(deployUpdate.body.update.appState[1], Field(1));
+    // deployUpdate.body.mayUseToken.parentsOwnToken
+    deployUpdate.body.update.verificationKey = {
+      isSome: Bool(true),
+      value: vk,
+    };
+    deployUpdate.body.update.permissions = {
+      isSome: Bool(true),
+      value: {
+        ...Permissions.default(),
+        editState: Permissions.proof(),
+      },
+    };
+    AccountUpdate.setValue(deployUpdate.body.update.appState[0], value);
+    AccountUpdate.setValue(deployUpdate.body.update.appState[1], value);
+    // let { StaticChildren, AnyChildren } = AccountUpdate.;
+    // deployUpdate.account.
+    // this.approve(deployUpdate);
     deployUpdate.requireSignature();
+    Provable.log('newTOken id', deployUpdate.tokenId);
   }
 
   @method async dudd() {
@@ -103,9 +124,14 @@ export class TestContract extends SmartContract {
     Provable.log('x + 1: ', y);
   }
 
-  @method async duddToken(user: PrivateKey) {
-    let ud = new UserData(user.toPublicKey(), this.tokenId);
-    await ud.duddToken();
+  @method async duddToken1(user: PrivateKey, tokenId: Field) {
+    let ud = new UserData(user.toPublicKey(), tokenId);
+    // await ud.duddToken();
+    // this.approve(ud.)
+    // let acc = AccountUpdate.create(user.toPublicKey(), this.tokenId);
+    // acc.body.
+    let payment = ud.payments.get();
+    Provable.log('payment: ', payment);
   }
 
   @method async initUser(user: PrivateKey, amount: Field) {
@@ -131,6 +157,7 @@ export class UserData extends SmartContract {
   @method async duddToken() {
     let x = this.payments.getAndRequireEquals();
     Provable.log('x: ', x);
+    this.payments.set(Field(44));
   }
 
   // async init() {
@@ -171,12 +198,12 @@ export class UserData extends SmartContract {
     // // Sets receive to proof only
     AccountUpdate.setValue(update.body.update.permissions, {
       ...Permissions.default(),
-      editState: Permissions.proofOrSignature(),
+      editState: Permissions.proof(),
       setTokenSymbol: Permissions.proof(),
       send: Permissions.proof(),
       receive: Permissions.proof(),
       setPermissions: Permissions.proof(),
-      incrementNonce: Permissions.none(),
+      incrementNonce: Permissions.proof(),
     });
 
     update.requireSignature();
@@ -185,12 +212,12 @@ export class UserData extends SmartContract {
   /** Tick of a single payment round */
   @method async paySegments(paymentRound: UInt64) {
     let paymentsField = this.payments.getAndRequireEquals();
-    const payments: Payments = await Payments.fromBools(
+    const payments: Payments = Payments.fromBools(
       Payments.unpack(paymentsField)
     );
 
     // // Write to the month index provided
-    let paymentsBools: Bool[] = await Payments.unpack(payments.packed);
+    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
 
     // Iterate over all values and flip one only
     for (let i = 0; i < 240; i++) {
@@ -204,10 +231,10 @@ export class UserData extends SmartContract {
       paymentsBools[i] = newWrite;
     }
 
-    console.log(
-      'Pay seg paymentRound.value.value[0]: ',
-      paymentRound.value.value[0]
-    );
+    // console.log(
+    //   'Pay seg paymentRound.value.value[0]: ',
+    //   paymentRound.value.value[0]
+    // );
 
     // Update payments
     this.payments.set(Payments.fromBoolsField(paymentsBools));

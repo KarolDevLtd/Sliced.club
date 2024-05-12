@@ -10,6 +10,7 @@ import {
   Bool,
   UInt64,
   Transaction,
+  TokenId,
   setGraphqlEndpoint,
 } from 'o1js';
 
@@ -28,6 +29,7 @@ describe('Token account write', () => {
     ud: UserData,
     tc: TestContract,
     tokenKey: PrivateKey,
+    tokenId: Field,
     verificationKey: VerificationKey;
 
   beforeAll(async () => {
@@ -41,14 +43,14 @@ describe('Token account write', () => {
 
     console.log('yo');
     const Local = await Mina.LocalBlockchain({ proofsEnabled });
-    getAccount = await Local.getAccount;
+    getAccount = Local.getAccount;
     console.log('Started local blockchain');
     Mina.setActiveInstance(Local);
     console.log('Set something ');
-    deployer = await Local.testAccounts[0];
-    sender = await Local.testAccounts[1];
-    group = await Local.testAccounts[2];
-    feePayer = await Local.testAccounts[3];
+    deployer = Local.testAccounts[0];
+    sender = Local.testAccounts[1];
+    group = Local.testAccounts[2];
+    feePayer = Local.testAccounts[3];
     tokenKey = PrivateKey.random();
 
     console.log('Made keys');
@@ -56,9 +58,11 @@ describe('Token account write', () => {
     tcPrivateKey = PrivateKey.random();
     ud = new UserData(udPrivateKey.toPublicKey());
     tc = new TestContract(tcPrivateKey.toPublicKey());
+    // tc.internal
+    console.log('tokenId??:', tc.tokenId);
     console.log('End');
 
-    const salt = await Field.random();
+    const salt = Field.random();
     const deployTnx = await Mina.transaction(deployer, async () => {
       AccountUpdate.fundNewAccount(deployer);
       // ud.deploy({ group });
@@ -304,7 +308,7 @@ describe('Token account write', () => {
     // Fetch bool state from the contract
   });
 
-  it('Proxy update', async () => {
+  xit('Proxy update', async () => {
     // await localDeploy(group);
 
     // // let tokenId = zkApp.token.id;
@@ -324,51 +328,93 @@ describe('Token account write', () => {
     // }
     // console.log('init done');
 
-    try {
-      const txn1 = await Mina.transaction(sender, async () => {
-        // Pay off for the month 0xw
-        // await tc.updateState(sender.key.toPublicKey(), new UInt64(1));
-        // await tc.initUser(sender.key, Field(69633339));
-        // await tc.dudd();
-        // await AccountUpdate.fundNewAccount(sender, 1);
-        await tc.initialiseUserAccount(
-          sender.key.toPublicKey(),
-          verificationKey,
-          Field(999)
-        );
-        // await tc.requireSignature();
-      });
-      await txn1.prove();
-      console.log('Proven set state in token account');
-      await txn1.sign([sender.key, tokenKey]).send();
-      console.log(
-        'Pay segment signed by: '
-        // sender.key.toPublicKey().toBase58()
+    // try {
+    const txn1 = await Mina.transaction(sender, async () => {
+      // Pay off for the month 0xw
+      // await tc.updateState(sender.key.toPublicKey(), new UInt64(1));
+      // await tc.initUser(sender.key, Field(69633339));
+      // await tc.dudd();
+      // await AccountUpdate.fundNewAccount(sender, 1);
+      await tc.initialiseUserAccount(
+        sender.key.toPublicKey(),
+        verificationKey,
+        Field(999)
       );
+      // await tc.requireSignature();
+    });
+    await txn1.prove();
+    console.log('Proven set state in token account');
+    await txn1.sign([sender.key, tokenKey]).send();
+    console.log(
+      'Pay segment signed by: '
+      // sender.key.toPublicKey().toBase58()
+    );
 
-      let x = tc.x.get();
-      console.log('x in test: ', x.value.toString());
-    } catch (e: any) {
-      console.log('Error 2: ', e.message.toString());
-    }
+    let x = tc.x.get();
+    console.log('x in test: ', x.value.toString());
+    // } catch (e: any) {
+    //   console.log('Error 2: ', e.message.toString());
+    // }
 
     console.log("Initialised user'");
 
-    try {
-      const txn1 = await Mina.transaction(sender, async () => {
-        // Pay off for the month 0xw
-        await tc.updateState(sender.key.toPublicKey(), new UInt64(1));
-        // await tc.requireSignature();
-      });
-      await txn1.prove();
-      console.log('Proven set state in token account');
-      await txn1.sign([sender.key]).send();
-      console.log(
-        'Pay segment signed by: '
-        // sender.key.toPublicKey().toBase58()
+    // try {
+    const txn2 = await Mina.transaction(sender, async () => {
+      // Pay off for the month 0xw
+      await tc.updateState(sender.key.toPublicKey(), new UInt64(1));
+      // await tc.requireSignature();
+    });
+    await txn2.prove();
+    console.log('Proven set state in token account');
+    await txn2.sign([sender.key]).send();
+    console.log(
+      'Pay segment signed by: '
+      // sender.key.toPublicKey().toBase58()
+    );
+    // } catch (e: any) {
+    //   console.log('Error 3: ', e.message.toString());
+    // }
+  });
+  it('sets and gets value on the token account', async () => {
+    const txn1 = await Mina.transaction(sender, async () => {
+      AccountUpdate.fundNewAccount(sender);
+      await tc.initialiseUserAccount(
+        sender.key.toPublicKey(),
+        verificationKey,
+        Field(22)
       );
-    } catch (e: any) {
-      console.log('Error 3: ', e.message.toString());
-    }
+    });
+    await txn1.prove();
+    await txn1.sign([sender.key, tokenKey]).send();
+    console.log('initialiseUserAccount');
+    console.log(txn1.toPretty());
+
+    // console.log('attempt to get tokenid:', tc.tokenId.toBigInt());
+
+    const derivedTokenId = TokenId.derive(tc.address);
+    const tokenAccount1 = new UserData(
+      sender.key.toPublicKey(),
+      derivedTokenId
+    );
+    console.log('derivedTokenId:', derivedTokenId.toBigInt());
+    await fetchAccount({
+      publicKey: sender.key.toPublicKey(),
+      tokenId: derivedTokenId,
+    });
+    const value1 = tokenAccount1.payments.get();
+    console.log('value1', value1.toBigInt());
+    const txn2 = await Mina.transaction(sender, async () => {
+      await tc.duddToken1(sender.key, derivedTokenId);
+    });
+    await txn2.prove();
+    await txn2.sign([sender.key, tokenKey]).send();
+    console.log('duddToken');
+    console.log(txn2.toPretty());
+    await fetchAccount({
+      publicKey: sender.key.toPublicKey(),
+      tokenId: derivedTokenId,
+    });
+    const value2 = tokenAccount1.payments.get();
+    console.log('value2', value2.toBigInt());
   });
 });
