@@ -13,6 +13,7 @@ import AddGroupModal from '~/app/_components/groups/AddGroupModal';
 import { showModal } from '~/helpers/modal-helper';
 import GroupList from '~/app/_components/groups/GroupList';
 import { useState } from 'react';
+
 export default function Groups() {
 	const groupId = '69';
 	const [groupOpen, setGroupOpen] = useState(false);

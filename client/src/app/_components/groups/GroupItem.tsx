@@ -95,7 +95,6 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 						<strong>{group?.name}</strong>
 						<strong>{product?.name}</strong>
 					</div>
-
 					<div className="flex flex-col col-span-2 items-center justify-center">
 						<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
 					</div>

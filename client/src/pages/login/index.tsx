@@ -2,17 +2,13 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 // https://react-hook-form.com/docs/useform
 import { useForm } from 'react-hook-form';
-
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-
 import { toast } from 'react-toastify';
-
 import BasicButton from '~/app/_components/ui/BasicButton';
 import InlineLink from '~/app/_components/ui/InlineLink';
 import TextInput from '~/app/_components/ui/TextInput';
-
 import { preventActionWalletNotConnected } from '~/helpers/user-helper';
 import DefaultLayout from '~/layouts/default';
 import CheckBox from '~/app/_components/ui/CheckBox';
