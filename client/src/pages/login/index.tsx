@@ -54,8 +54,7 @@ export default function Login() {
 	};
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 my-auto h-100 flex-1">
-			<div className="min-w-100 bg-light-grey hidden md:block"></div>
+		<div className="grid grid-cols-1 my-auto h-100 flex-1">
 			<div className="flex min-h-full flex-col justify-center lg:px-20 md:px-10 py-6">
 				<h2 className="mb-6 text-center text-2xl font-bold">Sign in to Slice</h2>
 
@@ -89,9 +88,9 @@ export default function Login() {
 							}}
 						/>
 
-						<Checkbox id="remember-me" name="remember-me" errors={errors} register={register}>
+						<CheckBox id="remember-me" name="remember-me" errors={errors} register={register}>
 							Remember me
-						</Checkbox>
+						</CheckBox>
 					</div>
 
 					<BasicButton type="primary" submitForm={true}>

@@ -39,8 +39,7 @@ export default function Register() {
 	};
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 my-auto h-100 flex-1">
-			<div className="min-w-100 bg-light-grey hidden md:block"></div>
+		<div className="grid grid-cols-1 my-auto h-100 flex-1">
 			<div className="flex min-h-full flex-col justify-center lg:px-20 md:px-10 py-6">
 				<h2 className="text-center text-2xl font-bold">Create account</h2>
 				<p className="text-center mb-6">Choose your account type and log in</p>
@@ -105,7 +104,7 @@ export default function Register() {
 								required: 'Country is required',
 							}}
 						/>
-						<Checkbox
+						<CheckBox
 							id="terms-and-condtions"
 							name="terms-and-conditions"
 							required={true}
@@ -116,7 +115,7 @@ export default function Register() {
 							}}
 						>
 							Agree to <InlineLink href="#">Terms and Conditions</InlineLink>
-						</Checkbox>
+						</CheckBox>
 					</div>
 
 					<BasicButton type="primary" submitForm={true}>

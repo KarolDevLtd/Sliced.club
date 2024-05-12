@@ -3,23 +3,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // https:jujuontheweb.medium.com/how-to-use-react-hook-form-with-your-custom-form-components-a86a1a77cf3c
 
-import React from 'react';
-
-import InlineLink from './InlineLink';
+import React, { type ReactElement } from 'react';
 
 type TextInputProps = {
 	label?: string;
-	link?: {
-		text: string;
-		external?: boolean;
-		href: string;
-	};
 	id: string;
 	name: string;
 	// Feel free to add more types to this enum as we need them
 	type: 'text' | 'email' | 'password' | 'number';
 	autoComplete?: string;
 	placeholder?: string;
+	icon?: ReactElement | null;
 	onChange?: (e: any) => any;
 	disabled?: boolean;
 	required?: boolean;
@@ -51,12 +45,12 @@ type TextInputProps = {
 
 const TextInput = ({
 	label,
-	link,
 	id,
 	name,
 	type,
 	autoComplete,
 	placeholder,
+	icon,
 	onChange,
 	disabled,
 	required = false,
@@ -68,24 +62,9 @@ const TextInput = ({
 }: TextInputProps) => {
 	return (
 		<div>
-			<div className="flex items-center justify-between">
-				{label ? (
-					<label htmlFor={id} className="block text-sm font-medium leading-6 text-gray-900">
-						{label}
-						{required && '*'}
-					</label>
-				) : null}
-				{link ? (
-					<div className="text-sm">
-						<InlineLink href={link.href} external={link.external}>
-							{link.text}
-						</InlineLink>
-					</div>
-				) : null}
-			</div>
-			<div className="mt-1">
+			<label htmlFor={id} className="input input-bordered flex items-center gap-2">
+				{label && `${label}:`}
 				<input
-					className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 					id={id}
 					name={name}
 					type={type}
@@ -97,21 +76,24 @@ const TextInput = ({
 					value={value}
 					// React Hook Form
 					{...register(name, validationSchema)}
-				></input>
-				{/* React Hook Form Errors */}
-				{errors && errors[name]?.type === 'required' && (
-					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
-				)}
-				{errors && errors[name]?.type === 'pattern' && (
-					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
-				)}
-				{errors && errors[name]?.type === 'minLength' && (
-					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
-				)}
-				{errors && errors[name]?.type === 'min' && (
-					<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
-				)}
-			</div>
+					className="grow"
+				/>
+				{required && <span className="badge badge-info">Required</span>}
+				{icon ? <span>{icon}</span> : null}
+			</label>
+			{/* React Hook Form Errors */}
+			{errors && errors[name]?.type === 'required' && (
+				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+			)}
+			{errors && errors[name]?.type === 'pattern' && (
+				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+			)}
+			{errors && errors[name]?.type === 'minLength' && (
+				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+			)}
+			{errors && errors[name]?.type === 'min' && (
+				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+			)}
 		</div>
 	);
 };
