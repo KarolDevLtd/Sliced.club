@@ -17,7 +17,7 @@ import TextInput from '../../ui/TextInput';
 import TextArea from '../../ui/TextArea';
 import BasicButton from '../../ui/BasicButton';
 import BasicModal from '../../ui/BasicModal';
-import { useWallet } from '~/providers/walletprovider';
+import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
@@ -168,6 +168,10 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 								minLength: {
 									value: 20,
 									message: 'Post Content must be at least 20 characters',
+								},
+								maxLength: {
+									value: 250,
+									message: 'Post Content must be at less than 250 characters',
 								},
 							}}
 						/>

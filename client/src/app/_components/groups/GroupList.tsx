@@ -6,8 +6,8 @@
 // import { type Product } from '~/types/product-types';
 import { useEffect, useState } from 'react';
 import { set } from 'zod';
-import { type FirebaseGroupModel } from '~/models/firebase-group-model';
-import { useWallet } from '~/providers/walletprovider';
+import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
+import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';
 import { group } from 'console';
@@ -49,16 +49,14 @@ const GroupList = ({ heading }: GroupListProps) => {
 	}, [error]);
 
 	return (
-		// <div>Test</div>
 		<div className="flex flex-col gap-2 mb-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
-			{groups ? (
+			{groups.length > 0 ? (
 				groups.map((group, index) => {
-					console.log(group);
-					return <GroupItem key={index} currentGroup={group.groupHash} creatorId={group.creatorKey} />;
+					return <GroupItem key={index} firebaseGroup={group} />;
 				})
 			) : (
-				<p>No products found.</p>
+				<p>No groups found.</p>
 			)}
 		</div>
 	);

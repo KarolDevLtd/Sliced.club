@@ -30,17 +30,21 @@ export const PinataPostRouter = createTRPCRouter({
 			return { data };
 		}),
 
-	getMessage: publicProcedure.input(z.object({ hash: z.string() })).query(async ({ input }) => {
+	getMessage: publicProcedure.input(z.object({ hash: z.string().nullish() })).query(async ({ input }) => {
 		let post;
-		try {
-			const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
-				method: 'GET',
-			});
-			post = await response.json(); // This parses the JSON from the response body
-		} catch (err) {
-			console.log('Error getting hash from IPFS');
+		if (input.hash != null) {
+			try {
+				const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
+					method: 'GET',
+				});
+				post = await response.json(); // This parses the JSON from the response body
+			} catch (err) {
+				console.log('Error getting hash from IPFS');
+			}
+			return { post };
+		} else {
+			console.log('sliced-server-msg:current query message id is null');
 		}
-		return { post };
 	}),
 
 	postComment: publicProcedure.input(z.object({ content: z.string() })).mutation(async ({ input }) => {
