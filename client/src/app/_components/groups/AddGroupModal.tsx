@@ -34,12 +34,10 @@ import { FaUserGroup } from 'react-icons/fa6';
 import TextArea from '../ui/TextArea';
 
 type AddGroupModalProps = {
-	groupOpen: boolean;
-	hideGroup: () => void;
 	onGroupSubmitted: () => void;
 };
 
-const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModalProps) => {
+const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
 	const { data: fbProductData } = api.FirebaseProduct.getProducts.useQuery({
@@ -110,7 +108,6 @@ const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModal
 	};
 
 	const onSubmit = async (data: any) => {
-		console.log('hello?');
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
@@ -149,10 +146,16 @@ const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModal
 		setInstalments(((currentSelectedProduct as unknown as number) / participants) * duration);
 	}, [participants, duration, currentSelectedProduct]);
 
+	const clearForm = () => {
+		reset();
+		unregister(['group-name', 'product', 'group-description', 'country', 'tandc', 'agree-contact']);
+	};
+
 	return (
 		<BasicModal
 			id="add-group"
 			header="Add Group"
+			onClose={clearForm}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
@@ -254,7 +257,14 @@ const AddGroupModal = ({ groupOpen, hideGroup, onGroupSubmitted }: AddGroupModal
 						>
 							Save
 						</BasicButton>
-						<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-group')}>
+						<BasicButton
+							type="secondary"
+							disabled={isLoading}
+							onClick={() => {
+								clearForm();
+								closeModal('add-group');
+							}}
+						>
 							Cancel
 						</BasicButton>
 					</div>

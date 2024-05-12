@@ -121,10 +121,16 @@ const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddPr
 		}
 	};
 
+	const clearForm = () => {
+		reset();
+		unregister(['product-name', 'product-price', 'product-category']);
+	};
+
 	return (
 		<BasicModal
 			id="add-product"
 			header="Add Product"
+			onClose={clearForm}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
@@ -196,7 +202,14 @@ const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddPr
 						>
 							Save
 						</BasicButton>
-						<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-product')}>
+						<BasicButton
+							type="secondary"
+							disabled={isLoading}
+							onClick={() => {
+								clearForm();
+								closeModal('add-product');
+							}}
+						>
 							Cancel
 						</BasicButton>
 					</div>

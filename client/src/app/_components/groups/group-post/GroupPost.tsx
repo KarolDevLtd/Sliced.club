@@ -32,7 +32,6 @@ type GroupPostProps = {
 };
 
 const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
-	const [postOpen, setPostOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 
@@ -45,7 +44,6 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const hidePostInput = () => {
-		setPostOpen(false);
 		// Clears form validation errors when closing modal
 		unregister(['post-title', 'post-text']);
 	};
@@ -124,7 +122,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	};
 
 	const clearForm = () => {
-		// Clears form validation errors when closing modal
+		reset();
 		unregister(['post-title', 'post-text']);
 	};
 
@@ -135,7 +133,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			</BasicButton>
 			<BasicModal
 				id="add-post"
-				onClose={hidePostInput}
+				onClose={clearForm}
 				header="Add Post"
 				content={
 					<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
@@ -187,7 +185,14 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 							>
 								Save
 							</BasicButton>
-							<BasicButton type="secondary" disabled={isLoading} onClick={() => closeModal('add-post')}>
+							<BasicButton
+								type="secondary"
+								disabled={isLoading}
+								onClick={() => {
+									clearForm();
+									closeModal('add-post');
+								}}
+							>
 								Cancel
 							</BasicButton>
 						</div>

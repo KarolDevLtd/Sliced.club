@@ -31,11 +31,6 @@ const BasicModal = ({ id, header, content, footer, onClose }: BasicModalProps) =
 				<h3 className="font-bold text-lg">{header}</h3>
 				{content}
 				{footer}
-				<form id="modal-backdrop" method="dialog" className="modal-backdrop">
-					<button form="modal-backdrop" onClick={onClose}>
-						close
-					</button>
-				</form>
 			</div>
 		</dialog>
 	);
