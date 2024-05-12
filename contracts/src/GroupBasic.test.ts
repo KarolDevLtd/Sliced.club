@@ -228,6 +228,10 @@ describe('GroupBasic', () => {
     });
     await txn.prove();
     await txn.sign([admin.key]).send();
+    for (const event of await group.fetchEvents()) {
+      console.log(event.type, JSON.stringify(event.event.data));
+    }
+
     const newPaymentRound = group.paymentRound.get();
     expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
   });

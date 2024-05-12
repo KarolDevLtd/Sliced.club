@@ -17,6 +17,7 @@ import { fetchImageData } from '~/helpers/image-helper';
 import { IoPeople } from 'react-icons/io5';
 import InlineLink from '../ui/InlineLink';
 import BasicButton from '../ui/BasicButton';
+import { showModal } from '~/helpers/modal-helper';
 
 type GroupItemProps = {
 	firebaseGroup: FirebaseGroupModel;
@@ -33,8 +34,8 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
 
-	const toggleModal = () => {
-		setDisplayModal(!displayModal);
+	const openModal = () => {
+		showModal('group-item');
 	};
 
 	const handleClick = (e: Event | undefined) => {
@@ -109,6 +110,57 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 							View Details
 						</BasicButton>
 					</div>
+					{/* <div className="col-span-1 flex items-center gap-1">
+					<FaUserGroup />
+					<p>{product?.groupMembers}</p>
+				</div> */}
+					{/* <div className="col-span-1 flex items-center">
+					{product?.itemsReceived ? (
+						<div>
+							<p>{completedPercentage()}</p>
+							<ProgressBar progress={completedRatio} />
+						</div>
+					) : null}
+				</div> */}
+					{/* <div className="col-span-2 flex items-center">
+					<BasicButton type="secondary" onClick={(e) => handleClick(e)}>
+						View details
+					</BasicButton>
+				</div> */}
+					<BasicModal
+						id="group-item"
+						header="Group Details"
+						content={
+							<div>
+								<div className="flex items-center gap-1">
+									<strong>Group name:</strong> <p>{group?.name}</p>
+								</div>
+								<div className="flex items-center gap-1">
+									<strong>Organiser:</strong> <p>{groupData?.group?.creatorId}</p>
+									<strong>:</strong> <p>{group?.country}</p>
+								</div>
+								<div className="flex items-center gap-1">
+									<strong>Price:</strong> <p>{group?.price}</p>
+									<strong>:</strong> <p>{group?.country}</p>
+								</div>
+								<div className="flex items-center gap-1">
+									<strong>Currency:</strong> <p>{group?.currency}</p>
+								</div>
+								<div className="flex items-center gap-1">
+									<strong>Duration:</strong> <p>{group?.duration}</p>
+									<strong>:</strong> <p>{group?.country}</p>
+								</div>
+								{/* <div className="flex items-center gap-1">
+									<strong>Group members:</strong> <p>{product.groupMembers}</p>
+								</div>
+								{product.itemsReceived ? (
+									<div className="flex items-center gap-1">
+										<strong>Items received:</strong> <p>{product.itemsReceived}</p>
+									</div>
+								) : null} */}
+							</div>
+						}
+					/>
 				</div>
 			)}
 		</>

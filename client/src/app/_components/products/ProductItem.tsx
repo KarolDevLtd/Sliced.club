@@ -28,10 +28,6 @@ const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
 
-	const toggleModal = () => {
-		setDisplayModal(!displayModal);
-	};
-
 	// const completedRatio = product?.itemsReceived ? (product.itemsReceived / product.groupMembers) * 100 : 0;
 
 	// const completedPercentage = () => {
@@ -107,9 +103,8 @@ const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
 					</BasicButton>
 				</div> */}
 					<BasicModal
-						isOpen={displayModal}
-						onClose={toggleModal}
-						header={<h2 className="text-xl font-semibold">Item Details</h2>}
+						id="product-item"
+						header="Item Details"
 						content={
 							<div>
 								<div className="flex items-center gap-1">

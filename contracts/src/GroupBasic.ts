@@ -42,12 +42,19 @@ export class Entry extends Struct({
   // },
   message: UInt64,
   paymentRound: UInt64,
+  isLottery: Bool,
 }) {
-  constructor(publicKey: PublicKey, message: UInt64, paymentRound: UInt64) {
+  constructor(
+    publicKey: PublicKey,
+    message: UInt64,
+    paymentRound: UInt64,
+    isLottery: Bool
+  ) {
     super({
       publicKey,
       message,
       paymentRound,
+      isLottery,
     });
   }
   hash(): Field {
@@ -102,7 +109,10 @@ export class GroupBasic extends SmartContract {
   @state(PublicKey) admin = State<PublicKey>();
   @state(UInt64) paymentRound = State<UInt64>();
   reducer = Reducer({ actionType: Entry });
-
+  events = {
+    'lottery-winner': PublicKey,
+    'auction-winner': PublicKey,
+  };
   // state ipfs hash?
 
   async deploy(args: DeployArgs & { admin: PublicKey }) {
@@ -151,7 +161,7 @@ export class GroupBasic extends SmartContract {
     // Provable.log('paymentAmount', paymentAmount);
     await token.transfer(senderAddr, this.address, paymentAmount);
     this.reducer.dispatch(
-      new Entry(senderAddr, UInt64.zero, currentPaymentRound)
+      new Entry(senderAddr, UInt64.zero, currentPaymentRound, Bool(true))
     );
 
     //encrypt bidding info
@@ -159,11 +169,14 @@ export class GroupBasic extends SmartContract {
     // let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
 
     this.reducer.dispatch(
-      new Entry(senderAddr, amountOfBids, currentPaymentRound)
+      new Entry(senderAddr, amountOfBids, currentPaymentRound, Bool(false))
     );
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
     // adminPubKey;
   }
+  //TODO are we saving last action's hash and using it everyy
+  // mitigate the 'latest' most likley to win in underpaid group (eg 15/20 paid, rnd = 18 (15th has 5/20 chance))
+  //^ iterate from last ? and flip Bools
   @method
   async getResults(
     _groupSettings: GroupSettings,
@@ -176,7 +189,7 @@ export class GroupBasic extends SmartContract {
     adminPubKey.assertEquals(adminPrivKey.toPublicKey());
 
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
-    Provable.log('randomValue', randomValue);
+    // Provable.log('randomValue', randomValue);
     // get all actions
     let actions = this.reducer.getActions();
 
@@ -185,7 +198,7 @@ export class GroupBasic extends SmartContract {
     let currentHighestBid = UInt64.zero;
     let auctionWinner: PublicKey = PublicKey.empty();
     let lotteryWinner: PublicKey = PublicKey.empty();
-    let iter = actions.startIterating(); // or from last, to check
+    let iter = actions.startIterating();
     let distanceFromRandom = Field.from(999);
     let currentDistance = Field.from(999);
     // TODO what if win lottery but also auction
@@ -200,6 +213,12 @@ export class GroupBasic extends SmartContract {
       let merkleActions = iter.next();
       let innerIter = merkleActions.startIterating();
       //based on the DISTANCE from random number, set the lottery winner
+      // Provable.log(
+      //   'currentDistance',
+      //   currentDistance,
+      //   'distanceFromRandom',
+      //   distanceFromRandom
+      // );
       currentDistance = Provable.if(
         iterIndex.greaterThanOrEqual(randomValue),
         iterIndex.sub(randomValue),
@@ -209,33 +228,37 @@ export class GroupBasic extends SmartContract {
       for (let j = 0; j < MAX_ACTIONS_PER_UPDATE; j++) {
         //can I ensure order of action in an update
         let action = innerIter.next();
+
+        let auctionCondition = action.message
+          .greaterThan(currentHighestBid)
+          .and(action.paymentRound.equals(currentPaymentRound))
+          .and(action.isLottery.equals(Bool(false)));
+
         auctionWinner = Provable.if(
-          action.message
-            .greaterThan(currentHighestBid)
-            .and(action.paymentRound.equals(currentPaymentRound)),
+          auctionCondition,
           action.publicKey,
           auctionWinner
         );
         currentHighestBid = Provable.if(
-          action.message
-            .greaterThan(currentHighestBid)
-            .and(action.paymentRound.equals(currentPaymentRound)),
+          auctionCondition,
           action.message,
           currentHighestBid
         );
-        // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
-        distanceFromRandom = Provable.if(
-          action.message
-            .equals(UInt64.zero) //i can't have zero as all of them are 0, let's add flag lottery TODO
-            .and(action.paymentRound.equals(currentPaymentRound))
-            .and(currentDistance.lessThan(distanceFromRandom)),
-          currentDistance,
-          distanceFromRandom
-        );
+
+        let lotteryCondition = action.isLottery
+          .and(action.paymentRound.equals(currentPaymentRound))
+          .and(currentDistance.lessThan(distanceFromRandom));
+
         lotteryWinner = Provable.if(
-          currentDistance.equals(distanceFromRandom),
+          lotteryCondition,
           action.publicKey,
           lotteryWinner
+        );
+        // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
+        distanceFromRandom = Provable.if(
+          lotteryCondition,
+          currentDistance,
+          distanceFromRandom
         );
 
         //this may still be correct
@@ -255,9 +278,12 @@ export class GroupBasic extends SmartContract {
       innerIter.assertAtEnd();
     }
     iter.assertAtEnd();
-    Provable.log('auctionWinner', auctionWinner);
-    Provable.log('lotteryWinner', lotteryWinner);
-    Provable.log('distanceFromRandom', distanceFromRandom);
+    // Provable.log('auctionWinner', auctionWinner);
+    // Provable.log('lotteryWinner', lotteryWinner);
+    // Provable.log('distanceFromRandom', distanceFromRandom);
+
+    this.emitEvent('lottery-winner', lotteryWinner);
+    this.emitEvent('auction-winner', auctionWinner);
 
     //TODO double check logic for this
     let advanceRound = Provable.if(
@@ -265,6 +291,9 @@ export class GroupBasic extends SmartContract {
       UInt64.zero,
       UInt64.one
     );
+
+    //if auction winner == lottery winner, take 2nd closest to lottery winner ? TODO
+
     this.paymentRound.set(currentPaymentRound.add(advanceRound));
   }
 

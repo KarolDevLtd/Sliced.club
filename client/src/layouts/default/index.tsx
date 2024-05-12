@@ -7,7 +7,9 @@ const DefaultLayout = ({ children }: { children: React.ReactNode }) => {
 		<RootLayout>
 			<Providers>
 				<UserStoreStatus />
-				<div className="container py-6 min-h-screen flex flex-col">{children}</div>
+				<div data-theme="sliced" className="container py-6 min-h-screen flex flex-col">
+					{children}
+				</div>
 			</Providers>
 		</RootLayout>
 	);
