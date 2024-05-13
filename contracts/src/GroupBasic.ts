@@ -9,12 +9,16 @@ import {
   method,
   UInt32,
   MerkleWitness,
+  VerificationKey,
+  TokenContract,
   Struct,
   Signature,
+  Permissions,
   Reducer,
   Bool,
   Provable,
   AccountUpdate,
+  AccountUpdateForest,
   MerkleList,
   Nullifier,
   Circuit,
@@ -28,6 +32,7 @@ import {
   Unconstrained,
 } from 'o1js';
 import { FungibleToken } from './token/FungibleToken';
+import { GroupUserStorage } from './GroupUserStorage';
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
 type CipherText = {
@@ -104,7 +109,7 @@ export class GroupSettings extends Struct({
 }
 const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
-export class GroupBasic extends SmartContract {
+export class GroupBasic extends TokenContract {
   // a commitment is a cryptographic primitive that allows us to commit to data, with the ability to "reveal" it later
   // @state(Field) merkleRoot = State<Field>(); //for group patricipants
   @state(Field) groupSettingsHash = State<Field>();
@@ -117,12 +122,65 @@ export class GroupBasic extends SmartContract {
   };
   // state ipfs hash?
 
+  @method
+  async approveBase(updates: AccountUpdateForest): Promise<void> {
+    this.checkZeroBalanceChange(updates);
+    // TODO: event emission here
+  }
+
   async deploy(args: DeployArgs & { admin: PublicKey }) {
     await super.deploy(args);
     this.admin.set(args.admin);
+    this.account.permissions.set({
+      ...Permissions.default(),
+      editState: Permissions.none(),
+      setTokenSymbol: Permissions.none(),
+      //   editActionsState: Permissions.none(),
+      send: Permissions.none(),
+      receive: Permissions.none(),
+      setPermissions: Permissions.none(),
+      incrementNonce: Permissions.proofOrSignature(),
+    });
     // this.merkleRoot.set(initialCommitment);
     this.paymentRound.set(UInt64.zero);
     this.groupSettingsHash.set(GroupSettings.empty().hash());
+  }
+
+  @method async initialiseUserAccount(
+    address: PublicKey,
+    vk: VerificationKey,
+    // tokenKey: PrivateKey,
+    value: Field
+  ) {
+    const deployUpdate = this.internal.mint({ address, amount: 1 });
+
+    this.approve(deployUpdate);
+
+    deployUpdate.body.update.verificationKey = {
+      isSome: Bool(true),
+      value: vk,
+    };
+    deployUpdate.body.update.permissions = {
+      isSome: Bool(true),
+      value: {
+        ...Permissions.default(),
+        editState: Permissions.proof(),
+        // setVerificationKey: Permissions.proof(),
+      },
+    };
+    AccountUpdate.setValue(deployUpdate.body.update.appState[0], value);
+    AccountUpdate.setValue(deployUpdate.body.update.appState[1], value);
+
+    deployUpdate.requireSignature();
+    Provable.log('newTOken id', deployUpdate.tokenId);
+  }
+
+  @method async duddToken1(user: PrivateKey) {
+    let ud = new GroupUserStorage(user.toPublicKey(), this.deriveTokenId());
+    let payment = ud.payments.get();
+    // payment.assertEquals(ud.payments.get());
+    Provable.log('payment: ', payment);
+    // let update = AccountUpdate.createSigned(user.toPublicKey(), tokenId);
   }
 
   @method

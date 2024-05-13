@@ -4,15 +4,20 @@ import {
   Field,
   Mina,
   PrivateKey,
+  VerificationKey,
   PublicKey,
+  fetchAccount,
   AccountUpdate,
+  TokenId,
   UInt32,
   UInt64,
   Signature,
 } from 'o1js';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 
-let proofsEnabled = false;
+import { GroupUserStorage } from './GroupUserStorage';
+
+let proofsEnabled = true;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -24,12 +29,15 @@ describe('GroupBasic', () => {
     billy: TestPublicKey,
     charlie: TestPublicKey,
     jackie: TestPublicKey,
+    tokenKey: PrivateKey,
     groupPrivateKey = PrivateKey.random(),
     groupAddress = groupPrivateKey.toPublicKey(),
     tokenPrivateKey = PrivateKey.random(),
     tokenAddress = tokenPrivateKey.toPublicKey(),
     group: GroupBasic,
-    tokenApp: FungibleToken;
+    groupStorage: GroupUserStorage,
+    tokenApp: FungibleToken,
+    verificationKey: VerificationKey;
 
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(12), // maxMembers
@@ -44,7 +52,8 @@ describe('GroupBasic', () => {
 
   beforeAll(async () => {
     if (proofsEnabled) {
-      await GroupBasic.compile();
+      const { verificationKey: vk2 } = await GroupBasic.compile();
+      verificationKey = vk2;
       await FungibleToken.compile();
       console.log('compiled');
     }
@@ -54,6 +63,7 @@ describe('GroupBasic', () => {
       Local.testAccounts;
 
     group = new GroupBasic(groupAddress);
+    tokenKey = PrivateKey.random();
 
     tokenApp = new FungibleToken(tokenAddress);
     console.log(`
@@ -234,5 +244,50 @@ describe('GroupBasic', () => {
 
     const newPaymentRound = group.paymentRound.get();
     expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
+  });
+
+  it('sets and gets value on the token account', async () => {
+    const txn1 = await Mina.transaction(charlie, async () => {
+      AccountUpdate.fundNewAccount(charlie);
+      await group.initialiseUserAccount(
+        charlie.key.toPublicKey(),
+        verificationKey,
+        Field(22)
+      );
+    });
+    await txn1.prove();
+    await txn1.sign([charlie.key, tokenKey]).send();
+    console.log('initialiseUserAccount');
+    console.log(txn1.toPretty());
+
+    // console.log('attempt to get tokenid:', tc.tokenId.toBigInt());
+
+    const derivedTokenId = TokenId.derive(group.address);
+    const tokenAccount1 = new GroupUserStorage(
+      charlie.key.toPublicKey(),
+      derivedTokenId
+    );
+    console.log('derivedTokenId:', derivedTokenId.toBigInt());
+
+    // Refresh tokenaccount1 state
+    await fetchAccount({
+      publicKey: charlie.key.toPublicKey(),
+      tokenId: derivedTokenId,
+    });
+    const value1 = tokenAccount1.payments.get();
+    console.log('value1', value1.toBigInt());
+    const txn2 = await Mina.transaction(charlie, async () => {
+      await group.duddToken1(charlie.key);
+    });
+    await txn2.prove();
+    await txn2.sign([charlie.key, tokenKey]).send();
+    console.log('duddToken');
+    console.log(txn2.toPretty());
+    await fetchAccount({
+      publicKey: charlie.key.toPublicKey(),
+      tokenId: derivedTokenId,
+    });
+    const value2 = tokenAccount1.payments.get();
+    console.log('value2', value2.toBigInt());
   });
 });
