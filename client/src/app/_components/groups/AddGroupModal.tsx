@@ -89,6 +89,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				description: description,
 				price: price,
 				duration: duration,
+				instalments: instalments ?? 0,
 				participants: participants,
 				productHash: product.productHash,
 			});
@@ -143,7 +144,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 
 	useEffect(() => {
 		//TO DO : fix this cast
-		setInstalments(((currentSelectedProduct as unknown as number) / participants) * duration);
+		setInstalments((currentSelectedProduct?.price as unknown as number) / (participants * duration));
 	}, [participants, duration, currentSelectedProduct]);
 
 	const clearForm = () => {
