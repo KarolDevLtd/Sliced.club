@@ -74,7 +74,9 @@ export class Entry extends Struct({
 export class GroupSettings extends Struct({
   maxMembers: UInt32,
   itemPrice: UInt32,
+  /** In payment rounds */
   groupDuration: UInt32,
+  /** Stablecoin token */
   tokenAddress: PublicKey,
 }) {
   constructor(
@@ -104,7 +106,7 @@ const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
 export class GroupBasic extends SmartContract {
   // a commitment is a cryptographic primitive that allows us to commit to data, with the ability to "reveal" it later
-  @state(Field) merkleRoot = State<Field>(); //for group patricipants
+  // @state(Field) merkleRoot = State<Field>(); //for group patricipants
   @state(Field) groupSettingsHash = State<Field>();
   @state(PublicKey) admin = State<PublicKey>();
   @state(UInt64) paymentRound = State<UInt64>();
@@ -118,7 +120,7 @@ export class GroupBasic extends SmartContract {
   async deploy(args: DeployArgs & { admin: PublicKey }) {
     await super.deploy(args);
     this.admin.set(args.admin);
-    this.merkleRoot.set(initialCommitment);
+    // this.merkleRoot.set(initialCommitment);
     this.paymentRound.set(UInt64.zero);
     this.groupSettingsHash.set(GroupSettings.empty().hash());
   }
@@ -142,17 +144,18 @@ export class GroupBasic extends SmartContract {
 
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
-    //TODO ensure payment round not yet paid ? nullifier?
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
+    //TODO ensure payment round not yet paid ?
     let paymentAmount = this.getPaymentAmount(_groupSettings);
     //check if has the actual bidding amount
     let balance = await token.getBalanceOf(senderAddr);
+    // Check ability to act out on bid if won
     balance.assertGreaterThanOrEqual(
       paymentAmount.mul(amountOfBids),
       'Not enough balance to cover potential bid payment'
     );
 
-    //if has bids, double payment
+    // If bidding take one extra payment now
     paymentAmount = Provable.if(
       amountOfBids.greaterThan(new UInt64(0)),
       paymentAmount.mul(2),
@@ -191,6 +194,7 @@ export class GroupBasic extends SmartContract {
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
     // Provable.log('randomValue', randomValue);
     // get all actions
+    //TODO add latest action hash that was called, and start from next onwards
     let actions = this.reducer.getActions();
 
     // prove that we know the correct action state
@@ -219,6 +223,7 @@ export class GroupBasic extends SmartContract {
       //   'distanceFromRandom',
       //   distanceFromRandom
       // );
+      // how far index is from vrf
       currentDistance = Provable.if(
         iterIndex.greaterThanOrEqual(randomValue),
         iterIndex.sub(randomValue),
@@ -232,7 +237,7 @@ export class GroupBasic extends SmartContract {
         let auctionCondition = action.message
           .greaterThan(currentHighestBid)
           .and(action.paymentRound.equals(currentPaymentRound))
-          .and(action.isLottery.equals(Bool(false)));
+          .and(action.isLottery.equals(Bool(false))); // Update type check: bid / auction
 
         auctionWinner = Provable.if(
           auctionCondition,

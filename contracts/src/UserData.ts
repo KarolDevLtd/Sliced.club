@@ -105,6 +105,7 @@ export class TestContract extends TokenContract {
       value: {
         ...Permissions.default(),
         editState: Permissions.proof(),
+        // setVerificationKey: Permissions.proof(),
       },
     };
     AccountUpdate.setValue(deployUpdate.body.update.appState[0], value);
@@ -114,6 +115,8 @@ export class TestContract extends TokenContract {
     // this.approve(deployUpdate);
     deployUpdate.requireSignature();
     Provable.log('newTOken id', deployUpdate.tokenId);
+
+    // deployUpdate.tokenId == this.deriveTokenId();
   }
 
   @method async dudd() {
@@ -127,20 +130,21 @@ export class TestContract extends TokenContract {
   @method async duddToken1(user: PrivateKey) {
     let ud = new UserData(user.toPublicKey(), this.deriveTokenId());
     let payment = ud.payments.get();
+    // payment.assertEquals(ud.payments.get());
     Provable.log('payment: ', payment);
     // let update = AccountUpdate.createSigned(user.toPublicKey(), tokenId);
   }
 
-  @method async initUser(user: PrivateKey, amount: Field) {
-    let ud = new UserData(user.toPublicKey(), this.tokenId);
-    await ud.initialiseUserAccount(user, amount, this.tokenId);
-  }
+  // @method async initUser(user: PrivateKey, amount: Field) {
+  //   let ud = new UserData(user.toPublicKey(), this.tokenId);
+  //   await ud.initialiseUserAccount(user, amount, this.tokenId);
+  // }
 
-  @method async updateState(user: PublicKey, seg: UInt64) {
-    let ud = new UserData(user, this.tokenId);
-    const nullStartIndex = await ud.paySegments(seg);
-    Provable.log('nullStartIndex: ', nullStartIndex);
-  }
+  // @method async updateState(user: PublicKey, seg: UInt64) {
+  //   let ud = new UserData(user, this.tokenId);
+  //   const nullStartIndex = await ud.paySegments(seg);
+  //   Provable.log('nullStartIndex: ', nullStartIndex);
+  // }
 }
 
 // Wrapper

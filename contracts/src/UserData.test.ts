@@ -361,7 +361,7 @@ describe('Token account write', () => {
     // try {
     const txn2 = await Mina.transaction(sender, async () => {
       // Pay off for the month 0xw
-      await tc.updateState(sender.key.toPublicKey(), new UInt64(1));
+      // await tc.updateState(sender.key.toPublicKey(), new UInt64(1));
       // await tc.requireSignature();
     });
     await txn2.prove();
@@ -397,6 +397,8 @@ describe('Token account write', () => {
       derivedTokenId
     );
     console.log('derivedTokenId:', derivedTokenId.toBigInt());
+
+    // Refresh tokenaccount1 state
     await fetchAccount({
       publicKey: sender.key.toPublicKey(),
       tokenId: derivedTokenId,
