@@ -92,8 +92,16 @@ export default function Group() {
 							<div className="flex">{`${'Price (USD$)'} ${product?.price}`}</div>
 							<div className="flex">{`${'Duration'} ${group?.duration} months`}</div>
 							<div className="flex">{`${'Installments'} ${(group?.price as unknown as number) / (group?.participants * group?.duration)}`}</div>
-
 							<p>{groupData?.group.description}</p>
+							<div>
+								{product?.productAttributes?.map((attribute) => {
+									return (
+										<div key={attribute.propertyName}>
+											<strong>{attribute.propertyName}:</strong> {attribute.propertyValue}
+										</div>
+									);
+								})}
+							</div>
 						</div>
 					</div>
 
