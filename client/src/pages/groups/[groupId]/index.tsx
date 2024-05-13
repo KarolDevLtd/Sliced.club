@@ -7,8 +7,6 @@ import { toast } from 'react-toastify';
 import GroupPost from '~/app/_components/groups/group-post/GroupPost';
 // import GroupPostInput from '~/app/_components/groups/group-post-input';
 import GroupPostsList from '~/app/_components/groups/group-post/GroupPostsList';
-import BasicButton from '~/app/_components/ui/BasicButton';
-import Carousel from '~/app/_components/ui/Carousel';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import ZoomableImage from '~/app/_components/ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
@@ -66,34 +64,33 @@ export default function Group() {
 	return (
 		<>
 			<div className="flex justify-between items-center">
-				{/* <PageHeader text={groupData?.group.name} hideQuickLinks={true} /> */}
-				<BasicButton type="secondary">Leave group</BasicButton>
+				<PageHeader
+					text={groupData?.group.name ?? 'Group Name'}
+					subtext={groupData?.group.groupOrganiser ?? 'Group Organiser'}
+					buttonText="Leave group"
+					onClick={() => console.log('Leave group')}
+				/>
 			</div>
 
 			<div className="grid grid-rows-2 gap-2 flex-1 min-h-full max-h-full">
 				<div className="grid grid-cols-4 grid-rows-2 gap-2">
-					<div className="col-span-4 p-2 bg-light-grey rounded-md flex gap-2">
-						<div className="w-1/3 bg-medium-grey rounded-md">
-							<Carousel
-								slides={imageData.map((value, index) => ({
-									content: (
-										<ZoomableImage
-											source={value}
-											width={100}
-											height={100}
-											alt={`Uploaded image ${index}`}
-										/>
-									),
-								}))}
-							/>
-						</div>
-						<div className="w-2/3">
-							<strong>{product?.name}</strong>
-							<div className="flex">{`${'Price (USD$)'} ${product?.price}`}</div>
-							<div className="flex">{`${'Duration'} ${group?.duration} months`}</div>
-							<div className="flex">{`${'Installments'} ${(group?.price as unknown as number) / (group?.participants * group?.duration)}`}</div>
-
-							<p>{groupData?.group.description}</p>
+					<div className="card card-side bg-base-100 col-span-4">
+						<figure>
+							{/* <img
+								src="https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.jpg"
+								alt="Movie"
+							/> */}
+						</figure>
+						<div className="card-body">
+							<h2 className="card-title">{product?.name ?? 'Product Name'}</h2>
+							<div>
+								<span>Price: ${product?.price ?? '420.00'}</span>
+								<span>Installment: $69.00</span>
+							</div>
+							<p>
+								{groupData?.group?.description ??
+									'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sodales neque lacus, quis volutpat lorem faucibus a. Interdum et malesuada fames ac ante ipsum primis in faucibus. Aliquam sit amet augue rutrum, eleifend dui et, sodales orci. Duis eu sodales risus. Vivamus gravida fringilla nibh in venenatis. Proin sit amet leo dapibus, efficitur diam a, viverra leo. Donec metus ante, ornare in blandit eu, elementum id enim. Fusce augue leo, sollicitudin eu dolor vitae.'}
+							</p>
 						</div>
 					</div>
 
