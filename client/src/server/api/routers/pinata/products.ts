@@ -55,9 +55,9 @@ export const PinataProductRouter = createTRPCRouter({
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}
-			return { product };
 		} else {
-			console.log('sliced-server-msg:current query product id is null');
+			console.log('sliced-server-msg:getProduct, current query product id is null');
 		}
+		return { product };
 	}),
 });

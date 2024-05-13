@@ -63,20 +63,28 @@ export const FirebasePostRouter = createTRPCRouter({
 			})
 		)
 		.query(async ({ input }) => {
-			const q = firestorequery(postCollection, where('group', '==', input.groupId), orderBy('datetime', 'desc'));
 			const posts: FirebasePostModel[] = [];
-			await getDocs(q).then((response) => {
-				response.forEach((doc) => {
-					// console.log(doc.data());
-					posts.push({
-						id: doc.id,
-						hash: doc.data().message as string,
-						group: doc.data().group as string,
-						posterKey: doc.data().poster as string,
-						imageHash: doc.data().image as string | null,
+			if (input.groupId != null) {
+				const q = firestorequery(
+					postCollection,
+					where('group', '==', input.groupId),
+					orderBy('datetime', 'desc')
+				);
+				await getDocs(q).then((response) => {
+					response.forEach((doc) => {
+						// console.log(doc.data());
+						posts.push({
+							id: doc.id,
+							hash: doc.data().message as string,
+							group: doc.data().group as string,
+							posterKey: doc.data().poster as string,
+							imageHash: doc.data().image as string | null,
+						});
 					});
 				});
-			});
+			} else {
+				console.log('sliced-server-msg:getposts, current query group id is null');
+			}
 			return { posts };
 		}),
 
