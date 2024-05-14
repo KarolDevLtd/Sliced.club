@@ -1,4 +1,4 @@
-# Mina zkApp: Sliced Contracts
+# Mina zkApp: Sliced.club
 
 This template uses TypeScript.
 
@@ -8,17 +8,10 @@ This template uses TypeScript.
 npm run build
 ```
 
-## How to run tests
+## How to run tests for the group
 
 ```sh
-npm run test
-npm run testw # watch mode
-```
-
-## How to run coverage
-
-```sh
-npm run coverage
+npm run basic
 ```
 
 ## How to run lightnode
