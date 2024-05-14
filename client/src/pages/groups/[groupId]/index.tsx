@@ -72,18 +72,13 @@ export default function Group() {
 				/>
 			</div>
 
-			<div className="grid grid-rows-2 gap-2 flex-1 min-h-full max-h-full">
+			<div className="flex-1 min-h-full max-h-full">
 				<div className="grid grid-cols-4 grid-rows-2 gap-2">
-					<div className="card card-side bg-base-100 col-span-4">
-						<figure>
-							{/* <img
-								src="https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.jpg"
-								alt="Movie"
-							/> */}
-						</figure>
-						<div className="card-body">
+					<div className="card card-side bg-base-100 col-span-4 items-center">
+						<figure className="min-w-[200px] h-32 bg-accent"></figure>
+						<div className="card-body p-6">
 							<h2 className="card-title">{product?.name ?? 'Product Name'}</h2>
-							<div>
+							<div className="flex items-center gap-4">
 								<span>Price: ${product?.price ?? '420.00'}</span>
 								<span>Installment: $69.00</span>
 							</div>
@@ -95,17 +90,29 @@ export default function Group() {
 					</div>
 
 					<div className="col-span-4 grid gap-2 grid-cols-4">
-						<div className="min-h-full bg-light-grey p-2 rounded-md flex flex-col flex-end">
-							<p className="mt-auto">Auction/Payment</p>
+						<div className="card h-44 bg-accent">
+							<figure></figure>
+							<div className="card-body justify-end">
+								<h2 className="card-title">Payment</h2>
+							</div>
 						</div>
-						<div className="min-h-full bg-light-grey p-2 rounded-md flex flex-col flex-end">
-							<p className="mt-auto">Offer Details</p>
+						<div className="card h-44 bg-accent">
+							<figure></figure>
+							<div className="card-body justify-end">
+								<h2 className="card-title">Offer Details</h2>
+							</div>
 						</div>
-						<div className="min-h-full bg-light-grey p-2 rounded-md flex flex-col flex-end">
-							<p className="mt-auto">Product Details</p>
+						<div className="card h-44 bg-accent">
+							<figure></figure>
+							<div className="card-body justify-end">
+								<h2 className="card-title">Product Details</h2>
+							</div>
 						</div>
-						<div className="min-h-full bg-light-grey p-2 rounded-md flex flex-col flex-end">
-							<p className="mt-auto">About GO</p>
+						<div className="card h-44 bg-accent">
+							<figure></figure>
+							<div className="card-body justify-end">
+								<h2 className="card-title">About GO</h2>
+							</div>
 						</div>
 					</div>
 				</div>
