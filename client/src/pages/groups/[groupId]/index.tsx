@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import GroupPost from '~/app/_components/groups/group-post/GroupPost';
 // import GroupPostInput from '~/app/_components/groups/group-post-input';
 import GroupPostsList from '~/app/_components/groups/group-post/GroupPostsList';
+import Breadcrumbs from '~/app/_components/ui/Breadcrumbs';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import ZoomableImage from '~/app/_components/ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
@@ -63,7 +64,25 @@ export default function Group() {
 
 	return (
 		<>
-			<div className="flex justify-between items-center">
+			<div className="flex flex-col justify-between items-start">
+				<div>
+					<Breadcrumbs
+						breadCrumbs={[
+							{
+								text: 'Home',
+								link: '/',
+							},
+							{
+								text: 'Groups',
+								link: '/groups',
+							},
+							{
+								text: groupData?.group.name ?? 'Group Name',
+								link: '/',
+							},
+						]}
+					/>
+				</div>
 				<PageHeader
 					text={groupData?.group.name ?? 'Group Name'}
 					subtext={groupData?.group.groupOrganiser ?? 'Group Organiser'}
