@@ -17,10 +17,21 @@ export const PinataGroupRouter = createTRPCRouter({
 				participants: z.string(),
 				instalments: z.number(),
 				productHash: z.string(),
+				productName: z.string().nullish(),
+				productPrice: z.string().nullish(),
 			})
 		)
 		.mutation(async ({ input }) => {
 			let data;
+			const pinataMetadata = {
+				name: input.name,
+				keyvalues: {
+					productPrice: input.productPrice,
+					productName: input.productName,
+					type: 'group',
+				},
+			};
+
 			try {
 				const options = {
 					method: 'POST',
@@ -29,7 +40,7 @@ export const PinataGroupRouter = createTRPCRouter({
 						'content-type': 'application/json',
 						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
 					},
-					body: JSON.stringify({ pinataContent: input }),
+					body: JSON.stringify({ pinataContent: input, pinataMetadata }),
 				};
 				const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options);
 				data = await response.json();

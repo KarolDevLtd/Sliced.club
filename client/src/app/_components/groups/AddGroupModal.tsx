@@ -92,6 +92,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				instalments: instalments ?? 0,
 				participants: participants,
 				productHash: product.productHash,
+				productName: currentSelectedProduct?.name,
+				productPrice: currentSelectedProduct?.price,
 			});
 			await groupToFirebase.mutateAsync({
 				name: name,
