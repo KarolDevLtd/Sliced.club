@@ -1,14 +1,11 @@
 import {
-  SmartContract,
   Poseidon,
   Field,
   State,
   state,
-  assert,
   PublicKey,
   method,
   UInt32,
-  MerkleWitness,
   VerificationKey,
   TokenContract,
   Struct,
@@ -19,23 +16,16 @@ import {
   Provable,
   AccountUpdate,
   AccountUpdateForest,
-  MerkleList,
-  Nullifier,
-  Circuit,
-  MerkleMapWitness,
-  MerkleMap,
   DeployArgs,
   Encryption,
   UInt64,
   PrivateKey,
   Group,
-  Unconstrained,
 } from 'o1js';
 import { FungibleToken } from './token/FungibleToken';
 import { GroupUserStorage } from './GroupUserStorage';
 import { PackedBoolFactory } from './lib/packed-types/PackedBool';
-// we need the initiate tree root in order to tell the contract about our off-chain storage
-let initialCommitment: Field = Field(0);
+
 export class Payments extends PackedBoolFactory(250) {}
 type CipherText = {
   publicKey: Group;
@@ -112,8 +102,6 @@ export class GroupSettings extends Struct({
 const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
 export class GroupBasic extends TokenContract {
-  // a commitment is a cryptographic primitive that allows us to commit to data, with the ability to "reveal" it later
-  // @state(Field) merkleRoot = State<Field>(); //for group patricipants
   @state(Field) groupSettingsHash = State<Field>();
   @state(PublicKey) admin = State<PublicKey>();
   @state(UInt64) paymentRound = State<UInt64>();
@@ -122,7 +110,6 @@ export class GroupBasic extends TokenContract {
     'lottery-winner': PublicKey,
     'auction-winner': PublicKey,
   };
-  // state ipfs hash?
 
   @method
   async approveBase(updates: AccountUpdateForest): Promise<void> {
@@ -143,7 +130,6 @@ export class GroupBasic extends TokenContract {
     //   setPermissions: Permissions.none(),
     //   incrementNonce: Permissions.proofOrSignature(),
     // });
-    // this.merkleRoot.set(initialCommitment);
     this.paymentRound.set(UInt64.zero);
     this.groupSettingsHash.set(GroupSettings.empty().hash());
   }
@@ -158,42 +144,36 @@ export class GroupBasic extends TokenContract {
     this.groupSettingsHash.set(groupSettings.hash());
   }
 
-  /** Tick of a single payment round */
-  private async paySegments(paymentRound: UInt64) {
-    let senderAddr = this.sender.getAndRequireSignature();
-    let ud = new GroupUserStorage(senderAddr, this.deriveTokenId());
-    let paymentsField = ud.payments.get();
-    const payments: Payments = Payments.fromBools(
-      Payments.unpack(paymentsField)
-    );
-    // // // // Write to the month index provided
-    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
-    // Iterate over all values and flip one only
-    for (let i = 0; i < 240; i++) {
-      let t: Bool = paymentsBools[i];
-      let newWrite: Bool = Provable.if(
-        new UInt64(i).equals(paymentRound),
-        Bool(true),
-        t
-      );
-      paymentsBools[i] = newWrite;
-    }
-    console.log(
-      'Pay seg paymentRound.value.value[0]: ',
-      paymentRound.value.value[0]
-    );
-    // Update payments
-    const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());
+  /** Called once at the start. User relinquishes ability to modify token account bu signing */
+  @method async addUserToGroup(address: PublicKey, vk: VerificationKey) {
+    const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
+
+    this.approve(groupUserStorageUpdate); // TODO: check if this is needed
+
+    groupUserStorageUpdate.body.update.verificationKey = {
+      isSome: Bool(true),
+      value: vk,
+    };
+    groupUserStorageUpdate.body.update.permissions = {
+      isSome: Bool(true),
+      value: {
+        ...Permissions.default(),
+        // TODO make it proof only
+        editState: Permissions.proofOrSignature(),
+        send: Permissions.impossible(), // we don't want to allow sending - soulbound
+        // setVerificationKey: Permissions.proof(),
+      },
+    };
     AccountUpdate.setValue(
-      update.body.update.appState[0],
-      Payments.fromBoolsField(paymentsBools)
+      groupUserStorageUpdate.body.update.appState[3], // isParticipant
+      Bool(true).toField()
     );
-    update.requireSignature();
+
+    groupUserStorageUpdate.requireSignature();
   }
 
   @method
   async roundPayment(_groupSettings: GroupSettings, amountOfBids: UInt64) {
-    //TODO ensure user in the group
     let senderAddr = this.sender.getAndRequireSignature();
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
@@ -201,7 +181,7 @@ export class GroupBasic extends TokenContract {
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
-    //TODO ensure payment round not yet paid ?
+
     let paymentAmount = this.getPaymentAmount(_groupSettings);
     //check if has the actual bidding amount
     // let balance = await token.getBalanceOf(senderAddr);
@@ -367,35 +347,41 @@ export class GroupBasic extends TokenContract {
     );
   }
 
-  /** Called once at the start. User relinquishes ability to modify token account bu signing */
-  @method async initialiseUserAccount(
-    address: PublicKey,
-    vk: VerificationKey,
-    // tokenKey: PrivateKey,
-    value: Field
-  ) {
-    const deployUpdate = this.internal.mint({ address, amount: 1 });
-
-    this.approve(deployUpdate);
-
-    deployUpdate.body.update.verificationKey = {
-      isSome: Bool(true),
-      value: vk,
-    };
-    deployUpdate.body.update.permissions = {
-      isSome: Bool(true),
-      value: {
-        ...Permissions.default(),
-        // TODO make it proof only
-        editState: Permissions.proofOrSignature(),
-        // setVerificationKey: Permissions.proof(),
-      },
-    };
-    AccountUpdate.setValue(deployUpdate.body.update.appState[0], value);
-    AccountUpdate.setValue(deployUpdate.body.update.appState[1], value);
-
-    deployUpdate.requireSignature();
-    Provable.log('newTOken id', deployUpdate.tokenId);
+  /** Tick of a single payment round */
+  private async paySegments(paymentRound: UInt64) {
+    let senderAddr = this.sender.getAndRequireSignature();
+    let ud = new GroupUserStorage(senderAddr, this.deriveTokenId());
+    //ensure user is a patricipant
+    let isParticipant = ud.isParticipant.get();
+    isParticipant.assertEquals(Bool(true));
+    //TODO ensure payment round not yet paid ?
+    let paymentsField = ud.payments.get();
+    const payments: Payments = Payments.fromBools(
+      Payments.unpack(paymentsField)
+    );
+    // // // // Write to the month index provided
+    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
+    // Iterate over all values and flip one only
+    for (let i = 0; i < 240; i++) {
+      let t: Bool = paymentsBools[i];
+      let newWrite: Bool = Provable.if(
+        new UInt64(i).equals(paymentRound),
+        Bool(true),
+        t
+      );
+      paymentsBools[i] = newWrite;
+    }
+    // Provable.log(
+    //   'Pay seg paymentRound.value.value[0]: ',
+    //   paymentRound.value.value[0]
+    // );
+    // Update payments
+    const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());
+    AccountUpdate.setValue(
+      update.body.update.appState[0],
+      Payments.fromBoolsField(paymentsBools)
+    );
+    update.requireSignature();
   }
 
   /** Make up for prior missed payments */
@@ -458,18 +444,18 @@ export class GroupBasic extends TokenContract {
     let user: PublicKey = this.sender.getAndRequireSignature();
     let ud = new GroupUserStorage(user, this.deriveTokenId());
     let compensationsField = ud.compensations.getAndRequireEquals();
-    const compensations: Payments = await Payments.fromBools(
+    const compensations: Payments = Payments.fromBools(
       Payments.unpack(compensationsField)
     );
-    let compensationBools: Bool[] = await Payments.unpack(compensations.packed);
+    let compensationBools: Bool[] = Payments.unpack(compensations.packed);
 
     // Extract payments
     let paymentsField = ud.payments.getAndRequireEquals();
-    const payments: Payments = await Payments.fromBools(
+    const payments: Payments = Payments.fromBools(
       Payments.unpack(paymentsField)
     );
 
-    let paymentsBools: Bool[] = await Payments.unpack(payments.packed);
+    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
 
     // console.log('paymentsField', paymentsField);
 
@@ -489,14 +475,10 @@ export class GroupBasic extends TokenContract {
       );
 
       // Update array of compensations
-      compensationBools[i] = await Provable.if(change, Bool(true), Bool(false));
+      compensationBools[i] = Provable.if(change, Bool(true), Bool(false));
 
       // Set the amount to be subtracted
-      let subAmount: UInt64 = await Provable.if(
-        change,
-        new UInt64(1),
-        new UInt64(0)
-      );
+      let subAmount: UInt64 = Provable.if(change, new UInt64(1), new UInt64(0));
 
       // Deduct from numberOfCompensations
       numberOfCompensations = numberOfCompensations.sub(subAmount);
