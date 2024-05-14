@@ -15,6 +15,7 @@ export const PinataGroupRouter = createTRPCRouter({
 				price: z.string(),
 				duration: z.string(),
 				participants: z.string(),
+				instalments: z.number(),
 				productHash: z.string(),
 			})
 		)
@@ -50,9 +51,9 @@ export const PinataGroupRouter = createTRPCRouter({
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}
-			return { group };
 		} else {
-			console.log('sliced-server-msg:current query group id is null');
+			console.log('sliced-server-msg:getGroup, current query group id is null');
 		}
+		return { group };
 	}),
 });

@@ -7,7 +7,7 @@ import PlatformLayout from '~/layouts/platform';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-import { showModal } from '~/helpers/modal-helper';
+import { closeModal, showModal } from '~/helpers/modal-helper';
 import ProductList from '~/app/_components/products/ProductList';
 import { useState } from 'react';
 
@@ -26,10 +26,6 @@ export default function Products() {
 		setShouldRefreshProducts((prev) => !prev);
 	};
 
-	const hideProduct = () => {
-		setProductOpen(false);
-	};
-
 	return (
 		<>
 			<PageHeader text="My Products" subtext="Check the details of your products" />
@@ -41,7 +37,7 @@ export default function Products() {
 			</div>
 			<AddProductModal
 				productOpen={productOpen}
-				hideProduct={hideProduct}
+				hideProduct={closeModal('add-product')}
 				onProductSubmitted={handleProductSubmitted}
 			/>
 		</>

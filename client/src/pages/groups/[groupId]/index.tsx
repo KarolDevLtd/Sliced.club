@@ -24,7 +24,7 @@ export default function Group() {
 	const { groupHash } = router.query;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupHash?.toString() });
 	const { data: productData } = api.PinataProduct.getProduct.useQuery({
-		hash: groupData == undefined ? '' : groupData?.group.productHash,
+		hash: groupData == undefined ? '' : groupData?.group?.productHash,
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
@@ -77,15 +77,15 @@ export default function Group() {
 								link: '/groups',
 							},
 							{
-								text: groupData?.group.name ?? 'Group Name',
+								text: groupData?.group?.name ?? 'Group Name',
 								link: '/',
 							},
 						]}
 					/>
 				</div>
 				<PageHeader
-					text={groupData?.group.name ?? 'Group Name'}
-					subtext={groupData?.group.groupOrganiser ?? 'Group Organiser'}
+					text={groupData?.group?.name ?? 'Group Name'}
+					subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
 					buttonText="Leave group"
 					onClick={() => console.log('Leave group')}
 				/>

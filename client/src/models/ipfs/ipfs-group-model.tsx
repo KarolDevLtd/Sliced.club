@@ -5,6 +5,7 @@ export interface IPFSGroupModel {
 	price: string;
 	duration: string;
 	participants: string;
+	instalments: string;
 	country: string;
 	productHash: string;
 }

@@ -10,7 +10,7 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import AddGroupModal from '~/app/_components/groups/AddGroupModal';
-import { showModal } from '~/helpers/modal-helper';
+import { closeModal, showModal } from '~/helpers/modal-helper';
 import GroupList from '~/app/_components/groups/GroupList';
 import { useState } from 'react';
 
@@ -30,10 +30,6 @@ export default function Groups() {
 		setShouldRefreshGroups((prev) => !prev);
 	};
 
-	const hideGroup = () => {
-		setGroupOpen(false);
-	};
-
 	return (
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
@@ -45,7 +41,7 @@ export default function Groups() {
 				</BasicButton>
 			</div>
 			<GroupList key={shouldRefreshGroups ? 'refresh' : 'normal'} />
-			<AddGroupModal groupOpen={groupOpen} hideGroup={hideGroup} onGroupSubmitted={handleGroupSubmitted} />
+			<AddGroupModal groupOpen={groupOpen} hideGroup={closeModal} onGroupSubmitted={handleGroupSubmitted} />
 		</>
 	);
 }
