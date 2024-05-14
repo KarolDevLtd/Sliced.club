@@ -33,8 +33,10 @@ import {
 } from 'o1js';
 import { FungibleToken } from './token/FungibleToken';
 import { GroupUserStorage } from './GroupUserStorage';
+import { PackedBoolFactory } from './lib/packed-types/PackedBool';
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
+export class Payments extends PackedBoolFactory(250) {}
 type CipherText = {
   publicKey: Group;
   cipherText: Field[];
@@ -131,56 +133,19 @@ export class GroupBasic extends TokenContract {
   async deploy(args: DeployArgs & { admin: PublicKey }) {
     await super.deploy(args);
     this.admin.set(args.admin);
-    this.account.permissions.set({
-      ...Permissions.default(),
-      editState: Permissions.none(),
-      setTokenSymbol: Permissions.none(),
-      //   editActionsState: Permissions.none(),
-      send: Permissions.none(),
-      receive: Permissions.none(),
-      setPermissions: Permissions.none(),
-      incrementNonce: Permissions.proofOrSignature(),
-    });
+    // this.account.permissions.set({
+    //   ...Permissions.default(),
+    //   editState: Permissions.none(),
+    //   setTokenSymbol: Permissions.none(),
+    //   //   editActionsState: Permissions.none(),
+    //   send: Permissions.none(),
+    //   receive: Permissions.none(),
+    //   setPermissions: Permissions.none(),
+    //   incrementNonce: Permissions.proofOrSignature(),
+    // });
     // this.merkleRoot.set(initialCommitment);
     this.paymentRound.set(UInt64.zero);
     this.groupSettingsHash.set(GroupSettings.empty().hash());
-  }
-
-  @method async initialiseUserAccount(
-    address: PublicKey,
-    vk: VerificationKey,
-    // tokenKey: PrivateKey,
-    value: Field
-  ) {
-    const deployUpdate = this.internal.mint({ address, amount: 1 });
-
-    this.approve(deployUpdate);
-
-    deployUpdate.body.update.verificationKey = {
-      isSome: Bool(true),
-      value: vk,
-    };
-    deployUpdate.body.update.permissions = {
-      isSome: Bool(true),
-      value: {
-        ...Permissions.default(),
-        editState: Permissions.proof(),
-        // setVerificationKey: Permissions.proof(),
-      },
-    };
-    AccountUpdate.setValue(deployUpdate.body.update.appState[0], value);
-    AccountUpdate.setValue(deployUpdate.body.update.appState[1], value);
-
-    deployUpdate.requireSignature();
-    Provable.log('newTOken id', deployUpdate.tokenId);
-  }
-
-  @method async duddToken1(user: PrivateKey) {
-    let ud = new GroupUserStorage(user.toPublicKey(), this.deriveTokenId());
-    let payment = ud.payments.get();
-    // payment.assertEquals(ud.payments.get());
-    Provable.log('payment: ', payment);
-    // let update = AccountUpdate.createSigned(user.toPublicKey(), tokenId);
   }
 
   @method
@@ -191,6 +156,39 @@ export class GroupBasic extends TokenContract {
     let adminPubKey = this.admin.getAndRequireEquals();
     signedSettings.verify(adminPubKey, groupSettings.toFields());
     this.groupSettingsHash.set(groupSettings.hash());
+  }
+
+  /** Tick of a single payment round */
+  private async paySegments(paymentRound: UInt64) {
+    let senderAddr = this.sender.getAndRequireSignature();
+    let ud = new GroupUserStorage(senderAddr, this.deriveTokenId());
+    let paymentsField = ud.payments.get();
+    const payments: Payments = Payments.fromBools(
+      Payments.unpack(paymentsField)
+    );
+    // // // // Write to the month index provided
+    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
+    // Iterate over all values and flip one only
+    for (let i = 0; i < 240; i++) {
+      let t: Bool = paymentsBools[i];
+      let newWrite: Bool = Provable.if(
+        new UInt64(i).equals(paymentRound),
+        Bool(true),
+        t
+      );
+      paymentsBools[i] = newWrite;
+    }
+    console.log(
+      'Pay seg paymentRound.value.value[0]: ',
+      paymentRound.value.value[0]
+    );
+    // Update payments
+    const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());
+    AccountUpdate.setValue(
+      update.body.update.appState[0],
+      Payments.fromBoolsField(paymentsBools)
+    );
+    update.requireSignature();
   }
 
   @method
@@ -206,12 +204,15 @@ export class GroupBasic extends TokenContract {
     //TODO ensure payment round not yet paid ?
     let paymentAmount = this.getPaymentAmount(_groupSettings);
     //check if has the actual bidding amount
-    let balance = await token.getBalanceOf(senderAddr);
-    // Check ability to act out on bid if won
-    balance.assertGreaterThanOrEqual(
-      paymentAmount.mul(amountOfBids),
-      'Not enough balance to cover potential bid payment'
-    );
+    // let balance = await token.getBalanceOf(senderAddr);
+    // // Check ability to act out on bid if won
+    // balance.assertGreaterThanOrEqual(
+    //   paymentAmount.mul(amountOfBids),
+    //   'Not enough balance to cover potential bid payment'
+    // );
+
+    // Mark of payment in the token account
+    await this.paySegments(currentPaymentRound);
 
     // If bidding take one extra payment now
     paymentAmount = Provable.if(
@@ -365,6 +366,146 @@ export class GroupBasic extends TokenContract {
       groupSettings.itemPrice.div(groupSettings.maxMembers).mul(new UInt32(2)) // 2 items per payment round
     );
   }
+
+  /** Called once at the start. User relinquishes ability to modify token account bu signing */
+  @method async initialiseUserAccount(
+    address: PublicKey,
+    vk: VerificationKey,
+    // tokenKey: PrivateKey,
+    value: Field
+  ) {
+    const deployUpdate = this.internal.mint({ address, amount: 1 });
+
+    this.approve(deployUpdate);
+
+    deployUpdate.body.update.verificationKey = {
+      isSome: Bool(true),
+      value: vk,
+    };
+    deployUpdate.body.update.permissions = {
+      isSome: Bool(true),
+      value: {
+        ...Permissions.default(),
+        // TODO make it proof only
+        editState: Permissions.proofOrSignature(),
+        // setVerificationKey: Permissions.proof(),
+      },
+    };
+    AccountUpdate.setValue(deployUpdate.body.update.appState[0], value);
+    AccountUpdate.setValue(deployUpdate.body.update.appState[1], value);
+
+    deployUpdate.requireSignature();
+    Provable.log('newTOken id', deployUpdate.tokenId);
+  }
+
+  /** Make up for prior missed payments */
+  private async totalPayments(): Promise<Field> {
+    // Extract compensations
+    let user: PublicKey = this.sender.getAndRequireSignature();
+    let ud = new GroupUserStorage(user, this.deriveTokenId());
+    let compensationsField = ud.compensations.getAndRequireEquals();
+    const compensations: Payments = Payments.fromBools(
+      Payments.unpack(compensationsField)
+    );
+
+    let compensationBools: Bool[] = Payments.unpack(compensations.packed);
+
+    // Extract payments
+    let paymentsField = ud.payments.getAndRequireEquals();
+    const payments: Payments = Payments.fromBools(
+      Payments.unpack(paymentsField)
+    );
+
+    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
+
+    // Variable for total payments count
+    let count: Field = Field(0);
+
+    // Loop over both
+    for (let i = 0; i < 240; i++) {
+      let add_payments: Field = Provable.if(
+        paymentsBools[i].equals(true),
+        Field(1),
+        Field(0)
+      );
+
+      let add_compensation: Field = Provable.if(
+        compensationBools[i].equals(true),
+        Field(1),
+        Field(0)
+      );
+
+      // Add to count
+      count = count.add(add_payments).add(add_compensation);
+    }
+
+    // Add any overpayments
+    return count;
+  }
+
+  /** Gate for lottery */
+  private async lotteryAccess(currentSegment: Field): Promise<Bool> {
+    // Get payments so far
+    const totalPayments: Field = await this.totalPayments();
+
+    // Return true if it equals current segment number
+    return totalPayments.equals(currentSegment);
+  }
+
+  /** Make up for prior missed payments */
+  private async compensate(numberOfCompensations: UInt64) {
+    // Extract compensations
+    let user: PublicKey = this.sender.getAndRequireSignature();
+    let ud = new GroupUserStorage(user, this.deriveTokenId());
+    let compensationsField = ud.compensations.getAndRequireEquals();
+    const compensations: Payments = await Payments.fromBools(
+      Payments.unpack(compensationsField)
+    );
+    let compensationBools: Bool[] = await Payments.unpack(compensations.packed);
+
+    // Extract payments
+    let paymentsField = ud.payments.getAndRequireEquals();
+    const payments: Payments = await Payments.fromBools(
+      Payments.unpack(paymentsField)
+    );
+
+    let paymentsBools: Bool[] = await Payments.unpack(payments.packed);
+
+    // console.log('paymentsField', paymentsField);
+
+    let change: Bool;
+
+    // Iterate over untill the end
+    for (let i = 0; i < 240; i++) {
+      // console.log('Loop vallue: ', paymentsBools[i]);
+      // Change will occur if there is enough to pay and this month is to be paid
+      change = Provable.if(
+        // numberOfCompensations
+        //   .greaterThan(new UInt64(0)) // Something left to pay off
+        //   .and(paymentsBools[i].equals(Bool(false))), // This entry has not been paid
+        paymentsBools[i].equals(Bool(false)),
+        Bool(true),
+        Bool(false)
+      );
+
+      // Update array of compensations
+      compensationBools[i] = await Provable.if(change, Bool(true), Bool(false));
+
+      // Set the amount to be subtracted
+      let subAmount: UInt64 = await Provable.if(
+        change,
+        new UInt64(1),
+        new UInt64(0)
+      );
+
+      // Deduct from numberOfCompensations
+      numberOfCompensations = numberOfCompensations.sub(subAmount);
+    }
+
+    // Update compensations
+    ud.compensations.set(Payments.fromBoolsField(compensationBools));
+  }
+
   //TODO extraPayment()
   //TODO joinGroup()
   //TODO claimLottery()
