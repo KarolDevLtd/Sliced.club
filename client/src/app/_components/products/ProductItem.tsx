@@ -35,6 +35,7 @@ const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
 	// };
 
 	const handleClick = (e: Event | undefined) => {
+		//TODO: Is here a product page not associated with group?
 		void router.push(`/groups/${firebaseProduct.id}`);
 		e?.stopPropagation();
 	};
