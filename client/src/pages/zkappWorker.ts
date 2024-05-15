@@ -8,7 +8,7 @@ type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
 // ---------------------------------------------------------------------------------------
 
-import { FungibleToken } from '../../../contracts/src/token/FungibleToken';
+import { FungibleToken } from 'sliced-contracts';
 // import { FungibleToken } from './FungibleToken';
 // const { FungibleToken } =
 // await import("@/contracts/snapshotVoteProof");
@@ -61,6 +61,7 @@ const functions = {
 			const fromKey = PublicKey.fromBase58(args.fromKey);
 			const toKey = PublicKey.fromBase58(args.toKey);
 			const amount = UInt64.from(args.amount);
+			console.log('wehere');
 			await state.zkapp!.transfer(fromKey, toKey, amount);
 		});
 		state.transaction = transaction;

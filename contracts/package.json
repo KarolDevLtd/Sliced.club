@@ -13,6 +13,7 @@
   "type": "module",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
+  "browser": "build/src/index.client.js",
   "scripts": {
     "build": "tsc",
     "buildw": "tsc --watch",

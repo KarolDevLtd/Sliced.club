@@ -112,7 +112,18 @@ export default function Categories() {
 					'B62qq6LVZ2E3RgJoDMaCzQepYShJ339B6BW6myUrra9vgXMZbN2sGtE',
 					6
 				);
+				const currentSupply = new UInt64(2);
 
+				await zkappWorkerClient.proveTransaction();
+				console.log('Transaction proved');
+				const tx = await zkappWorkerClient.getTransactionJSON();
+				const { hash } = await (window as any).mina.sendTransaction({
+					transaction: tx,
+					feePayer: {
+						memo: 'abc',
+					},
+				});
+				console.log('hash', hash);
 				// const currentSupply = await zkappWorkerClient.getSupply();
 				// console.log(`Current supply in zkApp: ${currentSupply.toString()}`);
 				setDisplayText('');
