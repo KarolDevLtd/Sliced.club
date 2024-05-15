@@ -25,6 +25,7 @@ import Spinner from '../../ui/Spinner';
 import DragDrop from '../../ui/DragDrop';
 import { saveImages } from '~/helpers/image-helper';
 import { closeModal, showModal } from '~/helpers/modal-helper';
+import Dropdown from '../../ui/Dropdown';
 
 type GroupPostProps = {
 	groupId: string;
@@ -127,10 +128,29 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	};
 
 	return (
-		<div className="flex flex-col w-1/3">
-			<BasicButton type="primary" onClick={showPostInput}>
-				Add Post
-			</BasicButton>
+		<div className="flex flex-col w-1/2">
+			<div className="flex items-center justify-between">
+				<h3 className="text-2xl">Posts</h3>
+				<div className="flex items-center gap-2">
+					<Dropdown
+						title="Sort by"
+						options={[
+							{
+								text: 'Item 1',
+								onClick: () => console.log('Clicked Item 1'),
+							},
+							{
+								text: 'Item 2',
+								onClick: () => console.log('Clicked Item 2'),
+							},
+						]}
+					/>
+					<BasicButton type="secondary" onClick={showPostInput}>
+						Add Post
+					</BasicButton>
+				</div>
+			</div>
+
 			<BasicModal
 				id="add-post"
 				onClose={clearForm}
