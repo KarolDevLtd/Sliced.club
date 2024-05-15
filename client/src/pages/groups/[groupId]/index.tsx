@@ -91,7 +91,7 @@ export default function Group() {
 				/>
 			</div>
 
-			<div className="flex-1 min-h-full max-h-full">
+			<div className="flex-1">
 				<div className="grid grid-cols-4 grid-rows-2 gap-2">
 					<div className="card card-side bg-base-100 col-span-4 items-center">
 						<figure className="min-w-[200px] h-32 bg-accent"></figure>
@@ -108,7 +108,7 @@ export default function Group() {
 						</div>
 					</div>
 
-					<div className="col-span-4 grid gap-2 grid-cols-4">
+					<div className="col-span-4 grid gap-4 grid-cols-4">
 						<div className="card h-44 bg-accent">
 							<figure></figure>
 							<div className="card-body justify-end">
@@ -136,7 +136,7 @@ export default function Group() {
 					</div>
 				</div>
 
-				<div className="flex-1 overflow-y-scroll">
+				<div className="flex-1  mt-6">
 					<GroupPost groupId={groupId} refetchPosts={handlePostSubmission} />
 					<GroupPostsList
 						groupId={groupId}
