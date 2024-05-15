@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { firestore } from '~/firebaseConfig';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { addDoc, collection, getDocs, query as firestorequery, where, orderBy } from 'firebase/firestore';
-import { type FirebaseGroupModel } from '~/models/firebase-group-model';
+import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
 
 const groupsCollection = collection(firestore, 'groups');
 
@@ -46,6 +46,7 @@ export const FirebaseGroupRouter = createTRPCRouter({
 			await getDocs(q).then((response) => {
 				response.forEach((doc) => {
 					groups.push({
+						id: doc.id,
 						name: doc.data().name as string,
 						creatorKey: input.creatorKey!,
 						groupHash: doc.data().groupHash as string,

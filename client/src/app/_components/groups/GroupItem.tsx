@@ -4,47 +4,49 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// import React, { useCallback, useEffect, useState } from 'react';
-// import router from 'next/router';
-// import { BasicModal } from '../ui/basic-modal';
-// import { InlineLink } from '../ui/inline-link';
 import router from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
-import { type IPFSGroupModel } from '~/models/ipfs-group-model';
+import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { api } from '~/trpc/react';
-import { BasicModal } from '../ui/basic-modal';
+import BasicModal from '../ui/BasicModal';
 import { toast } from 'react-toastify';
-// import { type IPFSProductModel } from '~/models/ipfs-product-model';
-// import { toast } from 'react-toastify';
-// import ZoomableImage from '../ui/zoomable-image';
-// import { fetchImageData } from '~/helpers/image-helper';
+import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
+import ZoomableImage from '../ui/ZoomableImage';
+import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
+import { fetchImageData } from '~/helpers/image-helper';
+import { IoPeople } from 'react-icons/io5';
+import InlineLink from '../ui/InlineLink';
+import BasicButton from '../ui/BasicButton';
+import { showModal } from '~/helpers/modal-helper';
 
 type GroupItemProps = {
-	currentGroup: string;
-	creatorId: string;
+	firebaseGroup: FirebaseGroupModel;
 };
 
-const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
-	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: currentGroup });
+const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: firebaseGroup.groupHash });
+	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: groupData?.group.productHash });
 	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
+	const [product, setProduct] = useState<IPFSProductModel>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
 
-	const toggleModal = () => {
-		setDisplayModal(!displayModal);
+	const openModal = () => {
+		showModal('group-item');
 	};
 
-	// const completedRatio = product?.itemsReceived ? (product.itemsReceived / product.groupMembers) * 100 : 0;
-
-	// const completedPercentage = () => {
-	// 	return product.itemsReceived ? `${Math.round(completedRatio)}%` : 0;
-	// };
-
 	const handleClick = (e: Event | undefined) => {
-		void router.push(`/groups/${group?.name}`);
+		//At this point we have all group information from firebase and IPFS
+		//Pass to reduce need to query?
+		void router.push({
+			pathname: `/groups/${firebaseGroup.id}`,
+			query: {
+				groupHash: firebaseGroup.groupHash,
+			},
+		});
 		e?.stopPropagation();
 	};
 
@@ -53,25 +55,27 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 		setIsLoading(true);
 		try {
 			if (groupData) {
-				const currGroup = groupData.group as unknown as IPFSGroupModel;
+				const currGroup = groupData.group as IPFSGroupModel;
 				setGroup(currGroup);
-				// await fetchImageData(currProd, setHasImage, setImageData, setImageError);
+			}
+			if (productData) {
+				const currProd = productData.product as IPFSProductModel;
+				setProduct(productData.product);
+				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 		} catch (err) {
 			console.log(err);
-			toast.error('Error fetching one or more images');
+			toast.error('Error fetching group item info');
 		} finally {
 			setIsLoading(false);
 		}
-	}, [groupData]);
+	}, [groupData, productData]);
 
 	useEffect(() => {
-		//Use void here as do not need result, use state set inside result
 		void fetchInfo();
 	}, [fetchInfo, group]);
 
 	return (
-		// <div>{currentProduct}</div>
 		<>
 			{isLoading ? (
 				'Loading...'
@@ -80,27 +84,31 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 				<div
 					className="grid grid-cols-10 gap-4 p-4 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer"
 					// @ts-ignore
-					onClick={(e) => handleClick(e)}
+					// onClick={(e) => handleClick(e)}
 				>
-					{/* <div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded">
+					<div className="col-span-1 flex flex-col justify-center">
 						{hasImage ? (
 							<ZoomableImage source={imageData[0] ?? null} width={100} height={100} alt={'image'} />
 						) : null}
-					</div> */}
-					<div className="col-span-2 flex flex-col justify-center">
-						<strong>Group name:</strong> <p>{group?.name}</p>
-						<strong>Creator ID:</strong> <p>{creatorId}</p>
-						<strong>Price:</strong>{' '}
-						<p>
-							{group?.currency}
-							{group?.price}
-						</p>
-						<strong>Duration:</strong> <p>{group?.duration}</p>
-						<strong>Participants:</strong> <p>{group?.participants}</p>
-						<strong>Product Hash:</strong> <p>{group?.productHash}</p>
-						{/* <p className="text-sm text-dark-grey">{creatorId}</p> */}
+					</div>
+					<div className="flex flex-col col-span-3 items-center justify-center">
+						<strong>{group?.name}</strong>
+						<strong>{product?.name}</strong>
+					</div>
+					<div className="flex flex-col col-span-2 items-center justify-center">
+						<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
 					</div>
 
+					<div className="flex flex-row col-span-2 items-center justify-center">
+						<IoPeople />
+						<p>{group?.participants}</p>
+					</div>
+
+					<div className="flex flex-col col-span-2 items-center justify-center">
+						<BasicButton type={'secondary'} onClick={(e) => handleClick(e)}>
+							View Details
+						</BasicButton>
+					</div>
 					{/* <div className="col-span-1 flex items-center gap-1">
 					<FaUserGroup />
 					<p>{product?.groupMembers}</p>
@@ -119,9 +127,8 @@ const GroupItem = ({ currentGroup, creatorId }: GroupItemProps) => {
 					</BasicButton>
 				</div> */}
 					<BasicModal
-						isOpen={displayModal}
-						onClose={toggleModal}
-						header={<h2 className="text-xl font-semibold">Group Details</h2>}
+						id="group-item"
+						header="Group Details"
 						content={
 							<div>
 								<div className="flex items-center gap-1">

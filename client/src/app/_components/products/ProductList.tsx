@@ -5,8 +5,8 @@ import React, { useEffect, useState } from 'react';
 import ProductItem from './ProductItem';
 import { type Product } from '~/types/product-types';
 import { api } from '~/trpc/react';
-import { useWallet } from '../../../providers/WalletProvider/index';
-import { type FirebaseProductModel } from '~/models/firebase-product-model';
+import { useWallet } from '~/providers/WalletProvider';
+import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 
 type ProductListProps = {
 	heading?: string;
@@ -46,9 +46,9 @@ const ProductList = ({ heading }: ProductListProps) => {
 	return (
 		<div className="flex flex-col gap-2 mb-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
-			{products ? (
+			{products.length > 0 ? (
 				products.map((product, index) => {
-					return <ProductItem key={index} currentProduct={product.productHash} />;
+					return <ProductItem key={index} firebaseProduct={product} />;
 				})
 			) : (
 				<p>No products found.</p>

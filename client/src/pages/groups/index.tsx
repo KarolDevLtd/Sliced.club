@@ -1,26 +1,33 @@
-import PageHeader from '~/app/_components/ui/page-header';
-import { useState } from 'react';
-import { BasicButton } from '~/app/_components/ui/basic-button';
-import { InlineLink } from '~/app/_components/ui/inline-link';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import PageHeader from '~/app/_components/ui/PageHeader';
+import BasicButton from '~/app/_components/ui/BasicButton';
+import InlineLink from '~/app/_components/ui/InlineLink';
 import { preventActionNotLoggedIn } from '~/helpers/user-helper';
 import PlatformLayout from '~/layouts/platform';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import AddGroupModal from '~/app/_components/groups/AddGroupModal';
+import { closeModal, showModal } from '~/helpers/modal-helper';
+import GroupList from '~/app/_components/groups/GroupList';
+import { useState } from 'react';
+
 export default function Groups() {
 	const groupId = '69';
 	const [groupOpen, setGroupOpen] = useState(false);
+	const [shouldRefreshGroups, setShouldRefreshGroups] = useState(false);
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
-	const showGroup = () => {
+	const showGroupModal = () => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
-		setGroupOpen(true);
+		showModal('add-group');
 	};
 
-	const hideGroup = () => {
-		setGroupOpen(false);
+	const handleGroupSubmitted = () => {
+		setShouldRefreshGroups((prev) => !prev);
 	};
 
 	return (
@@ -28,11 +35,13 @@ export default function Groups() {
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
 			<InlineLink href={`groups/${groupId}`}>Group 69</InlineLink>
 			<div className="p-1">
-				<BasicButton type="primary" onClick={showGroup}>
+				{/* @ts-ignore */}
+				<BasicButton type="primary" onClick={showGroupModal}>
 					Add Group
 				</BasicButton>
 			</div>
-			<AddGroupModal groupOpen={groupOpen} hideGroup={hideGroup} />
+			<GroupList key={shouldRefreshGroups ? 'refresh' : 'normal'} />
+			<AddGroupModal groupOpen={groupOpen} hideGroup={closeModal} onGroupSubmitted={handleGroupSubmitted} />
 		</>
 	);
 }

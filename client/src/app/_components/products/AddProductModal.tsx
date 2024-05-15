@@ -12,25 +12,27 @@ import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import { preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
-import { BasicModal } from '../ui/basic-modal';
-import { TextInput } from '../ui/text-input';
-import { SelectOption } from '../ui/select-option';
+import BasicModal from '../ui/BasicModal';
+import TextInput from '../ui/TextInput';
+import SelectOption from '../ui/SelectOption';
 import { ProductCategoryOptions } from '~/models/product-category-options';
-import { BasicButton } from '../ui/basic-button';
-import { Spinner } from '../ui/spinner';
-import DragDrop from '../ui/drag-drop';
+import BasicButton from '../ui/BasicButton';
+import Spinner from '../ui/Spinner';
+import DragDrop from '../ui/DragDrop';
 import { saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
-import { useWallet } from '../../../providers/WalletProvider';
+import { useWallet } from '~/providers/WalletProvider';
 import { DateTime } from 'luxon';
 import ProductFields from './ProductFields';
+import { closeModal } from '~/helpers/modal-helper';
 
 type AddProductModalProps = {
 	productOpen: boolean;
 	hideProduct: () => void;
+	onProductSubmitted: () => void;
 };
 
-const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => {
+const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 
@@ -108,20 +110,27 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create product')) return;
 			await saveProduct(data['product-name'], data['product-price'], data['product-category']);
 			reset();
-			hideProduct();
+			closeModal('add-product');
 			// refetchPosts();
 			toast.success('Product created successfully');
 		} catch (err) {
 			console.log(err);
 		} finally {
 			setIsLoading(false);
+			onProductSubmitted();
 		}
 	};
+
+	const clearForm = () => {
+		reset();
+		unregister(['product-name', 'product-price', 'product-category']);
+	};
+
 	return (
 		<BasicModal
-			isOpen={productOpen}
-			onClose={hideProduct}
-			header={<h2 className="text-xl font-semibold">Add Product</h2>}
+			id="add-product"
+			header="Add Product"
+			onClose={clearForm}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
@@ -170,7 +179,7 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 						}}
 					/>
 					<div>
-						<BasicButton type={'tertiary'} onClick={() => setDisplayTailoredFields(true)}>
+						<BasicButton type={'accent'} onClick={() => setDisplayTailoredFields(true)}>
 							Add Product Fields
 						</BasicButton>
 					</div>
@@ -193,7 +202,14 @@ const AddProductModal = ({ productOpen, hideProduct }: AddProductModalProps) => 
 						>
 							Save
 						</BasicButton>
-						<BasicButton type="secondary" disabled={isLoading} onClick={hideProduct}>
+						<BasicButton
+							type="secondary"
+							disabled={isLoading}
+							onClick={() => {
+								clearForm();
+								closeModal('add-product');
+							}}
+						>
 							Cancel
 						</BasicButton>
 					</div>

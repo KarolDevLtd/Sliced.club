@@ -2,20 +2,16 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 // https://react-hook-form.com/docs/useform
 import { useForm } from 'react-hook-form';
-
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-
 import { toast } from 'react-toastify';
-
-import { BasicButton } from '~/app/_components/ui/basic-button';
-import { Checkbox } from '~/app/_components/ui/checkbox';
-import { InlineLink } from '~/app/_components/ui/inline-link';
-import { TextInput } from '~/app/_components/ui/text-input';
-
+import BasicButton from '~/app/_components/ui/BasicButton';
+import InlineLink from '~/app/_components/ui/InlineLink';
+import TextInput from '~/app/_components/ui/TextInput';
 import { preventActionWalletNotConnected } from '~/helpers/user-helper';
 import DefaultLayout from '~/layouts/default';
+import CheckBox from '~/app/_components/ui/CheckBox';
 
 export default function Login() {
 	const router = useRouter();
@@ -54,8 +50,7 @@ export default function Login() {
 	};
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 my-auto h-100 flex-1">
-			<div className="min-w-100 bg-light-grey hidden md:block"></div>
+		<div className="grid grid-cols-1 my-auto h-100 flex-1">
 			<div className="flex min-h-full flex-col justify-center lg:px-20 md:px-10 py-6">
 				<h2 className="mb-6 text-center text-2xl font-bold">Sign in to Slice</h2>
 
@@ -89,9 +84,9 @@ export default function Login() {
 							}}
 						/>
 
-						<Checkbox id="remember-me" name="remember-me" errors={errors} register={register}>
+						<CheckBox id="remember-me" name="remember-me" errors={errors} register={register}>
 							Remember me
-						</Checkbox>
+						</CheckBox>
 					</div>
 
 					<BasicButton type="primary" submitForm={true}>

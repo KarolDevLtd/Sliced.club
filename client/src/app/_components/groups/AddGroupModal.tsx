@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable react-hooks/rules-of-hooks */
@@ -6,12 +9,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useForm } from 'react-hook-form';
-import { BasicButton } from '../ui/basic-button';
-import { BasicModal } from '../ui/basic-modal';
-import { Checkbox } from '../ui/checkbox';
-import { InlineLink } from '../ui/inline-link';
-import { SelectOption } from '../ui/select-option';
-import { TextInput } from '../ui/text-input';
+import BasicButton from '../ui/BasicButton';
+import BasicModal from '../ui/BasicModal';
+import CheckBox from '../ui/CheckBox';
+import InlineLink from '../ui/InlineLink';
+import SelectOption from '../ui/SelectOption';
+import TextInput from '../ui/TextInput';
 import { type ChangeEvent, useState, useEffect } from 'react';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -19,21 +22,22 @@ import { type UserState } from '~/stores/userStore';
 import { preventActionWalletNotConnected } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
 import { CountryOptions } from '~/models/country-options';
-import { Spinner } from '../ui/spinner';
-import { CurrencyOptions } from '~/models/currency-options';
+import Spinner from '../ui/Spinner';
 import { api } from '~/trpc/react';
-import { useWallet } from '../../../providers/WalletProvider/index';
-import { type FirebaseProductModel } from '~/models/firebase-product-model';
+import { useWallet } from '~/providers/WalletProvider';
+import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
+import { closeModal } from '~/helpers/modal-helper';
+import { FaUserGroup } from 'react-icons/fa6';
+import TextArea from '../ui/TextArea';
 
 type AddGroupModalProps = {
-	groupOpen: boolean;
-	hideGroup: () => void;
+	onGroupSubmitted: () => void;
 };
 
-const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
+const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
 	const { data: fbProductData } = api.FirebaseProduct.getProducts.useQuery({
@@ -71,6 +75,7 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 
 	const saveGroup = async (
 		name: string,
+		description: string,
 		price: string,
 		duration: string,
 		participants: string,
@@ -81,8 +86,10 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
 			const groupProductToIPFS = await groupToIPFS.mutateAsync({
 				name: name,
+				description: description,
 				price: price,
 				duration: duration,
+				instalments: instalments ?? 0,
 				participants: participants,
 				productHash: product.productHash,
 			});
@@ -107,19 +114,21 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
 			await saveGroup(
 				data['group-name'] as string,
+				data['group-description'] as string,
 				currentSelectedProduct?.price!,
 				duration.toString(),
 				participants.toString(),
 				currentSelectedProduct!
 			);
 			reset();
-			hideGroup();
+			closeModal('add-group');
 			// refetchPosts();
 			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
 		} finally {
 			setIsLoading(false);
+			onGroupSubmitted();
 		}
 	};
 
@@ -135,18 +144,24 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 
 	useEffect(() => {
 		//TO DO : fix this cast
-		setInstalments(((currentSelectedProduct as unknown as number) / participants) * duration);
+		setInstalments((currentSelectedProduct?.price as unknown as number) / (participants * duration));
 	}, [participants, duration, currentSelectedProduct]);
+
+	const clearForm = () => {
+		reset();
+		unregister(['group-name', 'product', 'group-description', 'country', 'tandc', 'agree-contact']);
+	};
 
 	return (
 		<BasicModal
-			isOpen={groupOpen}
-			onClose={hideGroup}
-			header={<h2 className="text-xl font-semibold">Add Group</h2>}
+			id="add-group"
+			header="Add Group"
+			onClose={clearForm}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
 						id="group-name"
+						icon={<FaUserGroup />}
 						name="group-name"
 						type="text"
 						label="Group Name"
@@ -185,6 +200,26 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 					) : (
 						`No products`
 					)}
+					<TextArea
+						id="group-description"
+						name="group-description"
+						label="Group Description"
+						required={true}
+						showCharacterCount={true}
+						errors={errors}
+						register={register}
+						validationSchema={{
+							required: 'Group Description is required',
+							minLength: {
+								value: 20,
+								message: 'Group Description must be at least 20 characters',
+							},
+							maxLength: {
+								value: 250,
+								message: 'Group Description must be at less than 250 characters',
+							},
+						}}
+					/>
 					{/* TODO replace with flag package */}
 					<SelectOption
 						id="country"
@@ -201,13 +236,19 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 						}}
 					/>
 					{/* TODO replace youtube link */}
-					<Checkbox id={'tandc'} name={'tand'}>
+					<CheckBox type="secondary" id="tandc" name="tandc" errors={errors} register={register}>
 						I confirm my legal abilities to sell the goods and agree to
 						<InlineLink href={'https://youtube.com'}>T&Cs</InlineLink>
-					</Checkbox>
-					<Checkbox id={''} name={''}>
+					</CheckBox>
+					<CheckBox
+						type="secondary"
+						id="agree-contact"
+						name="agree-contact"
+						errors={errors}
+						register={register}
+					>
 						I agree to be contacted regarding my registration/eligibility and await to be contacted 
-					</Checkbox>
+					</CheckBox>
 					<div className="w-100 flex justify-end items-center gap-2">
 						<BasicButton
 							type="primary"
@@ -217,7 +258,14 @@ const AddGroupModal = ({ groupOpen, hideGroup }: AddGroupModalProps) => {
 						>
 							Save
 						</BasicButton>
-						<BasicButton type="secondary" disabled={isLoading} onClick={hideGroup}>
+						<BasicButton
+							type="secondary"
+							disabled={isLoading}
+							onClick={() => {
+								clearForm();
+								closeModal('add-group');
+							}}
+						>
 							Cancel
 						</BasicButton>
 					</div>

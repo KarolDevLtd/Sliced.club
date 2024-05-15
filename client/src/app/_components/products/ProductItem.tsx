@@ -6,30 +6,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import React, { useCallback, useEffect, useState } from 'react';
 import router from 'next/router';
-import { BasicModal } from '../ui/basic-modal';
-import { InlineLink } from '../ui/inline-link';
+import BasicModal from '../ui/BasicModal';
+import InlineLink from '../ui/InlineLink';
 import { api } from '~/trpc/react';
-import { type IPFSProductModel } from '~/models/ipfs-product-model';
+import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { toast } from 'react-toastify';
-import ZoomableImage from '../ui/zoomable-image';
+import ZoomableImage from '../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
+import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 
 type ProductItemProps = {
-	currentProduct: string;
+	firebaseProduct: FirebaseProductModel;
 };
 
-const ProductItem = ({ currentProduct }: ProductItemProps) => {
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: currentProduct });
+const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
+	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: firebaseProduct.productHash });
 	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [product, setProduct] = useState<IPFSProductModel>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
-
-	const toggleModal = () => {
-		setDisplayModal(!displayModal);
-	};
 
 	// const completedRatio = product?.itemsReceived ? (product.itemsReceived / product.groupMembers) * 100 : 0;
 
@@ -38,7 +35,7 @@ const ProductItem = ({ currentProduct }: ProductItemProps) => {
 	// };
 
 	const handleClick = (e: Event | undefined) => {
-		void router.push(`/groups/${product?.name}`);
+		void router.push(`/groups/${firebaseProduct.id}`);
 		e?.stopPropagation();
 	};
 
@@ -47,7 +44,7 @@ const ProductItem = ({ currentProduct }: ProductItemProps) => {
 		setIsLoading(true);
 		try {
 			if (productData) {
-				const currProd = productData.product as unknown as IPFSProductModel;
+				const currProd = productData.product as IPFSProductModel;
 				setProduct(productData.product);
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
@@ -106,9 +103,8 @@ const ProductItem = ({ currentProduct }: ProductItemProps) => {
 					</BasicButton>
 				</div> */}
 					<BasicModal
-						isOpen={displayModal}
-						onClose={toggleModal}
-						header={<h2 className="text-xl font-semibold">Item Details</h2>}
+						id="product-item"
+						header="Item Details"
 						content={
 							<div>
 								<div className="flex items-center gap-1">

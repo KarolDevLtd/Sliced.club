@@ -11,9 +11,11 @@ export const PinataGroupRouter = createTRPCRouter({
 		.input(
 			z.object({
 				name: z.string(),
+				description: z.string(),
 				price: z.string(),
 				duration: z.string(),
 				participants: z.string(),
+				instalments: z.number(),
 				productHash: z.string(),
 			})
 		)
@@ -38,15 +40,19 @@ export const PinataGroupRouter = createTRPCRouter({
 		}),
 
 	//TODO - Could this be refactored to be the same for posts, comments, groups and groups?
-	getGroup: publicProcedure.input(z.object({ hash: z.string() })).query(async ({ input }) => {
+	getGroup: publicProcedure.input(z.object({ hash: z.string().nullish() })).query(async ({ input }) => {
 		let group;
-		try {
-			const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
-				method: 'GET',
-			});
-			group = await response.json(); // This parses the JSON from the response body
-		} catch (err) {
-			console.log('Error getting hash from IPFS');
+		if (input.hash != null) {
+			try {
+				const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
+					method: 'GET',
+				});
+				group = await response.json(); // This parses the JSON from the response body
+			} catch (err) {
+				console.log('Error getting hash from IPFS');
+			}
+		} else {
+			console.log('sliced-server-msg:getGroup, current query group id is null');
 		}
 		return { group };
 	}),

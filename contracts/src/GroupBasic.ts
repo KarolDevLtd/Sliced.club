@@ -1,35 +1,32 @@
 import {
-  SmartContract,
   Poseidon,
   Field,
   State,
   state,
-  assert,
   PublicKey,
   method,
   UInt32,
-  MerkleWitness,
+  VerificationKey,
+  TokenContract,
   Struct,
   Signature,
+  Permissions,
   Reducer,
   Bool,
   Provable,
   AccountUpdate,
-  MerkleList,
-  Nullifier,
-  Circuit,
-  MerkleMapWitness,
-  MerkleMap,
+  AccountUpdateForest,
   DeployArgs,
   Encryption,
   UInt64,
   PrivateKey,
   Group,
-  Unconstrained,
 } from 'o1js';
 import { FungibleToken } from './token/FungibleToken';
-// we need the initiate tree root in order to tell the contract about our off-chain storage
-let initialCommitment: Field = Field(0);
+import { GroupUserStorage } from './GroupUserStorage';
+import { PackedBoolFactory } from './lib/packed-types/PackedBool';
+
+export class Payments extends PackedBoolFactory(250) {}
 type CipherText = {
   publicKey: Group;
   cipherText: Field[];
@@ -42,12 +39,19 @@ export class Entry extends Struct({
   // },
   message: UInt64,
   paymentRound: UInt64,
+  isLottery: Bool,
 }) {
-  constructor(publicKey: PublicKey, message: UInt64, paymentRound: UInt64) {
+  constructor(
+    publicKey: PublicKey,
+    message: UInt64,
+    paymentRound: UInt64,
+    isLottery: Bool
+  ) {
     super({
       publicKey,
       message,
       paymentRound,
+      isLottery,
     });
   }
   hash(): Field {
@@ -67,7 +71,9 @@ export class Entry extends Struct({
 export class GroupSettings extends Struct({
   maxMembers: UInt32,
   itemPrice: UInt32,
+  /** In payment rounds */
   groupDuration: UInt32,
+  /** Stablecoin token */
   tokenAddress: PublicKey,
 }) {
   constructor(
@@ -95,20 +101,35 @@ export class GroupSettings extends Struct({
 }
 const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
-export class GroupBasic extends SmartContract {
-  // a commitment is a cryptographic primitive that allows us to commit to data, with the ability to "reveal" it later
-  @state(Field) merkleRoot = State<Field>(); //for group patricipants
+export class GroupBasic extends TokenContract {
   @state(Field) groupSettingsHash = State<Field>();
   @state(PublicKey) admin = State<PublicKey>();
   @state(UInt64) paymentRound = State<UInt64>();
   reducer = Reducer({ actionType: Entry });
+  events = {
+    'lottery-winner': PublicKey,
+    'auction-winner': PublicKey,
+  };
 
-  // state ipfs hash?
+  @method
+  async approveBase(updates: AccountUpdateForest): Promise<void> {
+    this.checkZeroBalanceChange(updates);
+    // TODO: event emission here
+  }
 
   async deploy(args: DeployArgs & { admin: PublicKey }) {
     await super.deploy(args);
     this.admin.set(args.admin);
-    this.merkleRoot.set(initialCommitment);
+    // this.account.permissions.set({
+    //   ...Permissions.default(),
+    //   editState: Permissions.none(),
+    //   setTokenSymbol: Permissions.none(),
+    //   //   editActionsState: Permissions.none(),
+    //   send: Permissions.none(),
+    //   receive: Permissions.none(),
+    //   setPermissions: Permissions.none(),
+    //   incrementNonce: Permissions.proofOrSignature(),
+    // });
     this.paymentRound.set(UInt64.zero);
     this.groupSettingsHash.set(GroupSettings.empty().hash());
   }
@@ -123,26 +144,57 @@ export class GroupBasic extends SmartContract {
     this.groupSettingsHash.set(groupSettings.hash());
   }
 
+  /** Called once at the start. User relinquishes ability to modify token account bu signing */
+  @method async addUserToGroup(address: PublicKey, vk: VerificationKey) {
+    const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
+
+    this.approve(groupUserStorageUpdate); // TODO: check if this is needed
+
+    groupUserStorageUpdate.body.update.verificationKey = {
+      isSome: Bool(true),
+      value: vk,
+    };
+    groupUserStorageUpdate.body.update.permissions = {
+      isSome: Bool(true),
+      value: {
+        ...Permissions.default(),
+        // TODO make it proof only
+        editState: Permissions.proofOrSignature(),
+        send: Permissions.impossible(), // we don't want to allow sending - soulbound
+        // setVerificationKey: Permissions.proof(),
+      },
+    };
+    AccountUpdate.setValue(
+      groupUserStorageUpdate.body.update.appState[3], // isParticipant
+      Bool(true).toField()
+    );
+
+    groupUserStorageUpdate.requireSignature();
+  }
+
   @method
   async roundPayment(_groupSettings: GroupSettings, amountOfBids: UInt64) {
-    //TODO ensure user in the group
     let senderAddr = this.sender.getAndRequireSignature();
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
 
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
-    //TODO ensure payment round not yet paid ? nullifier?
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
+
     let paymentAmount = this.getPaymentAmount(_groupSettings);
     //check if has the actual bidding amount
-    let balance = await token.getBalanceOf(senderAddr);
-    balance.assertGreaterThanOrEqual(
-      paymentAmount.mul(amountOfBids),
-      'Not enough balance to cover potential bid payment'
-    );
+    // let balance = await token.getBalanceOf(senderAddr);
+    // // Check ability to act out on bid if won
+    // balance.assertGreaterThanOrEqual(
+    //   paymentAmount.mul(amountOfBids),
+    //   'Not enough balance to cover potential bid payment'
+    // );
 
-    //if has bids, double payment
+    // Mark of payment in the token account
+    await this.paySegments(currentPaymentRound);
+
+    // If bidding take one extra payment now
     paymentAmount = Provable.if(
       amountOfBids.greaterThan(new UInt64(0)),
       paymentAmount.mul(2),
@@ -151,7 +203,7 @@ export class GroupBasic extends SmartContract {
     // Provable.log('paymentAmount', paymentAmount);
     await token.transfer(senderAddr, this.address, paymentAmount);
     this.reducer.dispatch(
-      new Entry(senderAddr, UInt64.zero, currentPaymentRound)
+      new Entry(senderAddr, UInt64.zero, currentPaymentRound, Bool(true))
     );
 
     //encrypt bidding info
@@ -159,11 +211,14 @@ export class GroupBasic extends SmartContract {
     // let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
 
     this.reducer.dispatch(
-      new Entry(senderAddr, amountOfBids, currentPaymentRound)
+      new Entry(senderAddr, amountOfBids, currentPaymentRound, Bool(false))
     );
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
     // adminPubKey;
   }
+  //TODO are we saving last action's hash and using it everyy
+  // mitigate the 'latest' most likley to win in underpaid group (eg 15/20 paid, rnd = 18 (15th has 5/20 chance))
+  //^ iterate from last ? and flip Bools
   @method
   async getResults(
     _groupSettings: GroupSettings,
@@ -176,8 +231,9 @@ export class GroupBasic extends SmartContract {
     adminPubKey.assertEquals(adminPrivKey.toPublicKey());
 
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
-    Provable.log('randomValue', randomValue);
+    // Provable.log('randomValue', randomValue);
     // get all actions
+    //TODO add latest action hash that was called, and start from next onwards
     let actions = this.reducer.getActions();
 
     // prove that we know the correct action state
@@ -185,7 +241,7 @@ export class GroupBasic extends SmartContract {
     let currentHighestBid = UInt64.zero;
     let auctionWinner: PublicKey = PublicKey.empty();
     let lotteryWinner: PublicKey = PublicKey.empty();
-    let iter = actions.startIterating(); // or from last, to check
+    let iter = actions.startIterating();
     let distanceFromRandom = Field.from(999);
     let currentDistance = Field.from(999);
     // TODO what if win lottery but also auction
@@ -200,6 +256,13 @@ export class GroupBasic extends SmartContract {
       let merkleActions = iter.next();
       let innerIter = merkleActions.startIterating();
       //based on the DISTANCE from random number, set the lottery winner
+      // Provable.log(
+      //   'currentDistance',
+      //   currentDistance,
+      //   'distanceFromRandom',
+      //   distanceFromRandom
+      // );
+      // how far index is from vrf
       currentDistance = Provable.if(
         iterIndex.greaterThanOrEqual(randomValue),
         iterIndex.sub(randomValue),
@@ -209,33 +272,37 @@ export class GroupBasic extends SmartContract {
       for (let j = 0; j < MAX_ACTIONS_PER_UPDATE; j++) {
         //can I ensure order of action in an update
         let action = innerIter.next();
+
+        let auctionCondition = action.message
+          .greaterThan(currentHighestBid)
+          .and(action.paymentRound.equals(currentPaymentRound))
+          .and(action.isLottery.equals(Bool(false))); // Update type check: bid / auction
+
         auctionWinner = Provable.if(
-          action.message
-            .greaterThan(currentHighestBid)
-            .and(action.paymentRound.equals(currentPaymentRound)),
+          auctionCondition,
           action.publicKey,
           auctionWinner
         );
         currentHighestBid = Provable.if(
-          action.message
-            .greaterThan(currentHighestBid)
-            .and(action.paymentRound.equals(currentPaymentRound)),
+          auctionCondition,
           action.message,
           currentHighestBid
         );
-        // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
-        distanceFromRandom = Provable.if(
-          action.message
-            .equals(UInt64.zero) //i can't have zero as all of them are 0, let's add flag lottery TODO
-            .and(action.paymentRound.equals(currentPaymentRound))
-            .and(currentDistance.lessThan(distanceFromRandom)),
-          currentDistance,
-          distanceFromRandom
-        );
+
+        let lotteryCondition = action.isLottery
+          .and(action.paymentRound.equals(currentPaymentRound))
+          .and(currentDistance.lessThan(distanceFromRandom));
+
         lotteryWinner = Provable.if(
-          currentDistance.equals(distanceFromRandom),
+          lotteryCondition,
           action.publicKey,
           lotteryWinner
+        );
+        // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
+        distanceFromRandom = Provable.if(
+          lotteryCondition,
+          currentDistance,
+          distanceFromRandom
         );
 
         //this may still be correct
@@ -255,9 +322,12 @@ export class GroupBasic extends SmartContract {
       innerIter.assertAtEnd();
     }
     iter.assertAtEnd();
-    Provable.log('auctionWinner', auctionWinner);
-    Provable.log('lotteryWinner', lotteryWinner);
-    Provable.log('distanceFromRandom', distanceFromRandom);
+    // Provable.log('auctionWinner', auctionWinner);
+    // Provable.log('lotteryWinner', lotteryWinner);
+    // Provable.log('distanceFromRandom', distanceFromRandom);
+
+    this.emitEvent('lottery-winner', lotteryWinner);
+    this.emitEvent('auction-winner', auctionWinner);
 
     //TODO double check logic for this
     let advanceRound = Provable.if(
@@ -265,6 +335,9 @@ export class GroupBasic extends SmartContract {
       UInt64.zero,
       UInt64.one
     );
+
+    //if auction winner == lottery winner, take 2nd closest to lottery winner ? TODO
+
     this.paymentRound.set(currentPaymentRound.add(advanceRound));
   }
 
@@ -273,6 +346,148 @@ export class GroupBasic extends SmartContract {
       groupSettings.itemPrice.div(groupSettings.maxMembers).mul(new UInt32(2)) // 2 items per payment round
     );
   }
+
+  /** Tick of a single payment round */
+  private async paySegments(paymentRound: UInt64) {
+    let senderAddr = this.sender.getAndRequireSignature();
+    let ud = new GroupUserStorage(senderAddr, this.deriveTokenId());
+    //ensure user is a patricipant
+    let isParticipant = ud.isParticipant.get();
+    isParticipant.assertEquals(Bool(true));
+    //TODO ensure payment round not yet paid ?
+    let paymentsField = ud.payments.get();
+    const payments: Payments = Payments.fromBools(
+      Payments.unpack(paymentsField)
+    );
+    // // // // Write to the month index provided
+    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
+    // Iterate over all values and flip one only
+    for (let i = 0; i < 240; i++) {
+      let t: Bool = paymentsBools[i];
+      let newWrite: Bool = Provable.if(
+        new UInt64(i).equals(paymentRound),
+        Bool(true),
+        t
+      );
+      paymentsBools[i] = newWrite;
+    }
+    // Provable.log(
+    //   'Pay seg paymentRound.value.value[0]: ',
+    //   paymentRound.value.value[0]
+    // );
+    // Update payments
+    const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());
+    AccountUpdate.setValue(
+      update.body.update.appState[0],
+      Payments.fromBoolsField(paymentsBools)
+    );
+    update.requireSignature();
+  }
+
+  /** Make up for prior missed payments */
+  private async totalPayments(): Promise<Field> {
+    // Extract compensations
+    let user: PublicKey = this.sender.getAndRequireSignature();
+    let ud = new GroupUserStorage(user, this.deriveTokenId());
+    let compensationsField = ud.compensations.getAndRequireEquals();
+    const compensations: Payments = Payments.fromBools(
+      Payments.unpack(compensationsField)
+    );
+
+    let compensationBools: Bool[] = Payments.unpack(compensations.packed);
+
+    // Extract payments
+    let paymentsField = ud.payments.getAndRequireEquals();
+    const payments: Payments = Payments.fromBools(
+      Payments.unpack(paymentsField)
+    );
+
+    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
+
+    // Variable for total payments count
+    let count: Field = Field(0);
+
+    // Loop over both
+    for (let i = 0; i < 240; i++) {
+      let add_payments: Field = Provable.if(
+        paymentsBools[i].equals(true),
+        Field(1),
+        Field(0)
+      );
+
+      let add_compensation: Field = Provable.if(
+        compensationBools[i].equals(true),
+        Field(1),
+        Field(0)
+      );
+
+      // Add to count
+      count = count.add(add_payments).add(add_compensation);
+    }
+
+    // Add any overpayments
+    return count;
+  }
+
+  /** Gate for lottery */
+  private async lotteryAccess(currentSegment: Field): Promise<Bool> {
+    // Get payments so far
+    const totalPayments: Field = await this.totalPayments();
+
+    // Return true if it equals current segment number
+    return totalPayments.equals(currentSegment);
+  }
+
+  /** Make up for prior missed payments */
+  private async compensate(numberOfCompensations: UInt64) {
+    // Extract compensations
+    let user: PublicKey = this.sender.getAndRequireSignature();
+    let ud = new GroupUserStorage(user, this.deriveTokenId());
+    let compensationsField = ud.compensations.getAndRequireEquals();
+    const compensations: Payments = Payments.fromBools(
+      Payments.unpack(compensationsField)
+    );
+    let compensationBools: Bool[] = Payments.unpack(compensations.packed);
+
+    // Extract payments
+    let paymentsField = ud.payments.getAndRequireEquals();
+    const payments: Payments = Payments.fromBools(
+      Payments.unpack(paymentsField)
+    );
+
+    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
+
+    // console.log('paymentsField', paymentsField);
+
+    let change: Bool;
+
+    // Iterate over untill the end
+    for (let i = 0; i < 240; i++) {
+      // console.log('Loop vallue: ', paymentsBools[i]);
+      // Change will occur if there is enough to pay and this month is to be paid
+      change = Provable.if(
+        // numberOfCompensations
+        //   .greaterThan(new UInt64(0)) // Something left to pay off
+        //   .and(paymentsBools[i].equals(Bool(false))), // This entry has not been paid
+        paymentsBools[i].equals(Bool(false)),
+        Bool(true),
+        Bool(false)
+      );
+
+      // Update array of compensations
+      compensationBools[i] = Provable.if(change, Bool(true), Bool(false));
+
+      // Set the amount to be subtracted
+      let subAmount: UInt64 = Provable.if(change, new UInt64(1), new UInt64(0));
+
+      // Deduct from numberOfCompensations
+      numberOfCompensations = numberOfCompensations.sub(subAmount);
+    }
+
+    // Update compensations
+    ud.compensations.set(Payments.fromBoolsField(compensationBools));
+  }
+
   //TODO extraPayment()
   //TODO joinGroup()
   //TODO claimLottery()
