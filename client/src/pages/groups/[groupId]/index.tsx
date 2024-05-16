@@ -4,7 +4,7 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import GroupPost from '~/app/_components/groups/group-post/GroupPost';
+import GroupPosts from '~/app/_components/groups/group-post/GroupPosts';
 // import GroupPostInput from '~/app/_components/groups/group-post-input';
 import GroupPostsList from '~/app/_components/groups/group-post/GroupPostsList';
 import Breadcrumbs from '~/app/_components/ui/Breadcrumbs';
@@ -136,15 +136,11 @@ export default function Group() {
 					</div>
 				</div>
 
-				<div className="flex-1  mt-6">
-					<GroupPost groupId={groupId} refetchPosts={handlePostSubmission} />
-					<GroupPostsList
-						groupId={groupId}
-						refreshPosts={refreshPosts}
-						onRefresh={() => {
-							setRefreshPosts(false);
-						}}
-					/>
+				<div className="flex-1 mt-6 grid grid-cols-8 gap-4">
+					<div className="col-span-5">
+						<GroupPosts groupId={groupId} refetchPosts={handlePostSubmission} />
+					</div>
+					<div className="col-span-3"></div>
 				</div>
 			</div>
 		</>

@@ -22,6 +22,8 @@ import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/hel
 import { toast } from 'react-toastify';
 import ZoomableImage from '../../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
+import { IoMdThumbsUp } from 'react-icons/io';
+import { MdOutlineThumbUp } from 'react-icons/md';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -134,52 +136,71 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	}, [fetchLikeData, likesData?.likes, postData, walletAddress]);
 
 	return (
-		<div className="flex flex-col my-2 rounded-xl shadow-sm bg-white border-solid border-2 border-indigo-100">
+		<div className="flex flex-col mb-4 rounded-xl bg-white border-solid border border-neutral bg-accent p-4">
 			{isLoading ? (
 				'Loading...'
 			) : (
 				<div>
-					<div className="text-wrap: wrap flex flex-row justify-between text-gray-400 mt-1 mx-2">
-						<div className="text-xs overflow-hidden">{currentPost.posterKey}</div>
-					</div>
-
-					<div className="my-5">
-						<div className="text-md mt-2 mx-5">{post?.title}</div>
-						<div className="text-md mt-2 mx-5 text-sm">{post?.content}</div>
-						<div className="flex inline-block justify-center">
-							{imageData.map(function (value, index) {
-								return (
-									value != null && (
-										<div key={index} className="m-w-1 flex justify-center">
-											<ZoomableImage
-												source={value}
-												width={100}
-												height={100}
-												alt={`Uploaded image ${index}`}
-											/>
-										</div>
-									)
-								);
-							})}
-						</div>
-						{imageError ? (
-							<div className="mt-1 text-xs text-red-error">
-								{'There was an error fetching one or more image'}
+					{/* <div className=""> */}
+					<div className="flex items-center gap-4 mb-2">
+						<div className="avatar">
+							<div className="rounded h-[2.25rem] w-[2.25rem]">
+								{/* <Image
+									src={'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg'}
+									alt="Placeholder Avatar"
+									width={25}
+									height={25}
+								/> */}
+								<img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
 							</div>
-						) : null}
+						</div>
+						<div className="flex flex-col">
+							<span className="text-sm overflow-hidden">{currentPost.posterKey}</span>
+							<span className="text-xs">15.05.2024 22:19</span>
+						</div>
 					</div>
+					<div className="my-4 flex flex-col gap-1">
+						<span className="text-xl">{post?.title}</span>
+						<span className="text-sm">{post?.content}</span>
+					</div>
+					<div className="flex inline-block justify-center">
+						{imageData.map(function (value, index) {
+							return (
+								value != null && (
+									<div key={index} className="m-w-1 flex justify-center">
+										<ZoomableImage
+											source={value}
+											width={100}
+											height={100}
+											alt={`Uploaded image ${index}`}
+										/>
+									</div>
+								)
+							);
+						})}
+					</div>
+					{imageError ? (
+						<div className="mt-1 text-xs text-red-error">
+							{'There was an error fetching one or more image'}
+						</div>
+					) : null}
+					{/* </div> */}
 
-					<div className="flex justify-between">
-						<BasicButton type={'secondary'} onClick={toggleComments}>
-							<FaRegCommentDots />
-						</BasicButton>
+					<div className="border-t border-neutral flex items-center gap-2 py-2">
 						<BasicButton
-							icon={isLiked ? <FaHeart color="Red" /> : <CiHeart />}
-							type={'secondary'}
+							type="ghost"
+							icon={isLiked ? <IoMdThumbsUp /> : <MdOutlineThumbUp />}
+							iconBefore={true}
 							onClick={isLiked ? onUnLike : onLike}
 						>
+							{}
 							{likeCount}
 						</BasicButton>
+						<div className="flex items-center gap-1 hover:cursor-pointer" onClick={toggleComments}>
+							<BasicButton type="ghost" icon={<FaRegCommentDots />} iconBefore={true}>
+								3 Comments
+							</BasicButton>
+						</div>
 					</div>
 					{showComments ? (
 						<div>
