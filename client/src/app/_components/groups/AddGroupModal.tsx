@@ -40,7 +40,7 @@ type AddGroupModalProps = {
 const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
-	const { data: fbProductData } = api.FirebaseProduct.getProducts.useQuery({
+	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
 	});
 	const groupToIPFS = api.PinataGroup.postGroup.useMutation();
@@ -66,10 +66,10 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		setDuration(sliderVal);
 		setParticipants(2 * sliderVal);
 	};
-	const [currentSelectedProduct, setCurrentSelectedProduct] = useState<FirebaseProductModel | null>();
+	const [currentSelectedProduct, setCurrentSelectedProduct] = useState();
 	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		//TODO: This filter on name should be replaced with filter on id?
-		const selectedProduct = fbProductData?.products.find((p) => p.name === event.target.value)!;
+		const selectedProduct = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
 		setCurrentSelectedProduct(selectedProduct);
 	};
 
@@ -91,14 +91,10 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				duration: duration,
 				instalments: instalments ?? 0,
 				participants: participants,
-				productHash: product.productHash,
-				productName: currentSelectedProduct?.name,
-				productPrice: currentSelectedProduct?.price,
-			});
-			await groupToFirebase.mutateAsync({
-				name: name,
+				productHash: currentSelectedProduct?.ipfs_pin_hash,
+				productName: currentSelectedProduct?.metadata.name,
+				productPrice: currentSelectedProduct?.metadata.keyvalues.price,
 				creatorKey: walletAddress!.toString(),
-				groupHash: groupProductToIPFS.data.IpfsHash,
 				dateTime: DateTime.now().toString(),
 			});
 		} catch (err) {
@@ -117,7 +113,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 			await saveGroup(
 				data['group-name'] as string,
 				data['group-description'] as string,
-				currentSelectedProduct?.price!,
+				currentSelectedProduct?.metadata.keyvalues.price!,
 				duration.toString(),
 				participants.toString(),
 				currentSelectedProduct!
@@ -134,19 +130,21 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		}
 	};
 
-	const serializeList = (list: FirebaseProductModel[]): DropDownContentModel[] => {
+	const serializeList = (list: object[]): DropDownContentModel[] => {
 		return list.map((item) => ({
-			name: item.name,
-			value: item.name,
+			name: item.metadata.name,
+			value: item.metadata.name,
 		}));
 	};
 
-	//Serialize products to a list of suitable drop down models
-	const productList = serializeList(fbProductData?.products ?? []);
+	// //Serialize products to a list of suitable drop down models
+	const productList = serializeList(pinataProductData?.products.rows ?? []);
 
 	useEffect(() => {
 		//TO DO : fix this cast
-		setInstalments((currentSelectedProduct?.price as unknown as number) / (participants * duration));
+		setInstalments(
+			(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)
+		);
 	}, [participants, duration, currentSelectedProduct]);
 
 	const clearForm = () => {
@@ -185,7 +183,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								name="product"
 								placeholder="-- Please select a product --"
 								defaultValue=""
-								value={currentSelectedProduct?.name}
+								value={currentSelectedProduct?.metadata.name}
 								onChange={(e) => handleSelectChange(e)}
 								options={productList}
 							/>
@@ -195,8 +193,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 									duration={duration}
 									onSlide={updateParticipantDuration}
 								/>
-								<div>{`Product price ${currentSelectedProduct?.price}`}</div>
-								<div>{`Installment price per user ${(currentSelectedProduct?.price as unknown as number) / (participants * duration)}`}</div>
+								<div>{`Product price ${currentSelectedProduct?.metadata.keyvalues.price}`}</div>
+								<div>{`Installment price per user ${(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)}`}</div>
 							</div>
 						</div>
 					) : (

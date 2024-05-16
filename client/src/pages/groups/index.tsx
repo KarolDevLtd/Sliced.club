@@ -12,12 +12,14 @@ import { type UserState } from '~/stores/userStore';
 import AddGroupModal from '~/app/_components/groups/AddGroupModal';
 import { closeModal, showModal } from '~/helpers/modal-helper';
 import GroupList from '~/app/_components/groups/GroupList';
-import { useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
+import TextInput from '~/app/_components/ui/TextInput';
 
 export default function Groups() {
 	const groupId = '69';
 	const [groupOpen, setGroupOpen] = useState(false);
 	const [shouldRefreshGroups, setShouldRefreshGroups] = useState(false);
+	const [searchContent, setSearchContent] = useState('');
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
@@ -30,6 +32,11 @@ export default function Groups() {
 		setShouldRefreshGroups((prev) => !prev);
 	};
 
+	const handleSearchContentChange = (event: ChangeEvent<HTMLInputElement>) => {
+		// console.log(event.target.value);
+		setSearchContent(event.target.value);
+	};
+
 	return (
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
@@ -39,6 +46,14 @@ export default function Groups() {
 				<BasicButton type="primary" onClick={showGroupModal}>
 					Add Group
 				</BasicButton>
+			</div>
+			<div>
+				<TextInput
+					id={'group-search'}
+					name={'group-search'}
+					type={'text'}
+					onChange={(e) => handleSearchContentChange(e)}
+				/>
 			</div>
 			<GroupList key={shouldRefreshGroups ? 'refresh' : 'normal'} />
 			<AddGroupModal groupOpen={groupOpen} hideGroup={closeModal} onGroupSubmitted={handleGroupSubmitted} />

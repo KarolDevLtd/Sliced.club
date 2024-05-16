@@ -35,16 +35,13 @@ type AddProductModalProps = {
 const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
-
 	const productToIPFS = api.PinataProduct.postProduct.useMutation();
 	const productToFirebase = api.FirebaseProduct.productToCollection.useMutation();
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
+	const [displayTailoredFields, setDisplayTailoredFields] = useState(false);
+	const [attributes, setAttributes] = useState([]);
 
 	const { isConnected, walletAddress } = useWallet();
-	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
-
-	const [displayTailoredFields, setDisplayTailoredFields] = useState(false);
-
-	const [attributes, setAttributes] = useState([]);
 
 	const {
 		register,
@@ -85,12 +82,7 @@ const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddPr
 				category: category,
 				imageHash: imageHashes,
 				productAttributes: attributes,
-			});
-			await productToFirebase.mutateAsync({
-				name: name,
 				creatorKey: walletAddress!.toString(),
-				productHash: postProductToIPFS.data.IpfsHash,
-				price: price.toString(),
 				dateTime: DateTime.now().toString(),
 			});
 		} catch (err) {
