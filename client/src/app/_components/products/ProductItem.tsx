@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import React, { useCallback, useEffect, useState } from 'react';
-import router from 'next/router';
 import BasicModal from '../ui/BasicModal';
 import InlineLink from '../ui/InlineLink';
 import { api } from '~/trpc/react';
@@ -13,14 +12,13 @@ import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
-import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 
 type ProductItemProps = {
-	firebaseProduct: FirebaseProductModel;
+	productHash: string;
 };
 
-const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: firebaseProduct.productHash });
+const ProductItem = ({ productHash }: ProductItemProps) => {
+	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: productHash });
 	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [product, setProduct] = useState<IPFSProductModel>();
@@ -36,7 +34,7 @@ const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
 
 	const handleClick = (e: Event | undefined) => {
 		//TODO: Is here a product page not associated with group?
-		void router.push(`/groups/${firebaseProduct.id}`);
+		// void router.push(`/groups/${firebaseProduct.id}`);
 		e?.stopPropagation();
 	};
 
