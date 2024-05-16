@@ -39,15 +39,15 @@ const BasicButton = ({
 
 	return (
 		<button
-			className={`btn ${colourMap[type]} ${sizeMap[size]} ${disabled ? 'btn-disabled' : null}`}
+			className={`btn ${colourMap[type]} ${sizeMap[size]} ${disabled ? 'btn-disabled' : null} gap-0`}
 			onClick={onClick}
 			disabled={disabled}
 			type={submitForm ? 'submit' : 'button'}
 			formNoValidate={submitForm}
 		>
-			{icon && iconBefore ? <span className="ms-2">{icon}</span> : null}
+			{icon && iconBefore ? <span className="me-1 w-4">{icon}</span> : null}
 			{children}
-			{icon && !iconBefore ? <span className="ms-2">{icon}</span> : null}
+			{icon && !iconBefore ? <span className="ms-1 w-4">{icon}</span> : null}
 		</button>
 	);
 };
