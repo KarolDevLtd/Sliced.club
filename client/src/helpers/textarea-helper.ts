@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 // Updates the height of a <textarea> when the value changes.
+/* //https:medium.com/@oherterich/creating-a-textarea-with-dynamic-height-using-react-and-typescript-5ed2d78d9848 */
 export const useAutosizeTextArea = (textAreaRef: HTMLTextAreaElement | null, value: string, enableEffect: boolean) => {
 	useEffect(() => {
 		if (textAreaRef && enableEffect) {

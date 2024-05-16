@@ -109,7 +109,7 @@ const TextArea = ({
 					</div>
 				) : null}
 				<textarea
-					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]}`}
+					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]} ${autoResize && 'resize-none'}`}
 					id={id}
 					name={name}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
