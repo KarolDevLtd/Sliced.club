@@ -30,11 +30,21 @@ const PostCommentItem = (currentComment: FirebaseCommentModel) => {
 		fetchData();
 	}, [commentData]);
 	return (
-		<div>
-			<div className="text-wrap: wrap flex flex-row justify-between text-gray-400 mt-1 mx-2">
-				<div className="text-xs overflow-hidden">{currentComment.posterKey}</div>
+		<div className="chat chat-start">
+			<div className="chat-image avatar">
+				<div className="w-10 rounded">
+					<img
+						alt="Tailwind CSS chat bubble component"
+						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
+					/>
+				</div>
 			</div>
-			<div className="text-wrap: wrap flex  px-5 py-2 bg-gray-300 w-full rounded-xl">{comment?.content}</div>
+			<div className="chat-header">
+				{currentComment.posterKey}
+				<time className="ms-1 text-xs opacity-50">2 hours ago</time>
+			</div>
+			<div className="chat-bubble">{comment?.content}</div>
+			{/* <div className="chat-footer opacity-50">Delivered</div> */}
 		</div>
 	);
 };

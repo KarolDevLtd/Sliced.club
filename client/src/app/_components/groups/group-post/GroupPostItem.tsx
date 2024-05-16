@@ -156,7 +156,10 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						</div>
 						<div className="flex flex-col">
 							<span className="text-sm overflow-hidden">{currentPost.posterKey}</span>
-							<span className="text-xs">15.05.2024 22:19</span>
+							<div className="flex items-center">
+								<span className="text-xs">15.05.2024</span>
+								<time className="ms-1 text-xs opacity-50">22:19</time>
+							</div>
 						</div>
 					</div>
 					<div className="my-4 flex flex-col gap-1">
