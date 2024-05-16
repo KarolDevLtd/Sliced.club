@@ -3,34 +3,65 @@ import Image from 'next/image';
 
 import { FaBell } from 'react-icons/fa';
 import { FaCaretDown } from 'react-icons/fa';
+import BasicButton from './BasicButton';
 
 type PageHeaderProps = {
 	text: string;
 	subtext?: string;
 	hideQuickLinks?: boolean;
+	buttonText?: string;
+	onClick?: () => void;
 };
 
-const PageHeader = ({ text, subtext, hideQuickLinks = false }: PageHeaderProps) => {
+const PageHeader = ({ text, subtext, hideQuickLinks = false, buttonText, onClick }: PageHeaderProps) => {
 	return (
-		<div className="flex justify-between items-center min-h-[56px]">
-			<div>
-				<h1 className="text-4xl">{text}</h1>
-				<div className="min-h-[16px]">
-					{subtext ? <p className="text-xs text-dark-grey">{subtext}</p> : null}
+		<div className="flex justify-between items-center min-h-[56px] min-w-full">
+			<div className="flex items-center">
+				<div>
+					<h1 className="text-4xl">{text}</h1>
+					<div className="min-h-[16px]">
+						{subtext ? <p className="text-xs text-dark-grey">{subtext}</p> : null}
+					</div>
 				</div>
+				{buttonText && (
+					<div className="ms-8">
+						<BasicButton type="accent" onClick={onClick}>
+							{buttonText}
+						</BasicButton>
+					</div>
+				)}
 			</div>
 			{!hideQuickLinks ? (
 				<div className="flex items-center gap-3">
 					<div className=" flex justify-center items-center border rounded-md min-h-[2.25rem] min-w-[2.25rem]">
 						<FaBell />
 					</div>
-					<div className="flex items-center bg-black border rounded-md min-h-[2.25rem] min-w-[2.25rem] overflow-hidden">
-						<div className="bg-white rounded-r-md min-h-[2.25rem] min-w-[2.25rem]">
-							<Image src={''} alt={''} />
-						</div>
-						<div className="min-w-[0.25rem]">
+					<div className="dropdown dropdown-hover dropdown-end">
+						<div tabIndex={0} role="button" className="p-0 flex items-center">
+							<div className="avatar">
+								<div className="rounded h-[2.25rem] w-[2.25rem]">
+									{/* <Image
+									src={'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg'}
+									alt="Placeholder Avatar"
+									width={25}
+									height={25}
+								/> */}
+									<img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+								</div>
+							</div>
 							<FaCaretDown className="h-[12px] w-[12px] text-white" />
 						</div>
+						<ul
+							tabIndex={0}
+							className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+						>
+							<li>
+								<a>Item 1</a>
+							</li>
+							<li>
+								<a>Item 2</a>
+							</li>
+						</ul>
 					</div>
 				</div>
 			) : null}

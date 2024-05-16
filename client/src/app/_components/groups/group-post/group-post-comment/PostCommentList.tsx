@@ -44,13 +44,18 @@ const PostCommentList = ({ postId, refreshComments, onRefresh }: PostCommentList
 	}, [error]);
 
 	return (
-		<div className="flex flex-auto w-full overflow-hidden">
+		<div className="flex-1 flex w-full overflow-hidden">
 			{isLoading ? (
 				<div>Loading...</div>
 			) : (
-				<ul className="overflow-auto flex flex-col">
-					{comments.map((comment) => (
-						<PostCommentItem key={comment.hash} hash={comment.hash} posterKey={comment.posterKey} />
+				<ul className="overflow-auto flex-1 flex flex-col min-w-full">
+					{comments.map((comment, index) => (
+						<PostCommentItem
+							id={index.toString()}
+							key={comment.hash}
+							hash={comment.hash}
+							posterKey={comment.posterKey}
+						/>
 					))}
 				</ul>
 			)}
