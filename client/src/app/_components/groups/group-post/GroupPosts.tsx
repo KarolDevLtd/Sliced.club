@@ -26,15 +26,17 @@ import DragDrop from '../../ui/DragDrop';
 import { saveImages } from '~/helpers/image-helper';
 import { closeModal, showModal } from '~/helpers/modal-helper';
 import Dropdown from '../../ui/Dropdown';
+import GroupPostsList from './GroupPostsList';
 
 type GroupPostProps = {
 	groupId: string;
 	refetchPosts: () => void;
 };
 
-const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
+const GroupPosts = ({ groupId, refetchPosts }: GroupPostProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
+	const [refreshPosts, setRefreshPosts] = useState(false);
 
 	const { isConnected, walletAddress } = useWallet();
 
@@ -128,7 +130,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	};
 
 	return (
-		<div className="flex flex-col w-1/2">
+		<div className="flex flex-col">
 			<div className="flex items-center justify-between">
 				<h3 className="text-2xl">Posts</h3>
 				<div className="flex items-center gap-2">
@@ -150,6 +152,14 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 					</BasicButton>
 				</div>
 			</div>
+
+			<GroupPostsList
+				groupId={groupId}
+				refreshPosts={refreshPosts}
+				onRefresh={() => {
+					setRefreshPosts(false);
+				}}
+			/>
 
 			<BasicModal
 				id="add-post"
@@ -223,4 +233,4 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 	);
 };
 
-export default GroupPost;
+export default GroupPosts;
