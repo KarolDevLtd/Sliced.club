@@ -163,7 +163,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						<span className="text-xl">{post?.title}</span>
 						<span className="text-sm">{post?.content}</span>
 					</div>
-					<div className="flex inline-block justify-center">
+					<div className="flex justify-center">
 						{imageData.map(function (value, index) {
 							return (
 								value != null && (
@@ -186,7 +186,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					) : null}
 					{/* </div> */}
 
-					<div className="border-t border-neutral flex items-center gap-2 py-2">
+					<div className="border-t border-neutral flex items-center gap-2 pt-2">
 						<BasicButton
 							type="ghost"
 							icon={isLiked ? <IoMdThumbsUp /> : <MdOutlineThumbUp />}
@@ -197,7 +197,12 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 							{likeCount}
 						</BasicButton>
 						<div className="flex items-center gap-1 hover:cursor-pointer" onClick={toggleComments}>
-							<BasicButton type="ghost" icon={<FaRegCommentDots />} iconBefore={true}>
+							<BasicButton
+								type="ghost"
+								active={showComments}
+								icon={<FaRegCommentDots />}
+								iconBefore={true}
+							>
 								3 Comments
 							</BasicButton>
 						</div>

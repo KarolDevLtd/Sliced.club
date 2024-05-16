@@ -10,6 +10,7 @@ type BasicButtonProps = {
 	icon?: ReactElement | null;
 	disabled?: boolean;
 	submitForm?: boolean;
+	active?: boolean;
 };
 
 const BasicButton = ({
@@ -21,6 +22,7 @@ const BasicButton = ({
 	iconBefore = false,
 	disabled,
 	submitForm = false,
+	active,
 }: BasicButtonProps) => {
 	const colourMap = {
 		primary: 'btn-primary',
@@ -39,7 +41,7 @@ const BasicButton = ({
 
 	return (
 		<button
-			className={`btn ${colourMap[type]} ${sizeMap[size]} ${disabled ? 'btn-disabled' : null} gap-0`}
+			className={`btn ${colourMap[type]} ${sizeMap[size]} ${disabled ? 'btn-disabled' : ''} ${active ? 'btn-active no-animation' : ''} gap-0`}
 			onClick={onClick}
 			disabled={disabled}
 			type={submitForm ? 'submit' : 'button'}
