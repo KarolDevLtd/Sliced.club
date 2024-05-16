@@ -10,22 +10,21 @@ import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { api } from '~/trpc/react';
 import BasicModal from '../ui/BasicModal';
 import { toast } from 'react-toastify';
-import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
 import ZoomableImage from '../ui/ZoomableImage';
 import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { fetchImageData } from '~/helpers/image-helper';
 import { IoPeople } from 'react-icons/io5';
 import InlineLink from '../ui/InlineLink';
 import BasicButton from '../ui/BasicButton';
-import { showModal } from '~/helpers/modal-helper';
 
 type GroupItemProps = {
-	firebaseGroup: FirebaseGroupModel;
+	groupHash: string;
+	productHash: string;
 };
 
-const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
-	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: firebaseGroup.groupHash });
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: groupData?.group.productHash });
+const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupHash });
+	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: productHash });
 	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
@@ -34,18 +33,14 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
 
-	const openModal = () => {
-		showModal('group-item');
-	};
-
 	const handleClick = (e: Event | undefined) => {
 		//At this point we have all group information from firebase and IPFS
 		//Pass to reduce need to query?
 		void router.push({
-			pathname: `/groups/${firebaseGroup.id}`,
-			query: {
-				groupHash: firebaseGroup.groupHash,
-			},
+			pathname: `/groups/${groupHash}`,
+			// query: {
+			// 	groupHash: firebaseGroup.groupHash,
+			// },
 		});
 		e?.stopPropagation();
 	};
