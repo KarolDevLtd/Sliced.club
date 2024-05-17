@@ -35,11 +35,7 @@ export default function Products() {
 				</BasicButton>
 				<ProductList key={shouldRefreshProducts ? 'refresh' : 'normal'} />
 			</div>
-			<AddProductModal
-				productOpen={productOpen}
-				hideProduct={closeModal('add-product')}
-				onProductSubmitted={handleProductSubmitted}
-			/>
+			<AddProductModal productOpen={productOpen} onProductSubmitted={handleProductSubmitted} />
 		</>
 	);
 }

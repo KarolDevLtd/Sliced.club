@@ -17,7 +17,7 @@ const ProductList = ({ heading }: ProductListProps) => {
 		data: productData,
 		error,
 		refetch,
-	} = api.PinataProduct.getProducts.useQuery({ creatorKey: walletAddress!.toString() });
+	} = api.PinataProduct.getProducts.useQuery({ creatorKey: walletAddress?.toString() });
 
 	const [products, setProducts] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);

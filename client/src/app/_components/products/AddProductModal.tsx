@@ -28,11 +28,10 @@ import { closeModal } from '~/helpers/modal-helper';
 
 type AddProductModalProps = {
 	productOpen: boolean;
-	hideProduct: () => void;
 	onProductSubmitted: () => void;
 };
 
-const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddProductModalProps) => {
+const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 	const productToIPFS = api.PinataProduct.postProduct.useMutation();
@@ -118,11 +117,16 @@ const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddPr
 		unregister(['product-name', 'product-price', 'product-category']);
 	};
 
+	const handleOnClose = () => {
+		clearForm();
+		closeModal('add-product');
+	};
+
 	return (
 		<BasicModal
 			id="add-product"
 			header="Add Product"
-			onClose={clearForm}
+			onClose={handleOnClose}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput

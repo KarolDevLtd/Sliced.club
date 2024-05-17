@@ -152,11 +152,16 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		unregister(['group-name', 'product', 'group-description', 'country', 'tandc', 'agree-contact']);
 	};
 
+	const handleOnClose = () => {
+		clearForm();
+		closeModal('add-group');
+	};
+
 	return (
 		<BasicModal
 			id="add-group"
 			header="Add Group"
-			onClose={clearForm}
+			onClose={handleOnClose}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
