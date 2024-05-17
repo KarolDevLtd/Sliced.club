@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
@@ -8,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';
+import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 // import { useWallet } from '~/providers/walletprovider';
 // import { type FirebaseProductModel } from '~/models/firebase-product-model';
 
@@ -26,13 +28,13 @@ const GroupList = ({ heading }: GroupListProps) => {
 		refetch,
 	} = api.PinataGroup.getGroups.useQuery({ creatorKey: walletAddress?.toString() });
 
-	const [groups, setGroups] = useState([]);
+	const [groups, setGroups] = useState<IPFSSearchModel[]>();
 	const [isLoading, setIsLoading] = useState(false);
 
 	useEffect(() => {
 		setIsLoading(true);
 		if (groupData) {
-			setGroups(groupData.groups?.rows);
+			setGroups(groupData.groups == null ? [] : groupData.groups.rows);
 			setIsLoading(false);
 		}
 	}, [groupData]);

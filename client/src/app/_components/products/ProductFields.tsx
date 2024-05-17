@@ -3,22 +3,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { useEffect, useState } from 'react';
 import TextInput from '../ui/TextInput';
 import { BsFillTrashFill } from 'react-icons/bs';
 import BasicButton from '../ui/BasicButton';
 import { toast } from 'react-toastify';
+import { type AttributeModel } from '~/models/attribute-model';
 
 type ProductFieldsProps = {
 	// productOpen: boolean;
 	onClose: () => void;
-	attributes: [];
+	attributes: AttributeModel[];
 	setAttributes: (value) => void;
 };
 
 const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProps) => {
-	// const [rows, setRows] = useState([]);
-
 	const handleAddRow = () => {
 		if (attributes.length < 6) {
 			setAttributes([...attributes, { propertyName: '', propertyValue: '' }]);
@@ -29,8 +27,10 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 
 	const handleChange = (index, key, value) => {
 		const updatedRows = [...attributes];
-		updatedRows[index][key] = value;
-		setAttributes(updatedRows);
+		if (updatedRows) {
+			updatedRows[index]![key] = value;
+			setAttributes(updatedRows);
+		}
 	};
 
 	const handleDeleteRow = (propertyName) => {
@@ -51,6 +51,8 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 						<tr key={index}>
 							<td>
 								<TextInput
+									id={`attributeName-${index}`}
+									name={`attributeName ${index}`}
 									type="text"
 									value={row.propertyName}
 									onChange={(e) => handleChange(index, 'propertyName', e.target.value)}
@@ -58,6 +60,8 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 							</td>
 							<td>
 								<TextInput
+									id={`attributeValue-${index}`}
+									name={`attributeValue ${index}`}
 									type="text"
 									value={row.propertyValue}
 									onChange={(e) => handleChange(index, 'propertyValue', e.target.value)}

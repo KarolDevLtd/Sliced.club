@@ -1,13 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react/jsx-no-undef */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import BasicModal from '../ui/BasicModal';
@@ -25,13 +20,13 @@ import { CountryOptions } from '~/models/country-options';
 import Spinner from '../ui/Spinner';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
-import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
 import { closeModal } from '~/helpers/modal-helper';
 import { FaUserGroup } from 'react-icons/fa6';
 import TextArea from '../ui/TextArea';
+import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 
 type AddGroupModalProps = {
 	onGroupSubmitted: () => void;
@@ -44,7 +39,6 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		creatorKey: walletAddress?.toString(),
 	});
 	const groupToIPFS = api.PinataGroup.postGroup.useMutation();
-	const groupToFirebase = api.FirebaseGroup.groupToCollection.useMutation();
 	const [isLoading, setIsLoading] = useState(false);
 	const {
 		register,
@@ -66,11 +60,11 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		setDuration(sliderVal);
 		setParticipants(2 * sliderVal);
 	};
-	const [currentSelectedProduct, setCurrentSelectedProduct] = useState();
+	const [currentSelectedProduct, setCurrentSelectedProduct] = useState<IPFSSearchModel>();
 	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		//TODO: This filter on name should be replaced with filter on id?
 		const selectedProduct = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
-		setCurrentSelectedProduct(selectedProduct);
+		if (selectedProduct) setCurrentSelectedProduct(selectedProduct as IPFSSearchModel);
 	};
 
 	const saveGroup = async (
@@ -78,13 +72,13 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		description: string,
 		price: string,
 		duration: string,
-		participants: string,
-		product: FirebaseProductModel
+		participants: string
 	) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
-			const groupProductToIPFS = await groupToIPFS.mutateAsync({
+			if (!currentSelectedProduct) return;
+			await groupToIPFS.mutateAsync({
 				name: name,
 				description: description,
 				price: price,
@@ -115,8 +109,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				data['group-description'] as string,
 				currentSelectedProduct?.metadata.keyvalues.price!,
 				duration.toString(),
-				participants.toString(),
-				currentSelectedProduct!
+				participants.toString()
 			);
 			reset();
 			closeModal('add-group');
@@ -130,7 +123,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		}
 	};
 
-	const serializeList = (list: object[]): DropDownContentModel[] => {
+	const serializeList = (list: IPFSSearchModel[]): DropDownContentModel[] => {
 		return list.map((item) => ({
 			name: item.metadata.name,
 			value: item.metadata.name,
@@ -138,7 +131,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	};
 
 	// //Serialize products to a list of suitable drop down models
-	const productList = serializeList(pinataProductData?.products.rows ?? []);
+	const productList = serializeList((pinataProductData?.products.rows as IPFSSearchModel[]) ?? []);
 
 	useEffect(() => {
 		//TO DO : fix this cast

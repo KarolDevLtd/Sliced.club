@@ -25,6 +25,7 @@ import { useWallet } from '~/providers/WalletProvider';
 import { DateTime } from 'luxon';
 import ProductFields from './ProductFields';
 import { closeModal } from '~/helpers/modal-helper';
+import { type AttributeModel } from '~/models/attribute-model';
 
 type AddProductModalProps = {
 	productOpen: boolean;
@@ -38,7 +39,7 @@ const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 	const productToFirebase = api.FirebaseProduct.productToCollection.useMutation();
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const [displayTailoredFields, setDisplayTailoredFields] = useState(false);
-	const [attributes, setAttributes] = useState([]);
+	const [attributes, setAttributes] = useState<AttributeModel[]>([]);
 
 	const { isConnected, walletAddress } = useWallet();
 
