@@ -110,7 +110,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 					setLikeCount(likeCount - 1);
 				});
 		} catch (err) {
-			console.log('Error unliking');
+			// console.log('Error unliking');
 			toast.error('Error unliking post');
 		}
 	};

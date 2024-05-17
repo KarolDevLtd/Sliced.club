@@ -51,8 +51,6 @@ const GroupList = ({ heading }: GroupListProps) => {
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{groups && groups.length > 0 ? (
 				groups.map((group, index) => {
-					// conosle.log(group);
-					console.log(group);
 					return (
 						<GroupItem
 							key={index}
