@@ -25,7 +25,6 @@ type GroupItemProps = {
 const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupHash });
 	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: productHash });
-	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [product, setProduct] = useState<IPFSProductModel>();

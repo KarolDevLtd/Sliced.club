@@ -19,7 +19,6 @@ type ProductItemProps = {
 
 const ProductItem = ({ productHash }: ProductItemProps) => {
 	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: productHash });
-	const [displayModal, setDisplayModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [product, setProduct] = useState<IPFSProductModel>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
