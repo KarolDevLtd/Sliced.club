@@ -134,7 +134,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	useEffect(() => {
 		if (pinataProductData?.products)
 			setDropdownProducts(serializeList((pinataProductData?.products.rows as IPFSSearchModel[]) ?? []));
-	}, [dropdownProducts]);
+	}, [pinataProductData?.products]);
 
 	useEffect(() => {
 		//TO DO : fix this cast
