@@ -40,6 +40,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	});
 	const groupToIPFS = api.PinataGroup.postGroup.useMutation();
 	const [isLoading, setIsLoading] = useState(false);
+	const [dropdownProducts, setDropdownProducts] = useState<DropDownContentModel[]>([]);
 	const {
 		register,
 		unregister,
@@ -130,8 +131,10 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		}));
 	};
 
-	// //Serialize products to a list of suitable drop down models
-	const productList = serializeList((pinataProductData?.products.rows as IPFSSearchModel[]) ?? []);
+	useEffect(() => {
+		if (pinataProductData?.products)
+			setDropdownProducts(serializeList((pinataProductData?.products.rows as IPFSSearchModel[]) ?? []));
+	}, [dropdownProducts]);
 
 	useEffect(() => {
 		//TO DO : fix this cast
@@ -174,7 +177,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 							},
 						}}
 					/>
-					{productList.length > 0 ? (
+					{dropdownProducts.length > 0 ? (
 						<div>
 							<SelectOption
 								id="product"
@@ -183,7 +186,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								defaultValue=""
 								value={currentSelectedProduct?.metadata.name}
 								onChange={(e) => handleSelectChange(e)}
-								options={productList}
+								options={dropdownProducts}
 							/>
 							<div>
 								<BasicSlider
