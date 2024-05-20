@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactPaginate from 'react-paginate';
 
 type PaginationProps = {
 	currentPage: number;
@@ -8,31 +9,26 @@ type PaginationProps = {
 };
 
 const Pagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }: PaginationProps) => {
-	const totalPages = Math.ceil(totalItems / itemsPerPage);
+	const pageCount = Math.ceil(totalItems / itemsPerPage);
 
-	const handlePrevious = () => {
-		if (currentPage > 0) {
-			onPageChange(currentPage - 1);
-		}
-	};
-
-	const handleNext = () => {
-		if (currentPage < totalPages - 1) {
-			onPageChange(currentPage + 1);
-		}
+	const handlePageClick = (event: { selected: number }) => {
+		onPageChange(event.selected);
 	};
 
 	return (
 		<div className="flex justify-center items-center mt-4">
-			<button onClick={handlePrevious} disabled={currentPage === 0} className="mx-2">
-				Previous
-			</button>
-			<span>
-				Page {currentPage + 1} of {totalPages}
-			</span>
-			<button onClick={handleNext} disabled={currentPage === totalPages - 1} className="mx-2">
-				Next
-			</button>
+			<ReactPaginate
+				breakLabel="..."
+				nextLabel="next >"
+				onPageChange={handlePageClick}
+				pageRangeDisplayed={5}
+				pageCount={pageCount}
+				previousLabel="< previous"
+				renderOnZeroPageCount={null}
+				containerClassName="pagination"
+				activeClassName="active"
+				forcePage={currentPage}
+			/>
 		</div>
 	);
 };
