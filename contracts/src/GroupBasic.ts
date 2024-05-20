@@ -488,6 +488,25 @@ export class GroupBasic extends TokenContract {
     ud.compensations.set(Payments.fromBoolsField(compensationBools));
   }
 
+  @method async randHash(randomValue: Field) {
+    // Rand value
+    let generatedRandomHash: Field = Poseidon.hash([
+      this.network.stakingEpochData.ledger.hash.getAndRequireEquals(),
+      this.network.timestamp.getAndRequireEquals().value,
+      this.network.snarkedLedgerHash.getAndRequireEquals(),
+      randomValue,
+    ]);
+    const range = new Field(MAX_UPDATES_WITH_ACTIONS).add(1);
+
+    // Move over the range
+    // let val: Field = generatedRandomHash.mod
+
+    let val: UInt32 = new UInt32(5);
+
+    // Modulo it
+    let modded: UInt32 = val.mod(val);
+  }
+
   //TODO extraPayment()
   //TODO joinGroup()
   //TODO claimLottery()
