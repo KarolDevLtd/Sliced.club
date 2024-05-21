@@ -78,8 +78,8 @@ export default function Group() {
 									content: (
 										<ZoomableImage
 											source={value}
-											width={100}
-											height={100}
+											width={600}
+											height={600}
 											alt={`Uploaded image ${index}`}
 										/>
 									),
