@@ -21,8 +21,7 @@ export default function Group() {
 	const [refreshPosts, setRefreshPosts] = useState(false);
 
 	const groupId = router.query.groupId;
-	const { groupHash } = router.query;
-	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupHash?.toString() });
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
 	const { data: productData } = api.PinataProduct.getProduct.useQuery({
 		hash: groupData == undefined ? '' : groupData?.group?.productHash,
 	});

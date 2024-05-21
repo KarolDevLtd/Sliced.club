@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import React, { useEffect, useState } from 'react';
 import ProductItem from './ProductItem';
-import { type Product } from '~/types/product-types';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
-import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
+import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 
 type ProductListProps = {
 	heading?: string;
@@ -15,23 +15,20 @@ type ProductListProps = {
 
 const ProductList = ({ heading }: ProductListProps) => {
 	const { isConnected, walletAddress } = useWallet();
-
 	const {
 		data: productData,
 		error,
 		refetch,
-	} = api.FirebaseProduct.getProducts.useQuery({
-		creatorKey: walletAddress?.toString(),
-	});
+	} = api.PinataProduct.getProducts.useQuery({ creatorKey: walletAddress?.toString() });
 
-	const [products, setProducts] = useState<FirebaseProductModel[]>([]);
+	const [products, setProducts] = useState<IPFSSearchModel[]>();
 	const [isLoading, setIsLoading] = useState(false);
 
 	useEffect(() => {
 		setIsLoading(true);
 
 		if (productData) {
-			setProducts(productData.products);
+			setProducts(productData.products == null ? [] : productData.products.rows);
 			setIsLoading(false);
 		}
 	}, [productData]);
@@ -46,9 +43,9 @@ const ProductList = ({ heading }: ProductListProps) => {
 	return (
 		<div className="flex flex-col gap-2 mb-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
-			{products.length > 0 ? (
+			{products && products.length > 0 ? (
 				products.map((product, index) => {
-					return <ProductItem key={index} firebaseProduct={product} />;
+					return <ProductItem key={index} productHash={product.ipfs_pin_hash} />;
 				})
 			) : (
 				<p>No products found.</p>

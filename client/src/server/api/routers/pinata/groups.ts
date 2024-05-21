@@ -17,10 +17,25 @@ export const PinataGroupRouter = createTRPCRouter({
 				participants: z.string(),
 				instalments: z.number(),
 				productHash: z.string(),
+				productName: z.string().nullish(),
+				productPrice: z.string().nullish(),
+				creatorKey: z.string(),
+				dateTime: z.string(),
 			})
 		)
 		.mutation(async ({ input }) => {
 			let data;
+			const pinataMetadata = {
+				name: input.name,
+				keyvalues: {
+					productHash: input.productHash,
+					productPrice: input.productPrice,
+					productName: input.productName,
+					type: 'group',
+					creatorKey: input.creatorKey,
+				},
+			};
+
 			try {
 				const options = {
 					method: 'POST',
@@ -29,7 +44,7 @@ export const PinataGroupRouter = createTRPCRouter({
 						'content-type': 'application/json',
 						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
 					},
-					body: JSON.stringify({ pinataContent: input }),
+					body: JSON.stringify({ pinataContent: input, pinataMetadata }),
 				};
 				const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options);
 				data = await response.json();
@@ -55,5 +70,31 @@ export const PinataGroupRouter = createTRPCRouter({
 			console.log('sliced-server-msg:getGroup, current query group id is null');
 		}
 		return { group };
+	}),
+
+	//getProducts based on creator key
+	getGroups: publicProcedure.input(z.object({ creatorKey: z.string().nullish() })).query(async ({ input }) => {
+		let groups;
+		if (input.creatorKey != null) {
+			try {
+				const options = {
+					method: 'GET',
+					headers: {
+						'content-type': 'application/json',
+						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+					},
+				};
+				const response = await fetch(
+					`https://api.pinata.cloud/data/pinList?status=pinned&metadata[keyvalues]={"type":{"value":"group","op":"eq"},"creatorKey":{"value":"${input.creatorKey}","op":"eq"}}`,
+					options
+				);
+				groups = await response.json();
+			} catch (err) {
+				console.log('Error getting hash from IPFS');
+			}
+		} else {
+			console.log('sliced-server-msg:getGroups, current creatorKey id is null');
+		}
+		return { groups };
 	}),
 });

@@ -1,13 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react/jsx-no-undef */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import BasicModal from '../ui/BasicModal';
@@ -25,13 +20,13 @@ import { CountryOptions } from '~/models/country-options';
 import Spinner from '../ui/Spinner';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
-import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 import { DateTime } from 'luxon';
 import BasicSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
 import { closeModal } from '~/helpers/modal-helper';
 import { FaUserGroup } from 'react-icons/fa6';
 import TextArea from '../ui/TextArea';
+import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 
 type AddGroupModalProps = {
 	onGroupSubmitted: () => void;
@@ -40,12 +35,12 @@ type AddGroupModalProps = {
 const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
-	const { data: fbProductData } = api.FirebaseProduct.getProducts.useQuery({
+	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
 	});
 	const groupToIPFS = api.PinataGroup.postGroup.useMutation();
-	const groupToFirebase = api.FirebaseGroup.groupToCollection.useMutation();
 	const [isLoading, setIsLoading] = useState(false);
+	const [dropdownProducts, setDropdownProducts] = useState<DropDownContentModel[]>([]);
 	const {
 		register,
 		unregister,
@@ -66,11 +61,11 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		setDuration(sliderVal);
 		setParticipants(2 * sliderVal);
 	};
-	const [currentSelectedProduct, setCurrentSelectedProduct] = useState<FirebaseProductModel | null>();
+	const [currentSelectedProduct, setCurrentSelectedProduct] = useState<IPFSSearchModel>();
 	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		//TODO: This filter on name should be replaced with filter on id?
-		const selectedProduct = fbProductData?.products.find((p) => p.name === event.target.value)!;
-		setCurrentSelectedProduct(selectedProduct);
+		const selectedProduct = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
+		if (selectedProduct) setCurrentSelectedProduct(selectedProduct as IPFSSearchModel);
 	};
 
 	const saveGroup = async (
@@ -78,25 +73,23 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		description: string,
 		price: string,
 		duration: string,
-		participants: string,
-		product: FirebaseProductModel
+		participants: string
 	) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
-			const groupProductToIPFS = await groupToIPFS.mutateAsync({
+			if (!currentSelectedProduct) return;
+			await groupToIPFS.mutateAsync({
 				name: name,
 				description: description,
 				price: price,
 				duration: duration,
 				instalments: instalments ?? 0,
 				participants: participants,
-				productHash: product.productHash,
-			});
-			await groupToFirebase.mutateAsync({
-				name: name,
+				productHash: currentSelectedProduct?.ipfs_pin_hash,
+				productName: currentSelectedProduct?.metadata.name,
+				productPrice: currentSelectedProduct?.metadata.keyvalues.price,
 				creatorKey: walletAddress!.toString(),
-				groupHash: groupProductToIPFS.data.IpfsHash,
 				dateTime: DateTime.now().toString(),
 			});
 		} catch (err) {
@@ -115,10 +108,9 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 			await saveGroup(
 				data['group-name'] as string,
 				data['group-description'] as string,
-				currentSelectedProduct?.price!,
+				currentSelectedProduct?.metadata.keyvalues.price!,
 				duration.toString(),
-				participants.toString(),
-				currentSelectedProduct!
+				participants.toString()
 			);
 			reset();
 			closeModal('add-group');
@@ -132,19 +124,23 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		}
 	};
 
-	const serializeList = (list: FirebaseProductModel[]): DropDownContentModel[] => {
+	const serializeList = (list: IPFSSearchModel[]): DropDownContentModel[] => {
 		return list.map((item) => ({
-			name: item.name,
-			value: item.name,
+			name: item.metadata.name,
+			value: item.metadata.name,
 		}));
 	};
 
-	//Serialize products to a list of suitable drop down models
-	const productList = serializeList(fbProductData?.products ?? []);
+	useEffect(() => {
+		if (pinataProductData?.products)
+			setDropdownProducts(serializeList((pinataProductData?.products.rows as IPFSSearchModel[]) ?? []));
+	}, [pinataProductData?.products]);
 
 	useEffect(() => {
 		//TO DO : fix this cast
-		setInstalments((currentSelectedProduct?.price as unknown as number) / (participants * duration));
+		setInstalments(
+			(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)
+		);
 	}, [participants, duration, currentSelectedProduct]);
 
 	const clearForm = () => {
@@ -152,11 +148,16 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		unregister(['group-name', 'product', 'group-description', 'country', 'tandc', 'agree-contact']);
 	};
 
+	const handleOnClose = () => {
+		clearForm();
+		closeModal('add-group');
+	};
+
 	return (
 		<BasicModal
 			id="add-group"
 			header="Add Group"
-			onClose={clearForm}
+			onClose={handleOnClose}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput
@@ -176,16 +177,16 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 							},
 						}}
 					/>
-					{productList.length > 0 ? (
+					{dropdownProducts.length > 0 ? (
 						<div>
 							<SelectOption
 								id="product"
 								name="product"
 								placeholder="-- Please select a product --"
 								defaultValue=""
-								value={currentSelectedProduct?.name}
+								value={currentSelectedProduct?.metadata.name}
 								onChange={(e) => handleSelectChange(e)}
-								options={productList}
+								options={dropdownProducts}
 							/>
 							<div>
 								<BasicSlider
@@ -193,8 +194,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 									duration={duration}
 									onSlide={updateParticipantDuration}
 								/>
-								<div>{`Product price ${currentSelectedProduct?.price}`}</div>
-								<div>{`Installment price per user ${(currentSelectedProduct?.price as unknown as number) / (participants * duration)}`}</div>
+								<div>{`Product price ${currentSelectedProduct?.metadata.keyvalues.price}`}</div>
+								<div>{`Installment price per user ${(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)}`}</div>
 							</div>
 						</div>
 					) : (

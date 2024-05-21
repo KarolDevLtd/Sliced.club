@@ -21,19 +21,32 @@ export const PinataProductRouter = createTRPCRouter({
 				category: z.string(),
 				imageHash: z.array(z.string()),
 				productAttributes: productsAttributesSchema,
+				creatorKey: z.string(),
+				dateTime: z.string(),
 			})
 		)
 		.mutation(async ({ input }) => {
 			let data;
+			const pinataMetadata = {
+				name: input.name,
+				keyvalues: {
+					price: input.price,
+					type: 'product',
+					creatorKey: input.creatorKey,
+				},
+			};
+
 			try {
 				const options = {
 					method: 'POST',
 					headers: {
-						accept: 'application/json',
 						'content-type': 'application/json',
 						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
 					},
-					body: JSON.stringify({ pinataContent: input }),
+					body: JSON.stringify({
+						pinataContent: input,
+						pinataMetadata,
+					}),
 				};
 				const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options);
 				data = await response.json();
@@ -59,5 +72,31 @@ export const PinataProductRouter = createTRPCRouter({
 			console.log('sliced-server-msg:getProduct, current query product id is null');
 		}
 		return { product };
+	}),
+
+	//getProducts based on creator key
+	getProducts: publicProcedure.input(z.object({ creatorKey: z.string().nullish() })).query(async ({ input }) => {
+		let products;
+		if (input.creatorKey != null) {
+			try {
+				const options = {
+					method: 'GET',
+					headers: {
+						'content-type': 'application/json',
+						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+					},
+				};
+				const response = await fetch(
+					`https://api.pinata.cloud/data/pinList?status=pinned&metadata[keyvalues]={"type":{"value":"product","op":"eq"},"creatorKey":{"value":"${input.creatorKey}","op":"eq"}}`,
+					options
+				);
+				products = await response.json();
+			} catch (err) {
+				console.log('Error getting hash from IPFS');
+			}
+		} else {
+			console.log('sliced-server-msg:getProducts, current creatorKey id is null');
+		}
+		return { products };
 	}),
 });
