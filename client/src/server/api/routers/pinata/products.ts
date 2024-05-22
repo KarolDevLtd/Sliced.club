@@ -77,7 +77,7 @@ export const PinataProductRouter = createTRPCRouter({
 
 	//getProducts based on creator key
 	getProducts: publicProcedure
-		.input(z.object({ creatorKey: z.string().nullish(), pageNumber: z.number() }))
+		.input(z.object({ creatorKey: z.string().nullish(), productCount: z.number() }))
 		.query(async ({ input }) => {
 			let products;
 			if (input.creatorKey != null) {
@@ -91,7 +91,7 @@ export const PinataProductRouter = createTRPCRouter({
 					};
 					const response = await fetch(
 						// `https://api.pinata.cloud/data/pinList?status=pinned&metadata[keyvalues]={"type":{"value":"product","op":"eq"},"creatorKey":{"value":"${input.creatorKey}","op":"eq"}}`,
-						URLBuilder(input.creatorKey, undefined, input.pageNumber),
+						URLBuilder(input.creatorKey, input.productCount),
 						options
 					);
 					products = await response.json();

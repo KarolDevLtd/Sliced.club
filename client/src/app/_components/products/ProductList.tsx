@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -7,7 +8,6 @@ import ProductItem from './ProductItem';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
-import Pagination from '../ui/Pagination';
 import { defaultPageLimit } from '~/helpers/search-helper';
 
 type ProductListProps = {
@@ -19,22 +19,21 @@ const ProductList = ({ heading }: ProductListProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [products, setProducts] = useState<IPFSSearchModel[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [productCount, setProductCount] = useState(0);
-	const [currentPage, setCurrentPage] = useState(0);
-	const itemsPerPage = defaultPageLimit || 10;
+	const [displayProductCount, setDisplayProductCount] = useState(defaultPageLimit);
 
 	const {
 		data: productData,
 		error,
 		refetch,
-	} = api.PinataProduct.getProducts.useQuery({ creatorKey: walletAddress?.toString(), pageNumber: currentPage });
+	} = api.PinataProduct.getProducts.useQuery({
+		creatorKey: walletAddress?.toString(),
+		productCount: displayProductCount,
+	});
 
 	useEffect(() => {
 		setIsLoading(true);
-
 		if (productData) {
 			setProducts(productData.products == null ? [] : productData.products.rows);
-			setProductCount(productData.products.count);
 			setIsLoading(false);
 		}
 	}, [productData]);
@@ -46,24 +45,18 @@ const ProductList = ({ heading }: ProductListProps) => {
 		}
 	}, [error]);
 
-	const handlePageChange = (page: number) => {
-		setCurrentPage(page);
-	};
-
 	return (
-		<div className="flex flex-col gap-2 mb-4">
+		<div className="flex flex-col gap-2 mb-4" style={{ maxHeight: '15vh', overflowY: 'scroll' }}>
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{products && products.length > 0 ? (
-				products.map((product, index) => <ProductItem key={index} productHash={product.ipfs_pin_hash} />)
+				<ul className="overflow-auto flex flex-col">
+					{products.map((product, index) => (
+						<ProductItem key={index} productHash={product.ipfs_pin_hash} />
+					))}
+				</ul>
 			) : (
 				<p>No products found.</p>
 			)}
-			<Pagination
-				currentPage={currentPage}
-				totalItems={productCount}
-				itemsPerPage={itemsPerPage}
-				onPageChange={handlePageChange}
-			/>
 		</div>
 	);
 };
