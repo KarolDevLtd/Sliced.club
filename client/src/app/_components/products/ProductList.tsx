@@ -9,6 +9,8 @@ import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { defaultPageLimit } from '~/helpers/search-helper';
+import { useInView } from 'react-intersection-observer';
+import Spinner from '../ui/Spinner';
 
 type ProductListProps = {
 	heading?: string;
@@ -18,42 +20,53 @@ type ProductListProps = {
 const ProductList = ({ heading }: ProductListProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [products, setProducts] = useState<IPFSSearchModel[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
+	const [productCount, setProductCount] = useState<number>(0);
 	const [displayProductCount, setDisplayProductCount] = useState(defaultPageLimit);
+
+	const { ref, inView } = useInView();
 
 	const {
 		data: productData,
 		error,
 		refetch,
+		isLoading,
 	} = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
 		productCount: displayProductCount,
 	});
 
 	useEffect(() => {
-		setIsLoading(true);
 		if (productData) {
 			setProducts(productData.products == null ? [] : productData.products.rows);
-			setIsLoading(false);
+			setProductCount(productData.products == null ? 0 : productData.products.count);
 		}
 	}, [productData]);
 
 	useEffect(() => {
 		if (error) {
 			console.error('Error fetching products:', error);
-			setIsLoading(false);
 		}
 	}, [error]);
 
+	useEffect(() => {
+		if (inView) {
+			setDisplayProductCount((prevCount) => prevCount + defaultPageLimit);
+		}
+	}, [inView]);
+
 	return (
-		<div className="flex flex-col gap-2 mb-4" style={{ maxHeight: '15vh', overflowY: 'scroll' }}>
+		<div className="flex flex-col gap-2 mb-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{products && products.length > 0 ? (
-				<ul className="overflow-auto flex flex-col">
-					{products.map((product, index) => (
-						<ProductItem key={index} productHash={product.ipfs_pin_hash} />
-					))}
-				</ul>
+				<div>
+					<ul className="overflow-y-scroll flex flex-col m-4" style={{ height: '60vh' }}>
+						{products.map((product, index) => (
+							<ProductItem key={index} productHash={product.ipfs_pin_hash} />
+						))}
+						{productCount > displayProductCount ? <div ref={ref} /> : 'No more products to display...'}
+					</ul>
+					{isLoading ? <Spinner /> : null}
+				</div>
 			) : (
 				<p>No products found.</p>
 			)}
