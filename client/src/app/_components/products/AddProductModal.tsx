@@ -19,7 +19,7 @@ import { ProductCategoryOptions } from '~/models/product-category-options';
 import BasicButton from '../ui/BasicButton';
 import Spinner from '../ui/Spinner';
 import DragDrop from '../ui/DragDrop';
-import { saveImages } from '~/helpers/image-helper';
+import { defaultImageHash, saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
 import { DateTime } from 'luxon';
@@ -67,12 +67,14 @@ const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 			let productImgsIPFS;
 			let imageHashes;
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save product')) return;
-			if (images) {
+			if (images.length > 0) {
 				productImgsIPFS = await saveImages(images);
 				//map ipfsHashes of all uploaded images to array
 				imageHashes = productImgsIPFS.map(function (item) {
 					return item.data.IpfsHash;
 				});
+			} else {
+				imageHashes = [defaultImageHash];
 			}
 			// 	//DO WE WANT CONTENT CHECK HERE?
 			// 	// Save to IPFS
