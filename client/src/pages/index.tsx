@@ -27,56 +27,6 @@ export default function Dashboard() {
 		if (router.query.login === 'wallet') toast.success('Logged in with wallet successfully');
 	}, [router.query.login, router.query.register]);
 
-	const myProducts = [
-		{
-			title: 'Xbox Series X|S',
-			groupOrganiser: 'Microsoft',
-			price: 475,
-			category: 'Gaming Consoles',
-			groupMembers: 26,
-			itemsReceived: 14,
-		},
-		{
-			title: 'HERO 12 Black',
-			groupOrganiser: 'GoPro',
-			price: 429.99,
-			category: 'Cameras',
-			groupMembers: 41,
-			itemsReceived: 36,
-		},
-	] as Product[];
-
-	const availableGroups = [
-		{
-			title: 'iPhone 15',
-			groupOrganiser: 'Apple',
-			price: 1149.99,
-			category: 'Mobile Phones',
-			groupMembers: 119,
-		},
-		{
-			title: 'LG TV OLED 2376',
-			groupOrganiser: 'LG',
-			price: 999.99,
-			category: 'Televisions',
-			groupMembers: 69,
-		},
-		{
-			title: 'Birkin 25',
-			groupOrganiser: 'Hermes',
-			price: 11400,
-			category: 'Handbags',
-			groupMembers: 21,
-		},
-		{
-			title: 'Cyrusher Kommoda Bike',
-			groupOrganiser: 'Cyrusher',
-			price: 1699,
-			category: 'Electric Bikes',
-			groupMembers: 12,
-		},
-	] as Product[];
-
 	const myPayments = [
 		{
 			amountDue: 18.27,
@@ -138,8 +88,16 @@ export default function Dashboard() {
 				</div>
 				<div className="row-span-2 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
-						{walletConnected ? <ProductList heading="My Products" /> : 'Log in to see all your products'}
-						{walletConnected ? <GroupList heading="My Groups" /> : 'Log in to see all your groups'}
+						{walletConnected ? (
+							<ProductList heading="My Products" isHomeScreen={true} />
+						) : (
+							'Log in to see all your products'
+						)}
+						{walletConnected ? (
+							<GroupList heading="My Groups" isHomeScreen={true} />
+						) : (
+							'Log in to see all your groups'
+						)}
 						{/* <ProductList heading="Available Groups" products={availableGroups} /> */}
 					</div>
 					<div className="col-span-1 mb-4">
