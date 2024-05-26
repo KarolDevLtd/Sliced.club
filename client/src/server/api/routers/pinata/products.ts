@@ -89,11 +89,7 @@ export const PinataProductRouter = createTRPCRouter({
 							authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
 						},
 					};
-					const response = await fetch(
-						// `https://api.pinata.cloud/data/pinList?status=pinned&metadata[keyvalues]={"type":{"value":"product","op":"eq"},"creatorKey":{"value":"${input.creatorKey}","op":"eq"}}`,
-						URLBuilder(input.creatorKey, input.productCount),
-						options
-					);
+					const response = await fetch(URLBuilder(input.creatorKey, 'product', input.productCount), options);
 					products = await response.json();
 				} catch (err) {
 					console.log('Error getting hash from IPFS');
