@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../../trpc';
+import { URLBuilder } from '~/helpers/search-helper';
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 export const PinataGroupRouter = createTRPCRouter({
@@ -72,29 +73,28 @@ export const PinataGroupRouter = createTRPCRouter({
 		return { group };
 	}),
 
-	//getProducts based on creator key
-	getGroups: publicProcedure.input(z.object({ creatorKey: z.string().nullish() })).query(async ({ input }) => {
-		let groups;
-		if (input.creatorKey != null) {
-			try {
-				const options = {
-					method: 'GET',
-					headers: {
-						'content-type': 'application/json',
-						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
-					},
-				};
-				const response = await fetch(
-					`https://api.pinata.cloud/data/pinList?status=pinned&metadata[keyvalues]={"type":{"value":"group","op":"eq"},"creatorKey":{"value":"${input.creatorKey}","op":"eq"}}`,
-					options
-				);
-				groups = await response.json();
-			} catch (err) {
-				console.log('Error getting hash from IPFS');
+	//getGroups based on creator key
+	getGroups: publicProcedure
+		.input(z.object({ creatorKey: z.string().nullish(), groupCount: z.number() }))
+		.query(async ({ input }) => {
+			let groups;
+			if (input.creatorKey != null) {
+				try {
+					const options = {
+						method: 'GET',
+						headers: {
+							'content-type': 'application/json',
+							authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+						},
+					};
+					const response = await fetch(URLBuilder(input.creatorKey, 'group', input.groupCount), options);
+					groups = await response.json();
+				} catch (err) {
+					console.log('Error getting hash from IPFS');
+				}
+			} else {
+				console.log('sliced-server-msg:getGroups, current creatorKey id is null');
 			}
-		} else {
-			console.log('sliced-server-msg:getGroups, current creatorKey id is null');
-		}
-		return { groups };
-	}),
+			return { groups };
+		}),
 });
