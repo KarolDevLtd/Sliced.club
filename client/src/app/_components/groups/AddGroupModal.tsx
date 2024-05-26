@@ -35,8 +35,11 @@ type AddGroupModalProps = {
 const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
+	const [displayProductCount, setDisplayProductCount] = useState(20);
+
 	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
+		productCount: displayProductCount,
 	});
 	const groupToIPFS = api.PinataGroup.postGroup.useMutation();
 	const [isLoading, setIsLoading] = useState(false);
@@ -134,7 +137,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	useEffect(() => {
 		if (pinataProductData?.products)
 			setDropdownProducts(serializeList((pinataProductData?.products.rows as IPFSSearchModel[]) ?? []));
-	}, [dropdownProducts]);
+	}, [pinataProductData?.products]);
 
 	useEffect(() => {
 		//TO DO : fix this cast
