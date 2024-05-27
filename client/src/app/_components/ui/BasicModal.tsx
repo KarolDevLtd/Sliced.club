@@ -28,7 +28,7 @@ const BasicModal = ({ id, header, content, footer, onClose }: BasicModalProps) =
 						<IoIosClose />
 					</button>
 				</form>
-				<h3 className="font-bold text-lg">{header}</h3>
+				<h3 className="font-bold text-lg mb-4">{header}</h3>
 				{content}
 				{footer}
 			</div>
