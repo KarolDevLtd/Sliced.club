@@ -20,7 +20,7 @@ type TextAreaProps = {
 	disabled?: boolean;
 	required?: boolean;
 	showCharacterCount?: boolean;
-	autoResize?: boolean;
+	// autoResize?: boolean;
 	hideResize?: boolean;
 
 	// React Hook Form Props
@@ -58,7 +58,7 @@ const TextArea = ({
 	disabled,
 	required = false,
 	showCharacterCount = false,
-	autoResize = false,
+	// autoResize = false,
 	hideResize = false,
 
 	// React Hook Form Props
@@ -67,15 +67,15 @@ const TextArea = ({
 	errors,
 }: TextAreaProps) => {
 	const [characterCount, setCharacterCount] = useState(0);
-	const [value, setValue] = useState('');
+	// const [value, setValue] = useState('');
 
-	const textAreaRef = useRef<HTMLTextAreaElement>(null);
+	// const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-	useAutosizeTextArea(textAreaRef.current, value, autoResize);
+	// useAutosizeTextArea(textAreaRef.current, value, autoResize);
 
 	const handleOnChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-		const val = e.target?.value;
-		setValue(val);
+		// const val = e.target?.value;
+		// setValue(val);
 
 		onChange;
 		setCharacterCount(e.target.value.length);
@@ -111,7 +111,7 @@ const TextArea = ({
 					</div>
 				) : null}
 				<textarea
-					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]} ${autoResize || hideResize ? 'resize-none' : ''}`}
+					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]} ${/*autoResize ||*/ hideResize ? 'resize-none' : ''}`}
 					id={id}
 					name={name}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
@@ -120,9 +120,9 @@ const TextArea = ({
 					// React Hook Form
 					{...register(name, validationSchema)}
 					onChange={handleOnChange}
-					ref={textAreaRef}
+					// ref={textAreaRef}
 					rows={rows}
-					value={value}
+					// value={value}
 				></textarea>
 				{altLabel2 ?? altLabel3 ? (
 					<div className="label">

@@ -106,7 +106,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 						placeholder="Leave your comment..."
 						errors={errors}
 						register={register}
-						autoResize={true}
+						// autoResize={true}
 						validationSchema={{
 							required: 'Comment content is required',
 							minLength: {
