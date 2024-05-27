@@ -21,6 +21,7 @@ type TextAreaProps = {
 	required?: boolean;
 	showCharacterCount?: boolean;
 	autoResize?: boolean;
+	hideResize?: boolean;
 
 	// React Hook Form Props
 	validationSchema?: {
@@ -58,6 +59,7 @@ const TextArea = ({
 	required = false,
 	showCharacterCount = false,
 	autoResize = false,
+	hideResize = false,
 
 	// React Hook Form Props
 	validationSchema,
@@ -109,7 +111,7 @@ const TextArea = ({
 					</div>
 				) : null}
 				<textarea
-					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]} ${autoResize && 'resize-none'}`}
+					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]} ${autoResize || hideResize ? 'resize-none' : ''}`}
 					id={id}
 					name={name}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
