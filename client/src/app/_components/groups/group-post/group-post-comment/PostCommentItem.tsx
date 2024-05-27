@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useEffect, useState } from 'react';
+import { sliceWalletAddress } from '~/helpers/user-helper';
 import { type FirebaseCommentModel } from '~/models/firebase/firebase-comment-model';
 import { IPFSPostModel } from '~/models/ipfs/ipfs-post-model';
 import { api } from '~/trpc/react';
@@ -40,7 +41,7 @@ const PostCommentItem = (currentComment: FirebaseCommentModel) => {
 				</div>
 			</div>
 			<div className="chat-header">
-				{currentComment.posterKey}
+				{sliceWalletAddress(currentComment.posterKey)}
 				<time className="ms-1 text-xs opacity-50">2 hours ago</time>
 			</div>
 			<div className="chat-bubble">{comment?.content}</div>
