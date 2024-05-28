@@ -1,11 +1,19 @@
-import { BasicButton } from '~/app/_components/ui/basic-button';
+import BasicButton from '~/app/_components/ui/BasicButton';
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { useEffect, useState } from 'react';
+import {
+	AwaitedReactNode,
+	JSXElementConstructor,
+	ReactElement,
+	ReactNode,
+	ReactPortal,
+	useEffect,
+	useState,
+} from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -15,7 +23,7 @@ import { Field, Mina, PrivateKey, PublicKey, AccountUpdate, UInt32, UInt64, Sign
 // const { Field, Mina, PrivateKey, PublicKey, AccountUpdate, UInt32, UInt64, Signature, fetchAccount } = await import(
 // 	'o1js'
 // );
-import PageHeader from '~/app/_components/ui/page-header';
+import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 import ZkappWorkerClient from '../zkappWorkerClient';
 
@@ -87,11 +95,11 @@ export default function Categories() {
 				console.log('Checking if fee payer account exists...');
 
 				const res = await zkappWorkerClient.fetchAccount({
-					publicKey: publicKey,
+					publicKey: publicKeyBase58,
 				});
 				const accountExists = res.error == null;
 
-				await zkappWorkerClient.loadContract();
+				await zkappWorkerClient.loadContracts();
 
 				console.log('Compiling zkApp...');
 				setDisplayText('Compiling zkApp...');
@@ -101,11 +109,11 @@ export default function Categories() {
 
 				const zkappPublicKey = PublicKey.fromBase58(ZKAPP_ADDRESS);
 
-				await zkappWorkerClient.initZkappInstance(zkappPublicKey);
+				await zkappWorkerClient.initTokenInstance(ZKAPP_ADDRESS);
 
 				console.log('Getting zkApp state...');
 				setDisplayText('Getting zkApp state...');
-				await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey });
+				await zkappWorkerClient.fetchAccount({ publicKey: ZKAPP_ADDRESS });
 
 				await zkappWorkerClient.createTransferTransaction(
 					publicKeyBase58,
@@ -120,6 +128,7 @@ export default function Categories() {
 				const { hash } = await (window as any).mina.sendTransaction({
 					transaction: tx,
 					feePayer: {
+						fee: 0.01 * 1e9,
 						memo: 'abc',
 					},
 				});
@@ -140,30 +149,30 @@ export default function Categories() {
 				});
 			}
 		})();
-	}, []);
+	}, [state]);
 
 	// -------------------------------------------------------
 	// Wait for account to exist, if it didn't
 
-	useEffect(() => {
-		(async () => {
-			if (state.hasBeenSetup && !state.accountExists) {
-				for (;;) {
-					setDisplayText('Checking if fee payer account exists...');
-					console.log('Checking if fee payer account exists...');
-					const res = await state.zkappWorkerClient!.fetchAccount({
-						publicKey: state.publicKey!,
-					});
-					const accountExists = res.error == null;
-					if (accountExists) {
-						break;
-					}
-					await new Promise((resolve) => setTimeout(resolve, 5000));
-				}
-				setState({ ...state, accountExists: true });
-			}
-		})();
-	}, [state.hasBeenSetup]);
+	// useEffect(() => {
+	// 	(async () => {
+	// 		if (state.hasBeenSetup && !state.accountExists) {
+	// 			for (;;) {
+	// 				setDisplayText('Checking if fee payer account exists...');
+	// 				console.log('Checking if fee payer account exists...');
+	// 				const res = await state.zkappWorkerClient!.fetchAccount({
+	// 					publicKey: state.publicKey!,
+	// 				});
+	// 				const accountExists = res.error == null;
+	// 				if (accountExists) {
+	// 					break;
+	// 				}
+	// 				await new Promise((resolve) => setTimeout(resolve, 5000));
+	// 			}
+	// 			setState({ ...state, accountExists: true });
+	// 		}
+	// 	})();
+	// }, [state.hasBeenSetup]);
 
 	// const handleClick = async () => {
 	// 	try {
@@ -310,6 +319,17 @@ export default function Categories() {
 	);
 }
 
-Categories.getLayout = function getLayout(page) {
+Categories.getLayout = function getLayout(
+	page:
+		| string
+		| number
+		| boolean
+		| ReactElement<any, string | JSXElementConstructor<any>>
+		| Iterable<ReactNode>
+		| ReactPortal
+		| Promise<AwaitedReactNode>
+		| null
+		| undefined
+) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

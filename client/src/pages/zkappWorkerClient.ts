@@ -13,45 +13,22 @@ export default class ZkappWorkerClient {
 	setActiveInstanceToLightnet() {
 		return this._call('setActiveInstanceToLightnet', {});
 	}
-
-	loadContract() {
-		return this._call('loadContract', {});
+	setActiveInstanceToDevnet() {
+		return this._call('setActiveInstanceToDevnet', {});
 	}
 
-	compileContract() {
-		return this._call('compileContract', {});
-	}
-
-	fetchAccount({ publicKey }: { publicKey: PublicKey }): ReturnType<typeof fetchAccount> {
-		const result = this._call('fetchAccount', {
-			publicKey58: publicKey.toBase58(),
+	async fetchAccount({
+		publicKey,
+		tokenId,
+	}: {
+		publicKey: string;
+		tokenId?: string;
+	}): ReturnType<typeof fetchAccount> {
+		const result = await this._call('fetchAccount', {
+			publicKey58: publicKey,
+			tokenId: tokenId,
 		});
 		return result as ReturnType<typeof fetchAccount>;
-	}
-
-	initZkappInstance(publicKey: PublicKey) {
-		return this._call('initZkappInstance', {
-			publicKey58: publicKey.toBase58(),
-		});
-	}
-
-	async getSupply(): Promise<UInt64> {
-		const result = await this._call('getSupply', {});
-		return UInt64.fromJSON(JSON.parse(result as string));
-	}
-
-	async getBalanceOf(publicKey: PublicKey): Promise<Field> {
-		const result = await this._call('getBalanceOf', {
-			publicKey58: publicKey.toBase58(),
-		});
-		return UInt64.fromJSON(JSON.parse(result as string));
-	}
-	createTransferTransaction(fromKey: string, toKey: string, amount: number) {
-		return this._call('createTransferTransaction', {
-			fromKey,
-			toKey,
-			amount,
-		});
 	}
 
 	proveTransaction() {
@@ -61,6 +38,105 @@ export default class ZkappWorkerClient {
 	async getTransactionJSON() {
 		const result = await this._call('getTransactionJSON', {});
 		return result;
+	}
+
+	loadContracts() {
+		return this._call('loadContracts', {});
+	}
+
+	compileContract() {
+		return this._call('compileContracts', {});
+	}
+
+	initContractsInstance(groupAddress: string, tokenAddress: string) {
+		return this._call('initContractsInstance', {
+			groupAddress,
+			tokenAddress,
+		});
+	}
+
+	loadTokenContract() {
+		return this._call('loadTokenContract', {});
+	}
+
+	compileTokenContract() {
+		return this._call('compileTokenContract', {});
+	}
+
+	initTokenInstance(publicKey: string) {
+		return this._call('initTokenInstance', {
+			publicKey58: publicKey,
+		});
+	}
+
+	loadGroupContract() {
+		return this._call('loadGroupContract', {});
+	}
+
+	compileGroupContract() {
+		return this._call('compileGroupContract', {});
+	}
+	initGroupInstance(publicKey: string) {
+		return this._call('initGroupInstance', {
+			publicKey58: publicKey,
+		});
+	}
+	async deployGroup(adminPublicKey: string, deployer?: string) {
+		return await this._call('deployGroup', {
+			adminPublicKey,
+			deployer,
+		});
+	}
+	async setGroupSettings(maxMembers: number, itemPrice: number, groupDuration: number, signature: string) {
+		return await this._call('setGroupSettings', {
+			maxMembers,
+			itemPrice,
+			groupDuration,
+			signature,
+		});
+	}
+	async addUserToGroup(userKey: string) {
+		return await this._call('addUserToGroup', {
+			userKey,
+		});
+	}
+	async roundPayment(maxMembers: number, itemPrice: number, groupDuration: number, amountOfBids: number) {
+		return await this._call('roundPayment', {
+			maxMembers,
+			itemPrice,
+			groupDuration,
+			amountOfBids,
+		});
+	}
+	async getGroupAdmin() {
+		return await this._call('getGroupAdmin', {});
+	}
+	async getPaymentRound() {
+		return await this._call('getPaymentRound', {});
+	}
+
+	async getUserStorage(userKey: string) {
+		return await this._call('getUserStorage', {
+			userKey,
+		});
+	}
+
+	async createTransferTransaction(fromKey: string, toKey: string, amount: number) {
+		return await this._call('createTransferTransaction', {
+			fromKey,
+			toKey,
+			amount,
+		});
+	}
+	async getTokenSupply() {
+		return await this._call('getTokenSupply', {});
+		// return UInt64.fromJSON(JSON.parse(result as string));
+	}
+
+	async getBalanceOf(publicKey: PublicKey) {
+		return await this._call('getBalanceOf', {
+			publicKey58: publicKey.toBase58(),
+		});
 	}
 
 	// ---------------------------------------------------------------------------------------
@@ -78,9 +154,18 @@ export default class ZkappWorkerClient {
 		this.promises = {};
 		this.nextId = 0;
 
+		// this.worker.onmessage = (event: MessageEvent<ZkappWorkerReponse>) => {
+		// 	this.promises[event.data.id]?.resolve(event.data.data);
+		// 	delete this.promises[event.data.id];
+		// };
 		this.worker.onmessage = (event: MessageEvent<ZkappWorkerReponse>) => {
-			this.promises[event.data.id]?.resolve(event.data.data);
-			delete this.promises[event.data.id];
+			const response = event.data;
+			if (response.error) {
+				this.promises[response.id].reject(new Error(response.errorMessage));
+			} else {
+				this.promises[response.id].resolve(response.data);
+			}
+			delete this.promises[response.id];
 		};
 	}
 
