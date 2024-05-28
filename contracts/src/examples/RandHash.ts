@@ -13,6 +13,7 @@ import {
   Provable,
   AccountUpdate,
   AccountUpdateForest,
+  provable,
 } from 'o1js';
 
 export class RandHash extends TokenContract {
@@ -30,39 +31,56 @@ export class RandHash extends TokenContract {
     // TODO: event emission here
   }
 
+  /** This function normalises within a range */
+  @method async randHashTest(input: UInt64, xMax: UInt64, yMax: UInt64) {
+    // Call randHash below
+    let val = await this.randHash(input, xMax, yMax);
+
+    Provable.log('val code: ', val.value);
+
+    // Set the state for testing
+    this.randUInt64.set(val);
+  }
+
+  /** This function normalises within a range */
   @method.returns(UInt32) async randHash(
-    randomValue: Field,
-    size: UInt64
+    input: UInt64,
+    xMax: UInt64,
+    yMax: UInt64
   ): Promise<UInt64> {
-    // Rand value that is a field
-    let generatedRandomHash: Field = Poseidon.hash([
-      this.network.stakingEpochData.ledger.hash.getAndRequireEquals(),
-      // Below line fails at proving for some reason
-      //   this.network.timestamp.getAndRequireEquals().value,
-      this.network.snarkedLedgerHash.getAndRequireEquals(),
-      randomValue,
-    ]);
+    // Provable.log('Modding it over: ', size);
 
-    Provable.log('Generated random hash: ', generatedRandomHash);
+    Provable.log('Input value: ', input.value);
+    Provable.log('xMax value: ', xMax.value);
+    Provable.log('yMax value: ', yMax.value);
 
-    let randUint32: UInt32 = UInt32.fromFields([generatedRandomHash]);
-    Provable.log('Field hash 32 bits: ', randUint32);
-    let randUint64: UInt64 = UInt64.fromFields([generatedRandomHash]);
-    Provable.log('Field hash 64 bits: ', randUint64);
+    // Not to lose resoluton, and trunacte to zero need to first
+    // 1. Mask first half of the number (field or uint)
+    // 2. Multiply what remians to bring it up to the max of the allowed resolution
 
-    // Base
-    let modded: UInt64 = new UInt64(33);
+    // Scaling from range [0, x_max] to [0, y_max]
+    // This transformation adjusts values from an original range [0, x_max] to a new range [0, y_max].
+    // Formula: y = v * (y_max / x_max)
+    // 'v' is the value within the original range [0, x_max].
+    // 'x_max' is the defined maximum of the original range.
+    // 'y_max' is the defined maximum of the new range.
 
-    let val: UInt32 = new UInt32(5);
-    Provable.log('Generated random hash: ', val);
-    // Modulo it
+    // Mask the fie;d syntax
+    //  let revealBits: Bool[] = input.toBits();
+    //  let filterd = new Array<Bool>(7);
+    //  for (let i = 0; i < 7; i++) {
+    //    filterd[i] = revealBits[i];
+    //  }
 
-    Provable.log('Modding it over: ', size);
+    // Shift forward by bytes (pre scale it)
 
-    // Set rand
-    this.randUInt32.set(randUint32);
-    this.randUInt64.set(randUint64);
+    // returns linearly scaled value
+    let scalingFactor = yMax.div(xMax);
 
-    return modded;
+    Provable.log('Scaling factor: ', scalingFactor.value);
+
+    let scaledValue = input.mul(scalingFactor);
+
+    return scaledValue;
   }
 }

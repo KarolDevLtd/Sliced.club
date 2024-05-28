@@ -80,28 +80,33 @@ describe('GroupBasic', () => {
   it('Randy', async () => {
     // Cant't get block hash so for now need to provide the "vrf" value
 
-    let size: number = 20;
+    let yMax: number = 20;
 
     for (let i = 0; i < 10; i++) {
-      let rand = Math.floor(Math.random() * 400);
+      // Number to test
+      let rand = Math.floor(Math.random() * 400) + 200;
+
+      console.log('Random number: ', rand);
 
       const txn1 = await Mina.transaction(alexa, async () => {
-        await randHash.randHash(Field(rand), new UInt64(size));
+        await randHash.randHashTest(
+          new UInt64(rand),
+          // UInt64.MAXINT(),
+          new UInt64(1000),
+          new UInt64(yMax)
+        );
       });
       await txn1.prove();
       let moddedVal = await txn1.sign([alexa.key, tokenKey]).send();
-      console.log('moddedVal', moddedVal);
 
-      // Need checks to assert that number is within the expected range
-
-      // Read values for uin32 and uin64
-      let uint32 = await randHash.randUInt32.get();
-      console.log('uint32', uint32.value);
+      // fetch value
       let uint64 = await randHash.randUInt64.get();
-      console.log('uint64', uint64.value);
 
-      // Assert no larger than the value of size
-      //   expect(uint32.value).toBeLessThanOrEqual(20);
+      console.log('Normalised value', uint64.toString());
+
+      // Ensure its within range
+      expect(parseInt(uint64.toString())).toBeLessThanOrEqual(yMax);
+      expect(parseInt(uint64.toString())).toBeGreaterThanOrEqual(0);
     }
   });
 });
