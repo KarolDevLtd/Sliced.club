@@ -43,13 +43,14 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 	}, [error]);
 
 	return (
-		<div className="flex flex-auto w-1/3 overflow-hidden">
+		<div className="flex-1 flex flex-col min-w-full mt-2">
 			{isLoading ? (
 				<div>Loading...</div>
 			) : (
-				<ul className="overflow-auto flex flex-col">
-					{posts.map((post) => (
+				<div className="flex-1 flex flex-col">
+					{posts.map((post, index) => (
 						<GroupPostItem
+							id={index.toString()}
 							key={post.hash}
 							posterKey={post.posterKey}
 							hash={post.hash}
@@ -57,7 +58,7 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 							group={post.group}
 						/>
 					))}
-				</ul>
+				</div>
 			)}
 		</div>
 	);

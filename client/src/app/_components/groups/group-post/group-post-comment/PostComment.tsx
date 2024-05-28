@@ -28,26 +28,12 @@ type PostCommentProps = {
 const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
-	const [, setValue] = useState('');
-	const [rows, setRows] = useState(1);
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const commentToIPFS = api.PinataPost.postComment.useMutation();
 	const commentToFirebase = api.FirebasePost.commentToCollection.useMutation();
-
-	//function allows for textarea to automatically wrap line
-	const handleChange = (event: {
-		target: { rows: number; scrollHeight: number; value: React.SetStateAction<string> };
-	}) => {
-		const textareaLineHeight = 24; // Adjust this value based on your textarea styling
-		event.target.rows = 1; // Resetting rows to 1 to calculate the new height
-		const currentRows = Math.ceil(event.target.scrollHeight / textareaLineHeight);
-		event.target.rows = currentRows;
-		setRows(currentRows);
-		setValue(event.target.value);
-	};
 
 	const {
 		register,
@@ -111,30 +97,31 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 
 	return (
 		<div className="flex">
-			<form className="flex flex-row w-full" onSubmit={handleSubmit(onSubmit)}>
-				<TextArea
-					id="comment-content"
-					name="comment-content"
-					onChange={handleChange}
-					rows={rows}
-					label=""
-					required={true}
-					errors={errors}
-					register={register}
-					validationSchema={{
-						required: 'Comment content is required',
-						minLength: {
-							value: 1,
-							message: 'Comment must be at least 1 character',
-						},
-						maxLength: {
-							value: 250,
-							message: 'Comment must be at less than 250 characters',
-						},
-					}}
-				/>
-				<div className="p-3">
-					<BasicButton type={'primary'} submitForm={true}>
+			<form className="flex flex-row items-center min-w-full my-4" onSubmit={handleSubmit(onSubmit)}>
+				<div className="flex-1">
+					<TextArea
+						id="comment-content"
+						name="comment-content"
+						label=""
+						placeholder="Leave your comment..."
+						errors={errors}
+						register={register}
+						// autoResize={true}
+						validationSchema={{
+							required: 'Comment content is required',
+							minLength: {
+								value: 1,
+								message: 'Comment must be at least 1 character',
+							},
+							maxLength: {
+								value: 250,
+								message: 'Comment must be at less than 250 characters',
+							},
+						}}
+					/>
+				</div>
+				<div className="ms-2">
+					<BasicButton type="ghost" submitForm={true}>
 						{isLoading ? <Spinner size="sm" /> : <IoIosSend />}
 					</BasicButton>
 				</div>

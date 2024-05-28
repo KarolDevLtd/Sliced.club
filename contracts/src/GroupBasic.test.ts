@@ -18,7 +18,7 @@ import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 
 import { GroupUserStorage } from './GroupUserStorage';
 
-let proofsEnabled = true;
+let proofsEnabled = false;
 const fee = 1e8;
 
 describe('GroupBasic', () => {

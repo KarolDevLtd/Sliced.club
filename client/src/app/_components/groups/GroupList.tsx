@@ -1,60 +1,80 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// import React, { useEffect, useState } from 'react';
-// import ProductItem from './ProductItem';
-// import { type Product } from '~/types/product-types';
 import { useEffect, useState } from 'react';
-import { set } from 'zod';
-import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
 import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';
-import { group } from 'console';
+import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
+import { defaultPageLimit } from '~/helpers/search-helper';
+import { useInView } from 'react-intersection-observer';
+import Spinner from '../ui/Spinner';
 // import { useWallet } from '~/providers/walletprovider';
 // import { type FirebaseProductModel } from '~/models/firebase-product-model';
 
 type GroupListProps = {
 	heading?: string;
+	searchValue?: string;
+	isHomeScreen: boolean;
 	// products: Product[];
 };
 
-const GroupList = ({ heading }: GroupListProps) => {
+const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 	const { isConnected, walletAddress } = useWallet();
+	const [groups, setGroups] = useState<IPFSSearchModel[]>([]);
+	const [groupCount, setGroupCount] = useState<number>(0);
+	const [displayGroupCount, setDisplayGroupCount] = useState(defaultPageLimit);
+
+	const { ref, inView } = useInView();
 
 	const {
 		data: groupData,
 		error,
 		refetch,
-	} = api.FirebaseGroup.getGroups.useQuery({
-		creatorKey: walletAddress?.toString(),
-	});
-
-	const [groups, setGroups] = useState<FirebaseGroupModel[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
+		isLoading,
+	} = api.PinataGroup.getGroups.useQuery({ creatorKey: walletAddress?.toString(), groupCount: displayGroupCount });
 
 	useEffect(() => {
-		setIsLoading(true);
 		if (groupData) {
-			setGroups(groupData.groups);
-			setIsLoading(false);
+			setGroups(groupData.groups == null ? [] : groupData.groups.rows);
+			setGroupCount(groupData.groups == null ? 0 : groupData.groups.count);
 		}
 	}, [groupData]);
 
 	useEffect(() => {
 		if (error) {
 			console.error('Error fetching groups:', error);
-			setIsLoading(false);
 		}
 	}, [error]);
+
+	useEffect(() => {
+		if (inView) {
+			setDisplayGroupCount((prevCount) => prevCount + defaultPageLimit);
+		}
+	}, [inView]);
 
 	return (
 		<div className="flex flex-col gap-2 mb-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
-			{groups.length > 0 ? (
-				groups.map((group, index) => {
-					return <GroupItem key={index} firebaseGroup={group} />;
-				})
+			{groups && groups.length > 0 ? (
+				<div
+					className={
+						isHomeScreen
+							? 'overflow-y-scroll flex flex-col m-4 h-60'
+							: 'overflow-y-scroll flex flex-col m-4 h-96'
+					}
+				>
+					{groups.map((group, index) => (
+						<GroupItem
+							key={index}
+							groupHash={group.ipfs_pin_hash}
+							productHash={group.metadata.keyvalues.productHash}
+						/>
+					))}
+					{groupCount > displayGroupCount ? <div ref={ref} /> : 'No more products to display...'}
+					{isLoading ? <Spinner /> : null}
+				</div>
 			) : (
 				<p>No groups found.</p>
 			)}

@@ -1,39 +1,39 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import React, { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { toast } from 'react-toastify';
+import { preventActionWalletNotConnected } from '~/helpers/user-helper';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 
-import TextInput from '../../ui/TextInput';
-import TextArea from '../../ui/TextArea';
 import BasicButton from '../../ui/BasicButton';
+import TextInput from '../../ui/TextInput';
+import Spinner from '../../ui/Spinner';
+import { closeModal } from '~/helpers/modal-helper';
+import TextArea from '../../ui/TextArea';
 import BasicModal from '../../ui/BasicModal';
+import DragDrop from '../../ui/DragDrop';
+
+import { saveImages } from '~/helpers/image-helper';
 import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
-import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
-import Spinner from '../../ui/Spinner';
-import DragDrop from '../../ui/DragDrop';
-import { saveImages } from '~/helpers/image-helper';
-import { closeModal, showModal } from '~/helpers/modal-helper';
 
-type GroupPostProps = {
+type AddGroupPostModalProps = {
 	groupId: string;
-	refetchPosts: () => void;
 };
 
-const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
+const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
+	const [refreshPosts, setRefreshPosts] = useState(false);
 
 	const { isConnected, walletAddress } = useWallet();
 
@@ -42,16 +42,6 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
-
-	const hidePostInput = () => {
-		// Clears form validation errors when closing modal
-		unregister(['post-title', 'post-text']);
-	};
-
-	const showPostInput = () => {
-		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to make a post')) return;
-		showModal('add-post');
-	};
 
 	const {
 		register,
@@ -75,7 +65,7 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 			console.log(JSON.stringify(data));
 			reset();
 			hidePostInput();
-			refetchPosts();
+			// refetchPosts();
 			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
@@ -121,86 +111,87 @@ const GroupPost = ({ groupId, refetchPosts }: GroupPostProps) => {
 		}
 	};
 
+	const hidePostInput = () => {
+		// Clears form validation errors when closing modal
+		unregister(['post-title', 'post-text']);
+		closeModal('add-post');
+	};
+
 	const clearForm = () => {
 		reset();
 		unregister(['post-title', 'post-text']);
 	};
 
 	return (
-		<div className="flex flex-col w-1/3">
-			<BasicButton type="primary" onClick={showPostInput}>
-				Add Post
-			</BasicButton>
-			<BasicModal
-				id="add-post"
-				onClose={clearForm}
-				header="Add Post"
-				content={
-					<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
-						<TextInput
-							id="post-title"
-							name="post-title"
-							type="text"
-							label="Post Title"
-							required={true}
-							errors={errors}
-							register={register}
-							validationSchema={{
-								required: 'Post Title is required',
-								minLength: {
-									value: 10,
-									message: 'Post Title must be at least 10 characters',
-								},
+		<BasicModal
+			id="add-post"
+			onClose={clearForm}
+			header="Add Post"
+			content={
+				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
+					<TextInput
+						id="post-title"
+						name="post-title"
+						type="text"
+						label="Post Title"
+						required={true}
+						errors={errors}
+						register={register}
+						validationSchema={{
+							required: 'Post Title is required',
+							minLength: {
+								value: 10,
+								message: 'Post Title must be at least 10 characters',
+							},
+						}}
+					/>
+					<TextArea
+						id="post-text"
+						name="post-text"
+						label="Post Text"
+						required={true}
+						showCharacterCount={true}
+						errors={errors}
+						register={register}
+						validationSchema={{
+							required: 'Post Content is required',
+							minLength: {
+								value: 20,
+								message: 'Post Content must be at least 20 characters',
+							},
+							maxLength: {
+								value: 250,
+								message: 'Post Content must be at less than 250 characters',
+							},
+						}}
+					/>
+					<div>
+						<DragDrop images={images} setImages={setImages} includeButton={true} />
+					</div>
+					<div className="w-100 flex justify-end items-center gap-2">
+						<BasicButton
+							type="primary"
+							icon={isLoading ? <Spinner size="sm" /> : null}
+							disabled={isLoading}
+							submitForm={true}
+						>
+							Save
+						</BasicButton>
+						<BasicButton
+							type="secondary"
+							disabled={isLoading}
+							onClick={() => {
+								clearForm();
+								closeModal('add-post');
 							}}
-						/>
-						<TextArea
-							id="post-text"
-							name="post-text"
-							label="Post Text"
-							required={true}
-							showCharacterCount={true}
-							errors={errors}
-							register={register}
-							validationSchema={{
-								required: 'Post Content is required',
-								minLength: {
-									value: 20,
-									message: 'Post Content must be at least 20 characters',
-								},
-								maxLength: {
-									value: 250,
-									message: 'Post Content must be at less than 250 characters',
-								},
-							}}
-						/>
-						<div>
-							<DragDrop images={images} setImages={setImages} includeButton={true} />
-						</div>
-						<div className="w-100 flex justify-end items-center gap-2">
-							<BasicButton
-								type="primary"
-								icon={isLoading ? <Spinner size="sm" /> : null}
-								disabled={isLoading}
-								submitForm={true}
-							>
-								Save
-							</BasicButton>
-							<BasicButton
-								type="secondary"
-								disabled={isLoading}
-								onClick={() => {
-									clearForm();
-									closeModal('add-post');
-								}}
-							>
-								Cancel
-							</BasicButton>
-						</div>
-					</form>
-				}
-			/>
-		</div>
+						>
+							Cancel
+						</BasicButton>
+					</div>
+				</form>
+			}
+		/>
 	);
 };
 
-export default GroupPost;
+export default AddGroupPostModal;

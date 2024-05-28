@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { type ChangeEvent, useState } from 'react';
+import React, { type ChangeEvent, useState, useRef } from 'react';
+import { useAutosizeTextArea } from '~/helpers/textarea-helper';
 
 type TextAreaProps = {
 	type?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'ghost';
@@ -15,11 +16,12 @@ type TextAreaProps = {
 	altLabel3?: string;
 	placeholder?: string;
 	rows?: number;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	onChange?: (e: any) => any;
 	disabled?: boolean;
 	required?: boolean;
 	showCharacterCount?: boolean;
+	// autoResize?: boolean;
+	hideResize?: boolean;
 
 	// React Hook Form Props
 	validationSchema?: {
@@ -56,6 +58,8 @@ const TextArea = ({
 	disabled,
 	required = false,
 	showCharacterCount = false,
+	// autoResize = false,
+	hideResize = false,
 
 	// React Hook Form Props
 	validationSchema,
@@ -63,8 +67,16 @@ const TextArea = ({
 	errors,
 }: TextAreaProps) => {
 	const [characterCount, setCharacterCount] = useState(0);
+	// const [value, setValue] = useState('');
+
+	// const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+	// useAutosizeTextArea(textAreaRef.current, value, autoResize);
 
 	const handleOnChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+		// const val = e.target?.value;
+		// setValue(val);
+
 		onChange;
 		setCharacterCount(e.target.value.length);
 	};
@@ -99,16 +111,18 @@ const TextArea = ({
 					</div>
 				) : null}
 				<textarea
-					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]}`}
+					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]} ${/*autoResize ||*/ hideResize ? 'resize-none' : ''}`}
 					id={id}
 					name={name}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
-					rows={rows}
 					disabled={disabled}
 					required={required}
 					// React Hook Form
 					{...register(name, validationSchema)}
 					onChange={handleOnChange}
+					// ref={textAreaRef}
+					rows={rows}
+					// value={value}
 				></textarea>
 				{altLabel2 ?? altLabel3 ? (
 					<div className="label">

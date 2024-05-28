@@ -4,6 +4,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import imageCompression from 'browser-image-compression';
 
+// hash for sliced default image
+const defaultImageHash = 'QmTdpE5ZdBTnnragH1mGjgJBcoDWYxhJc59VMMgYwHc3MV';
+
 const options = {
 	maxSizeMB: 1,
 	maxWidthOrHeight: 1920,
@@ -88,4 +91,4 @@ const fetchImages = async (imageHash: string, imageHashes, setImageData, setImag
 	}
 };
 
-export { compressImage, saveImages, fetchImageData };
+export { compressImage, saveImages, fetchImageData, defaultImageHash };

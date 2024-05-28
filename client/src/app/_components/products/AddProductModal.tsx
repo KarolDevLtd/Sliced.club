@@ -19,32 +19,29 @@ import { ProductCategoryOptions } from '~/models/product-category-options';
 import BasicButton from '../ui/BasicButton';
 import Spinner from '../ui/Spinner';
 import DragDrop from '../ui/DragDrop';
-import { saveImages } from '~/helpers/image-helper';
+import { defaultImageHash, saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
 import { DateTime } from 'luxon';
 import ProductFields from './ProductFields';
 import { closeModal } from '~/helpers/modal-helper';
+import { type AttributeModel } from '~/models/attribute-model';
 
 type AddProductModalProps = {
 	productOpen: boolean;
-	hideProduct: () => void;
 	onProductSubmitted: () => void;
 };
 
-const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddProductModalProps) => {
+const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
-
 	const productToIPFS = api.PinataProduct.postProduct.useMutation();
 	const productToFirebase = api.FirebaseProduct.productToCollection.useMutation();
+	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
+	const [displayTailoredFields, setDisplayTailoredFields] = useState(false);
+	const [attributes, setAttributes] = useState<AttributeModel[]>([]);
 
 	const { isConnected, walletAddress } = useWallet();
-	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
-
-	const [displayTailoredFields, setDisplayTailoredFields] = useState(false);
-
-	const [attributes, setAttributes] = useState([]);
 
 	const {
 		register,
@@ -70,12 +67,14 @@ const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddPr
 			let productImgsIPFS;
 			let imageHashes;
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save product')) return;
-			if (images) {
+			if (images.length > 0) {
 				productImgsIPFS = await saveImages(images);
 				//map ipfsHashes of all uploaded images to array
 				imageHashes = productImgsIPFS.map(function (item) {
 					return item.data.IpfsHash;
 				});
+			} else {
+				imageHashes = [defaultImageHash];
 			}
 			// 	//DO WE WANT CONTENT CHECK HERE?
 			// 	// Save to IPFS
@@ -85,12 +84,7 @@ const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddPr
 				category: category,
 				imageHash: imageHashes,
 				productAttributes: attributes,
-			});
-			await productToFirebase.mutateAsync({
-				name: name,
 				creatorKey: walletAddress!.toString(),
-				productHash: postProductToIPFS.data.IpfsHash,
-				price: price.toString(),
 				dateTime: DateTime.now().toString(),
 			});
 		} catch (err) {
@@ -126,11 +120,16 @@ const AddProductModal = ({ productOpen, hideProduct, onProductSubmitted }: AddPr
 		unregister(['product-name', 'product-price', 'product-category']);
 	};
 
+	const handleOnClose = () => {
+		clearForm();
+		closeModal('add-product');
+	};
+
 	return (
 		<BasicModal
 			id="add-product"
 			header="Add Product"
-			onClose={clearForm}
+			onClose={handleOnClose}
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
 					<TextInput

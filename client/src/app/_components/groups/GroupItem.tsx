@@ -10,23 +10,21 @@ import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { api } from '~/trpc/react';
 import BasicModal from '../ui/BasicModal';
 import { toast } from 'react-toastify';
-import { type FirebaseGroupModel } from '~/models/firebase/firebase-group-model';
 import ZoomableImage from '../ui/ZoomableImage';
 import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { fetchImageData } from '~/helpers/image-helper';
 import { IoPeople } from 'react-icons/io5';
 import InlineLink from '../ui/InlineLink';
 import BasicButton from '../ui/BasicButton';
-import { showModal } from '~/helpers/modal-helper';
 
 type GroupItemProps = {
-	firebaseGroup: FirebaseGroupModel;
+	groupHash: string;
+	productHash: string;
 };
 
-const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
-	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: firebaseGroup.groupHash });
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: groupData?.group.productHash });
-	const [displayModal, setDisplayModal] = useState(false);
+const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupHash });
+	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: productHash });
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [product, setProduct] = useState<IPFSProductModel>();
@@ -34,18 +32,14 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
 
-	const openModal = () => {
-		showModal('group-item');
-	};
-
 	const handleClick = (e: Event | undefined) => {
 		//At this point we have all group information from firebase and IPFS
 		//Pass to reduce need to query?
 		void router.push({
-			pathname: `/groups/${firebaseGroup.id}`,
-			query: {
-				groupHash: firebaseGroup.groupHash,
-			},
+			pathname: `/groups/${groupHash}`,
+			// query: {
+			// 	groupHash: firebaseGroup.groupHash,
+			// },
 		});
 		e?.stopPropagation();
 	};
@@ -82,7 +76,7 @@ const GroupItem = ({ firebaseGroup }: GroupItemProps) => {
 			) : (
 				//TODO - BUG here, should be able to zoom image without triggering parent onClick
 				<div
-					className="grid grid-cols-10 gap-4 p-4 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer"
+					className="grid grid-cols-10 gap-2 p-2 m-2 bg-light-grey min-w-full min-h-[120px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer overflow-hidden"
 					// @ts-ignore
 					// onClick={(e) => handleClick(e)}
 				>

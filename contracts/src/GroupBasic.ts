@@ -158,7 +158,7 @@ export class GroupBasic extends TokenContract {
       isSome: Bool(true),
       value: {
         ...Permissions.default(),
-        // TODO make it proof only
+        // TODO test acc update for this with sig only
         editState: Permissions.proofOrSignature(),
         send: Permissions.impossible(), // we don't want to allow sending - soulbound
         // setVerificationKey: Permissions.proof(),
@@ -244,8 +244,6 @@ export class GroupBasic extends TokenContract {
     let iter = actions.startIterating();
     let distanceFromRandom = Field.from(999);
     let currentDistance = Field.from(999);
-    // TODO what if win lottery but also auction
-
     // iterate over actions of encrypted bids
     // decrypt the bid and assert earliest highest bid
 
@@ -304,20 +302,6 @@ export class GroupBasic extends TokenContract {
           currentDistance,
           distanceFromRandom
         );
-
-        //this may still be correct
-        // lotteryWinner = Provable.if(
-        //   action.message
-        //     .equals(UInt64.zero)
-        //     .and(action.paymentRound.equals(currentPaymentRound))
-        //     .and(
-        //       currentDistance
-        //         .equals(Field(0))
-        //         .or(currentDistance.lessThan(distanceFromRandom))
-        //     ),
-        //   action.publicKey,
-        //   lotteryWinner
-        // );
       }
       innerIter.assertAtEnd();
     }
@@ -329,7 +313,6 @@ export class GroupBasic extends TokenContract {
     this.emitEvent('lottery-winner', lotteryWinner);
     this.emitEvent('auction-winner', auctionWinner);
 
-    //TODO double check logic for this
     let advanceRound = Provable.if(
       lotteryWinner.equals(PublicKey.empty()),
       UInt64.zero,
@@ -489,7 +472,6 @@ export class GroupBasic extends TokenContract {
   }
 
   //TODO extraPayment()
-  //TODO joinGroup()
   //TODO claimLottery()
   //TODO claimAuction()
 }

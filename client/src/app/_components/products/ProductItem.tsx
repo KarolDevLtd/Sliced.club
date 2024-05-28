@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import React, { useCallback, useEffect, useState } from 'react';
-import router from 'next/router';
 import BasicModal from '../ui/BasicModal';
 import InlineLink from '../ui/InlineLink';
 import { api } from '~/trpc/react';
@@ -13,15 +12,13 @@ import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
-import { type FirebaseProductModel } from '~/models/firebase/firebase-product-model';
 
 type ProductItemProps = {
-	firebaseProduct: FirebaseProductModel;
+	productHash: string;
 };
 
-const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: firebaseProduct.productHash });
-	const [displayModal, setDisplayModal] = useState(false);
+const ProductItem = ({ productHash }: ProductItemProps) => {
+	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: productHash });
 	const [isLoading, setIsLoading] = useState(false);
 	const [product, setProduct] = useState<IPFSProductModel>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
@@ -35,7 +32,8 @@ const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
 	// };
 
 	const handleClick = (e: Event | undefined) => {
-		void router.push(`/groups/${firebaseProduct.id}`);
+		//TODO: Is here a product page not associated with group?
+		// void router.push(`/groups/${firebaseProduct.id}`);
 		e?.stopPropagation();
 	};
 
@@ -69,7 +67,7 @@ const ProductItem = ({ firebaseProduct }: ProductItemProps) => {
 			) : (
 				//TODO - BUG here, should be able to zoom image without triggering parent onClick
 				<div
-					className="grid grid-cols-10 gap-4 p-4 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer"
+					className="grid grid-cols-10 gap-4 p-2 m-2 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer overflow-hidden"
 					// @ts-ignore
 					onClick={(e) => handleClick(e)}
 				>
