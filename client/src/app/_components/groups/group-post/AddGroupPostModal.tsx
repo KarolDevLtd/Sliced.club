@@ -28,9 +28,10 @@ import { DateTime } from 'luxon';
 
 type AddGroupPostModalProps = {
 	groupId: string;
+	refetchPosts: () => void;
 };
 
-const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
+const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 	const [refreshPosts, setRefreshPosts] = useState(false);
@@ -115,6 +116,7 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 		// Clears form validation errors when closing modal
 		unregister(['post-title', 'post-text']);
 		closeModal('add-post');
+		refetchPosts();
 	};
 
 	const clearForm = () => {
