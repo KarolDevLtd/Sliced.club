@@ -25,6 +25,7 @@ import { saveImages } from '~/helpers/image-helper';
 import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
+import { FaImage } from 'react-icons/fa6';
 
 type AddGroupPostModalProps = {
 	groupId: string;
@@ -34,6 +35,7 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 	const [refreshPosts, setRefreshPosts] = useState(false);
+	const [showAttachments, setShowAttachments] = useState(false);
 
 	const { walletDisplayAddress, walletAddress } = useWallet();
 
@@ -162,7 +164,7 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 					</div>
 
 					<TextArea
-						type="ghost"
+						type="accent"
 						id="post-text"
 						name="post-text"
 						placeholder="Add a new post..."
@@ -183,9 +185,25 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 							},
 						}}
 					/>
-					<div>
-						<DragDrop images={images} setImages={setImages} includeButton={true} />
+
+					<div className="flex items-center justify-between">
+						<span>Add to post</span>
+						<div className="flex items-center justify-end gap-2">
+							<BasicButton
+								type="ghost"
+								active={showAttachments}
+								onClick={() => setShowAttachments(!showAttachments)}
+							>
+								<FaImage />
+							</BasicButton>
+						</div>
 					</div>
+
+					{showAttachments ? (
+						<div className="flex justify-center">
+							<DragDrop images={images} setImages={setImages} includeButton={true} />
+						</div>
+					) : null}
 					<div className="w-full flex justify-end items-center gap-2">
 						<BasicButton
 							type="secondary"

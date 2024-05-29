@@ -70,30 +70,39 @@ const DragDrop = ({ images, setImages, includeButton }: DragDropProps) => {
 	};
 
 	return (
-		<div className="w-full">
+		<div className="w-fit">
 			{includeButton ? (
-				<div className="flex flex-col justify-center">
-					<label htmlFor="files" className="form-label">
-						{'Choose File '}
+				<div className="flex items-center justify-center">
+					<label className="form-control w-full max-w-xs" htmlFor="files">
+						<div className="label">
+							<span className="label-text">{}</span>
+							<span className="label-text-alt">{`${images.length}/3`}</span>
+						</div>
+						<input
+							className="file-input file-input-bordered w-full max-w-xs rounded-b-none"
+							type="file"
+							id="files"
+							accept="image/jpeg, image/png, image/webp"
+							onChange={changeHandler}
+						/>
 					</label>
-					<input type="file" id="files" accept="image/jpeg, image/png, image/webp" onChange={changeHandler} />
 				</div>
 			) : null}
 			<div
-				className="flex justify-center items-center h-20 bg-light-grey rounded-md m-2"
+				className="h-28 file-input file-input-bordered border-t-0 rounded-md rounded-t-none mb-2 min-w-full pe-0 flex justify-center items-center"
 				onDrop={handleDrop}
 				onDragOver={(e) => e.preventDefault()}
 			>
 				{images.length == 0 ? (
-					<label className="flex justify-center">Drag & Drop to Upload (max 3 images)</label>
+					<label className="flex justify-center text-sm">Drag & Drop to Upload (max 3 images)</label>
 				) : null}
-				<div className="flex">
+				<div className="flex justify-start items-center gap-2">
 					{images.map((image, index) => (
-						<div key={index}>
-							<div className="flex flex-col">
-								<div className="cursor:pointer">
+						<div key={index} className="min-w-[100px]">
+							<div className="flex flex-col gap-1">
+								<div className="w-fit relative z-0">
 									<div
-										className="bg-black text-white"
+										className="hover:cursor-pointer bg-[#fff] text-[#000] absolute z-10"
 										onClick={() => {
 											removeImagePreview(image);
 											removeImage(index);
@@ -112,6 +121,7 @@ const DragDrop = ({ images, setImages, includeButton }: DragDropProps) => {
 										</div>
 									</Zoom>
 								</div>
+								<span className="text-xs">{image.name}</span>
 							</div>
 						</div>
 					))}
