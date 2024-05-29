@@ -4,17 +4,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import React, { useCallback, useEffect, useState } from 'react';
-
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-
 import { type FirebasePostModel } from '~/models/firebase/firebase-post-model';
 import { type IPFSPostModel } from '~/models/ipfs/ipfs-post-model';
 import { api } from '~/trpc/react';
 import BasicButton from '../../ui/BasicButton';
-import { FaHeart, FaRegCommentDots } from 'react-icons/fa6';
-import { CiHeart } from 'react-icons/ci';
+import { FaRegCommentDots } from 'react-icons/fa6';
 import { useWallet } from '~/providers/WalletProvider';
 import PostComment from './group-post-comment/PostComment';
 import PostCommentList from './group-post-comment/PostCommentList';
@@ -28,13 +25,19 @@ import { MdOutlineThumbUp } from 'react-icons/md';
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
 	const { data: likesData } = api.FirebasePost.getPostLikes.useQuery({ postId: currentPost.hash });
+	// const { data: commentsData } = api.FirebasePost.getComments.useQuery({ postId: currentPost.hash });
+	const {
+		data: commentsData,
+		// error,
+		refetch,
+	} = api.FirebasePost.getComments.useQuery({ parentMessageId: currentPost.hash });
+
 	const [post, setPost] = useState<IPFSPostModel>();
 	const [isLoading, setIsLoading] = useState(false);
 	const [likeCount, setLikeCount] = useState(0);
 	const [isLiked, setIsLiked] = useState(false);
 	const [showComments, setShowComments] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
-	const [refreshComments, setRefreshComments] = useState(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageError, setImageError] = useState(false);
@@ -121,11 +124,6 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		setShowComments(!showComments);
 	};
 
-	const handleCommentSubmission = (refreshing: boolean) => {
-		// After the post is submitted successfully, set refreshComment to true to trigger a refresh of comments
-		setRefreshComments(refreshing);
-	};
-
 	useEffect(() => {
 		//Use void here as do not need result, use state set inside result
 		void fetchAndDisplayImages();
@@ -187,7 +185,6 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 							{'There was an error fetching one or more image'}
 						</div>
 					) : null}
-					{/* </div> */}
 
 					<div className="border-t border-neutral flex items-center gap-2 pt-2">
 						<BasicButton
@@ -206,21 +203,14 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 								icon={<FaRegCommentDots />}
 								iconBefore={true}
 							>
-								3 Comments
+								{commentsData != null ? commentsData.comments.length : 0}
 							</BasicButton>
 						</div>
 					</div>
 					{showComments ? (
 						<div>
-							<PostComment
-								postId={currentPost.hash}
-								refetchComments={() => handleCommentSubmission(true)}
-							/>
-							<PostCommentList
-								postId={currentPost.hash}
-								refreshComments={refreshComments}
-								onRefresh={() => handleCommentSubmission(false)}
-							/>
+							<PostComment postId={currentPost.hash} refetchComments={() => refetch()} />
+							<PostCommentList comments={commentsData?.comments ?? null} />
 						</div>
 					) : null}
 				</div>
