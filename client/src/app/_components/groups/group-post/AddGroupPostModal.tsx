@@ -63,7 +63,7 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
-			await savePost(data['post-title'], data['post-text']);
+			await savePost('', data['post-text']);
 			console.log(JSON.stringify(data));
 			reset();
 			hidePostInput();

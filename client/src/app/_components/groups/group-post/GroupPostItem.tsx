@@ -166,7 +166,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						<span className="text-xl">{post?.title}</span>
 						<span className="text-sm">{post?.content}</span>
 					</div>
-					<div className="flex justify-center">
+					<div className="flex justify-start gap-4 my-2">
 						{imageData.map(function (value, index) {
 							return (
 								value != null && (
