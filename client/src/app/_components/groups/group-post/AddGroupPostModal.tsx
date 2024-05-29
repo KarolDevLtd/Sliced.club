@@ -26,6 +26,7 @@ import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { FaImage } from 'react-icons/fa6';
+import UserAvatar from '../../ui/UserAvatar';
 
 type AddGroupPostModalProps = {
 	groupId: string;
@@ -149,17 +150,7 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 					/> */}
 
 					<div className="flex items-center gap-2">
-						<div className="avatar">
-							<div className="rounded h-[2.25rem] w-[2.25rem]">
-								{/* <Image
-									src={'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg'}
-									alt="Placeholder Avatar"
-									width={25}
-									height={25}
-								/> */}
-								<img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-							</div>
-						</div>
+						<UserAvatar />
 						<span>{sliceWalletAddress(walletDisplayAddress)}</span>
 					</div>
 

@@ -20,6 +20,7 @@
 		"@trpc/next": "next",
 		"@trpc/react-query": "next",
 		"@trpc/server": "next",
+		"boring-avatars": "^1.10.2",
 		"browser-image-compression": "^2.0.2",
 		"firebase": "^10.9.0",
 		"flowbite-react": "^0.7.5",

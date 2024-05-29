@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useEffect, useState } from 'react';
+import UserAvatar from '~/app/_components/ui/UserAvatar';
 import { sliceWalletAddress } from '~/helpers/user-helper';
 import { type FirebaseCommentModel } from '~/models/firebase/firebase-comment-model';
 import { IPFSPostModel } from '~/models/ipfs/ipfs-post-model';
@@ -32,14 +33,7 @@ const PostCommentItem = (currentComment: FirebaseCommentModel) => {
 	}, [commentData]);
 	return (
 		<div className="chat chat-start">
-			<div className="chat-image avatar">
-				<div className="w-10 rounded">
-					<img
-						alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
-					/>
-				</div>
-			</div>
+			<UserAvatar walletAddress={currentComment.posterKey} />
 			<div className="chat-header">
 				{sliceWalletAddress(currentComment.posterKey)}
 				<time className="ms-1 text-xs opacity-50">2 hours ago</time>
