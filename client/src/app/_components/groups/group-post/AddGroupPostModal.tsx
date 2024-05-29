@@ -19,7 +19,7 @@ import Spinner from '../../ui/Spinner';
 import { closeModal } from '~/helpers/modal-helper';
 import TextArea from '../../ui/TextArea';
 import BasicModal from '../../ui/BasicModal';
-import DragDrop from '../../ui/DragDrop';
+import DragDrop from '../../ui/ImageUpload';
 
 import { saveImages } from '~/helpers/image-helper';
 import { useWallet } from '~/providers/WalletProvider';

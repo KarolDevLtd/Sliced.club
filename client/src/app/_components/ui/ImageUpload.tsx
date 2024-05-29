@@ -9,13 +9,13 @@ import { compressImage } from '~/helpers/image-helper';
 import { toast } from 'react-toastify';
 import { IoClose } from 'react-icons/io5';
 
-type DragDropProps = {
+type ImageUploadProps = {
 	images: File[];
 	setImages: Dispatch<File[]>;
 	includeButton: boolean;
 };
 
-const DragDrop = ({ images, setImages, includeButton }: DragDropProps) => {
+const ImageUpload = ({ images, setImages, includeButton }: ImageUploadProps) => {
 	const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
 		event.preventDefault();
 		const files = Array.from(event.dataTransfer.files);
@@ -131,4 +131,4 @@ const DragDrop = ({ images, setImages, includeButton }: DragDropProps) => {
 	);
 };
 
-export default DragDrop;
+export default ImageUpload;
