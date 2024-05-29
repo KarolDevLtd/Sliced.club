@@ -54,6 +54,8 @@ interface WalletProviderProps {
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const LOCAL_STORAGE_KEY = 'MINA';
 
+	const { setUserWalletAddress } = useUserStore((state) => state);
+
 	const [isConnected, setIsConnected] = useState(false);
 	const [walletAddress, setWalletAddress] = useState<string | null>(null);
 	const [walletDisplayAddress, setWalletDisplayAddress] = useState<string | null>(null);
@@ -155,6 +157,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 			disconnectUserWallet();
 		}
 		setWalletAddress(account);
+		setUserWalletAddress(account ?? '');
 	};
 
 	//Function to get wallet address from local storage

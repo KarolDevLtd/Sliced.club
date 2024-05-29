@@ -24,6 +24,7 @@ import ZoomableImage from '../../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
 import { IoMdThumbsUp } from 'react-icons/io';
 import { MdOutlineThumbUp } from 'react-icons/md';
+import UserAvatar from '../../ui/UserAvatar';
 
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -142,18 +143,8 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			) : (
 				<div>
 					{/* <div className=""> */}
-					<div className="flex items-center gap-4 mb-2">
-						<div className="avatar">
-							<div className="rounded h-[2.25rem] w-[2.25rem]">
-								{/* <Image
-									src={'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg'}
-									alt="Placeholder Avatar"
-									width={25}
-									height={25}
-								/> */}
-								<img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-							</div>
-						</div>
+					<div className="flex items-center gap-2 mb-2">
+						<UserAvatar walletAddress={currentPost.posterKey} />
 						<div className="flex flex-col">
 							<span className="text-sm overflow-hidden">{sliceWalletAddress(currentPost.posterKey)}</span>
 							<div className="flex items-center">

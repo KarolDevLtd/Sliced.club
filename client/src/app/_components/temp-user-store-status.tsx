@@ -22,6 +22,7 @@ export const UserStoreStatus = ({}) => {
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const userFirstName = useStore(useUserStore, (state: UserState) => state.userFirstName);
+	const userWalletAddress = useStore(useUserStore, (state: UserState) => state.userWalletAddress);
 	const _hasHydrated = useStore(useUserStore, (state: UserState) => state._hasHydrated);
 
 	const { setUserFirstName } = useUserStore((state) => state);
@@ -64,7 +65,7 @@ export const UserStoreStatus = ({}) => {
 					>
 						Hide User Store
 					</p>
-					<div className="bg-purple-light p-3 border border-purple">
+					<div className="bg-accent p-3 border border-purple">
 						<p>
 							<strong>USER STORE</strong>
 						</p>
@@ -73,6 +74,9 @@ export const UserStoreStatus = ({}) => {
 						</p>
 						<p>
 							<strong>walletConnected:</strong> {walletConnected?.toString()}
+						</p>
+						<p>
+							<strong>userWalletAddress:</strong> {userWalletAddress}
 						</p>
 						<p>
 							<strong>userFirstName:</strong> {userFirstName}
