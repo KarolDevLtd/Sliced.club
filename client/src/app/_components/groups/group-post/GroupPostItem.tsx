@@ -18,7 +18,7 @@ import { CiHeart } from 'react-icons/ci';
 import { useWallet } from '~/providers/WalletProvider';
 import PostComment from './group-post-comment/PostComment';
 import PostCommentList from './group-post-comment/PostCommentList';
-import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { preventActionNotLoggedIn, preventActionWalletNotConnected, sliceWalletAddress } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
@@ -155,7 +155,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 							</div>
 						</div>
 						<div className="flex flex-col">
-							<span className="text-sm overflow-hidden">{currentPost.posterKey}</span>
+							<span className="text-sm overflow-hidden">{sliceWalletAddress(currentPost.posterKey)}</span>
 							<div className="flex items-center">
 								<span className="text-xs">15.05.2024</span>
 								<time className="ms-1 text-xs opacity-50">22:19</time>
@@ -166,7 +166,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 						<span className="text-xl">{post?.title}</span>
 						<span className="text-sm">{post?.content}</span>
 					</div>
-					<div className="flex justify-center">
+					<div className="flex justify-start gap-4 my-2">
 						{imageData.map(function (value, index) {
 							return (
 								value != null && (

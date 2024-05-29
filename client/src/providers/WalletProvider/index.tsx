@@ -7,6 +7,7 @@
 'use client';
 import { ChainInfoArgs, ProviderError } from '@aurowallet/mina-provider';
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { sliceWalletAddress } from '~/helpers/user-helper';
 
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 
@@ -143,7 +144,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const updateWalletUI = (account: string | null) => {
 		if (account?.[0]) {
 			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(account));
-			setWalletDisplayAddress(`${account[0].slice(0, 6)}...${account[0].slice(-4)}`);
+			setWalletDisplayAddress(sliceWalletAddress(account[0]));
 			setIsConnected(true);
 			connectUserWallet();
 		} else {

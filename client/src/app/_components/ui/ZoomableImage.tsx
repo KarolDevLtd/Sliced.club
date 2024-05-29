@@ -18,7 +18,7 @@ const ZoomableImage = ({ source, width, height, alt }: ZoomableImageProps) => {
 	}, []);
 
 	return (
-		<div className="w-3/4">
+		<div className="">
 			{source ? (
 				<ControlledZoom isZoomed={isZoomed} onZoomChange={handleZoomChange}>
 					<Image src={source} width={width} height={height} alt={alt} />

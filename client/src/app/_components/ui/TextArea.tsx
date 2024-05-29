@@ -15,6 +15,7 @@ type TextAreaProps = {
 	altLabel2?: string;
 	altLabel3?: string;
 	placeholder?: string;
+	hideAsterisk?: boolean;
 	rows?: number;
 	onChange?: (e: any) => any;
 	disabled?: boolean;
@@ -53,6 +54,7 @@ const TextArea = ({
 	altLabel2,
 	altLabel3,
 	placeholder,
+	hideAsterisk = false,
 	rows = 5,
 	onChange,
 	disabled,
@@ -111,10 +113,10 @@ const TextArea = ({
 					</div>
 				) : null}
 				<textarea
-					className={`textarea textarea-bordered h-24 ${type && colourMap[type]} ${size && sizeMap[size]} ${/*autoResize ||*/ hideResize ? 'resize-none' : ''}`}
+					className={`textarea ${type === 'ghost' ? '' : 'textarea-bordered'} h-24 ${type && colourMap[type]} ${size && sizeMap[size]} ${/*autoResize ||*/ hideResize ? 'resize-none' : ''}`}
 					id={id}
 					name={name}
-					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
+					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label && !hideAsterisk ? '*' : ''}`}
 					disabled={disabled}
 					required={required}
 					// React Hook Form

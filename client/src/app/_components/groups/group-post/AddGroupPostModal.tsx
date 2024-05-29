@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { toast } from 'react-toastify';
-import { preventActionWalletNotConnected } from '~/helpers/user-helper';
+import { preventActionWalletNotConnected, sliceWalletAddress } from '~/helpers/user-helper';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -19,12 +19,13 @@ import Spinner from '../../ui/Spinner';
 import { closeModal } from '~/helpers/modal-helper';
 import TextArea from '../../ui/TextArea';
 import BasicModal from '../../ui/BasicModal';
-import DragDrop from '../../ui/DragDrop';
+import DragDrop from '../../ui/ImageUpload';
 
 import { saveImages } from '~/helpers/image-helper';
 import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
+import { FaImage } from 'react-icons/fa6';
 
 type AddGroupPostModalProps = {
 	groupId: string;
@@ -34,8 +35,9 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 	const [refreshPosts, setRefreshPosts] = useState(false);
+	const [showAttachments, setShowAttachments] = useState(false);
 
-	const { isConnected, walletAddress } = useWallet();
+	const { walletDisplayAddress, walletAddress } = useWallet();
 
 	const postToIPFS = api.PinataPost.postMessage.useMutation();
 	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
@@ -61,7 +63,7 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
-			await savePost(data['post-title'], data['post-text']);
+			await savePost('', data['post-text']);
 			console.log(JSON.stringify(data));
 			reset();
 			hidePostInput();
@@ -126,10 +128,10 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 		<BasicModal
 			id="add-post"
 			onClose={clearForm}
-			header="Add Post"
+			header="New Post"
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
-					<TextInput
+					{/* <TextInput
 						id="post-title"
 						name="post-title"
 						type="text"
@@ -144,13 +146,31 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 								message: 'Post Title must be at least 10 characters',
 							},
 						}}
-					/>
+					/> */}
+
+					<div className="flex items-center gap-2">
+						<div className="avatar">
+							<div className="rounded h-[2.25rem] w-[2.25rem]">
+								{/* <Image
+									src={'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg'}
+									alt="Placeholder Avatar"
+									width={25}
+									height={25}
+								/> */}
+								<img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+							</div>
+						</div>
+						<span>{sliceWalletAddress(walletDisplayAddress)}</span>
+					</div>
+
 					<TextArea
+						type="accent"
 						id="post-text"
 						name="post-text"
-						label="Post Text"
+						placeholder="Add a new post..."
 						required={true}
-						showCharacterCount={true}
+						hideAsterisk={true}
+						hideResize={true}
 						errors={errors}
 						register={register}
 						validationSchema={{
@@ -165,27 +185,33 @@ const AddGroupPostModal = ({ groupId }: AddGroupPostModalProps) => {
 							},
 						}}
 					/>
-					<div>
-						<DragDrop images={images} setImages={setImages} includeButton={true} />
+
+					<div className="flex items-center justify-between">
+						<span>Add to post</span>
+						<div className="flex items-center justify-end gap-2">
+							<BasicButton
+								type="ghost"
+								active={showAttachments}
+								onClick={() => setShowAttachments(!showAttachments)}
+							>
+								<FaImage />
+							</BasicButton>
+						</div>
 					</div>
-					<div className="w-100 flex justify-end items-center gap-2">
+
+					{showAttachments ? (
+						<div className="flex justify-center">
+							<DragDrop images={images} setImages={setImages} includeButton={true} />
+						</div>
+					) : null}
+					<div className="w-full flex justify-end items-center gap-2">
 						<BasicButton
-							type="primary"
+							type="secondary"
 							icon={isLoading ? <Spinner size="sm" /> : null}
 							disabled={isLoading}
 							submitForm={true}
 						>
-							Save
-						</BasicButton>
-						<BasicButton
-							type="secondary"
-							disabled={isLoading}
-							onClick={() => {
-								clearForm();
-								closeModal('add-post');
-							}}
-						>
-							Cancel
+							Publish
 						</BasicButton>
 					</div>
 				</form>
