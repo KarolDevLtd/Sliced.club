@@ -47,7 +47,7 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 			{isLoading ? (
 				<div>Loading...</div>
 			) : (
-				<div className="flex-1 flex flex-col">
+				<div className="flex flex-col h-80 overflow-hidden overflow-y-auto">
 					{posts.map((post, index) => (
 						<GroupPostItem
 							id={index.toString()}
