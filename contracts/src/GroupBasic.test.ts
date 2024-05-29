@@ -102,15 +102,21 @@ describe('GroupBasic', () => {
 
     const deployGroupTx = await Mina.transaction(deployer, async () => {
       AccountUpdate.fundNewAccount(deployer);
-      await group.deploy({ admin: admin });
+      await group.deploy({
+        admin: admin,
+        groupSettings: GROUP_SETTINGS,
+      });
     });
     await deployGroupTx.prove();
     await (
       await deployGroupTx.sign([deployer.key, groupPrivateKey]).send()
     ).wait();
+
+    // Assert group deploy field equal to hash of the field
+    expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
   }
 
-  it('generates and deploys the `GroupBasic` smart contract', async () => {
+  it('Generates and deploys the `GroupBasic` smart contract', async () => {
     // const groupToken = group.tokenAddress.get();
     // expect(groupToken).toEqual(tokenAddress);
     const groupAdmin = group.admin.get();
@@ -178,18 +184,6 @@ describe('GroupBasic', () => {
     await initTokenStable.send().then((v) => v.wait());
   });
 
-  it('correctly sets the group settings ', async () => {
-    let sig = Signature.create(organiser.key, GROUP_SETTINGS.toFields());
-    // update transaction
-    const txn = await Mina.transaction(organiser, async () => {
-      await group.setGroupSettings(GROUP_SETTINGS, sig);
-    });
-    await txn.prove();
-    await txn.sign([organiser.key]).send();
-
-    expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
-  });
-
   it('Add user to the group', async () => {
     const txn1 = await Mina.transaction(alexa, async () => {
       AccountUpdate.fundNewAccount(alexa);
@@ -208,7 +202,7 @@ describe('GroupBasic', () => {
     ).isParticipant.get();
     expect(isParticipant).toEqual(Bool(true));
   });
-  it('correctly makes a payment, without bids', async () => {
+  it('Correctly makes a payment, without bids', async () => {
     const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
     const initialBalanceGroup = (
       await tokenApp.getBalanceOf(groupAddress)

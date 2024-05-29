@@ -117,9 +117,17 @@ export class GroupBasic extends TokenContract {
     // TODO: event emission here
   }
 
-  async deploy(args: DeployArgs & { admin: PublicKey }) {
+  async deploy(
+    args: DeployArgs & { admin: PublicKey; groupSettings: GroupSettings }
+  ) {
     await super.deploy(args);
     this.admin.set(args.admin);
+    // this.admin.set(args.groupSettings);
+
+    // this.setGroupSettings(groupSettings);
+
+    // Set group hash
+    this.groupSettingsHash.set(args.groupSettings.hash());
     // this.account.permissions.set({
     //   ...Permissions.default(),
     //   editState: Permissions.none(),
@@ -131,17 +139,6 @@ export class GroupBasic extends TokenContract {
     //   incrementNonce: Permissions.proofOrSignature(),
     // });
     this.paymentRound.set(UInt64.zero);
-    this.groupSettingsHash.set(GroupSettings.empty().hash());
-  }
-
-  @method
-  async setGroupSettings(
-    groupSettings: GroupSettings,
-    signedSettings: Signature
-  ) {
-    let adminPubKey = this.admin.getAndRequireEquals();
-    signedSettings.verify(adminPubKey, groupSettings.toFields());
-    this.groupSettingsHash.set(groupSettings.hash());
   }
 
   /** Called once at the start. User relinquishes ability to modify token account bu signing */
