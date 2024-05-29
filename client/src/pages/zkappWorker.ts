@@ -6,7 +6,18 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { AccountUpdate, Mina, PublicKey, Signature, UInt32, UInt64, fetchAccount, type Field, TokenId } from 'o1js';
+import {
+	AccountUpdate,
+	Mina,
+	PublicKey,
+	Signature,
+	UInt32,
+	UInt64,
+	fetchAccount,
+	Field,
+	TokenId,
+	PrivateKey,
+} from 'o1js';
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
@@ -45,20 +56,36 @@ const functions = {
 		Mina.setActiveInstance(Network);
 	},
 	setActiveInstanceToDevnet: async (args: {}) => {
-		const Network = Mina.Network('https://api.minascan.io/node/devnet/v1/graphql');
+		const MINAURL = 'https://proxy.devnet.minaexplorer.com/graphql';
+		const ARCHIVEURL = 'https://archive.devnet.minaexplorer.com';
+		const Network = Mina.Network({
+			mina: MINAURL,
+			archive: ARCHIVEURL,
+		});
 		console.log('Devnet network instance configured.');
 		Mina.setActiveInstance(Network);
 	},
+	setActiveInstanceToBerkeley: async (args: {}) => {
+		const MINAURL = 'https://proxy.berkeley.minaexplorer.com/graphql';
+		const ARCHIVEURL = 'https://archive.berkeley.minaexplorer.com';
+		const Network = Mina.Network({
+			mina: MINAURL,
+			archive: ARCHIVEURL,
+		});
+		console.log('berkeley network instance configured.');
+		Mina.setActiveInstance(Network);
+	},
+
 	/** 
 	General
 	*/
-	fetchAccount: async (args: { publicKey58: string; tokenId?: string }) => {
-		const publicKey = PublicKey.fromBase58(args.publicKey58);
+	fetchAccount: async (args: { publicKey: PublicKey; tokenId?: Field }) => {
+		// const publicKey = PublicKey.fromBase58(args.publicKey58);
 		const tokenId = args.tokenId;
-		if (tokenId) {
-			return await fetchAccount({ publicKey });
+		if (args.tokenId === undefined) {
+			return await fetchAccount({ publicKey: args.publicKey });
 		} else {
-			return await fetchAccount({ publicKey, tokenId });
+			return await fetchAccount({ publicKey: args.publicKey, tokenId });
 		}
 	},
 	proveTransaction: async (args: {}) => {
@@ -80,11 +107,11 @@ const functions = {
 		const { verificationKey: vk } = await state.GroupBasic!.compile();
 		state.groupVerificationKey = vk;
 	},
-	initContractsInstance: async (args: { groupAddress: string; tokenAddress: string }) => {
-		const groupAddress = PublicKey.fromBase58(args.groupAddress);
-		const tokenAddress = PublicKey.fromBase58(args.tokenAddress);
-		state.groupZkapp = new state.GroupBasic!(groupAddress);
-		state.tokenZkapp = new state.FungibleToken!(tokenAddress);
+	initContractsInstance: async (args: { groupAddress: PublicKey; tokenAddress: PublicKey }) => {
+		// const groupAddress = PublicKey.fromBase58(args.groupAddress);
+		// const tokenAddress = PublicKey.fromBase58(args.tokenAddress);
+		state.groupZkapp = new state.GroupBasic!(args.groupAddress);
+		state.tokenZkapp = new state.FungibleToken!(args.tokenAddress);
 	},
 	/** 
 	 Token contract setup
@@ -96,9 +123,10 @@ const functions = {
 	compileTokenContract: async (args: {}) => {
 		await state.FungibleToken!.compile();
 	},
-	initTokenInstance: async (args: { publicKey58: string }) => {
-		const publicKey = PublicKey.fromBase58(args.publicKey58);
-		state.tokenZkapp = new state.FungibleToken!(publicKey);
+	initTokenInstance: async (args: { publicKey: PublicKey }) => {
+		// const publicKey = PublicKey.fromBase58(args.publicKey58);
+		// console.log('initTokenInstance', publicKey.toBase58());
+		state.tokenZkapp = new state.FungibleToken!(args.publicKey);
 	},
 
 	/** 
@@ -112,17 +140,17 @@ const functions = {
 		const { verificationKey: vk } = await state.GroupBasic!.compile();
 		state.groupVerificationKey = vk;
 	},
-	initGroupInstance: async (args: { publicKey58: string }) => {
-		const publicKey = PublicKey.fromBase58(args.publicKey58);
-		state.groupZkapp = new state.GroupBasic!(publicKey);
+	initGroupInstance: async (args: { publicKey: PublicKey }) => {
+		// const publicKey = PublicKey.fromBase58(args.publicKey58);
+		state.groupZkapp = new state.GroupBasic!(args.publicKey);
 	},
 
 	/** 
 	Group transactions
 	*/
-	deployGroup: async (args: { adminPublicKey: string; deployer?: string }) => {
-		const admin = PublicKey.fromBase58(args.adminPublicKey);
-		const deployer = args.deployer ? PublicKey.fromBase58(args.deployer) : admin;
+	deployGroup: async (args: { adminPublicKey: PublicKey; deployer?: PublicKey }) => {
+		const admin = args.adminPublicKey;
+		const deployer = args.deployer ? args.deployer : admin;
 		const transaction = await Mina.transaction(deployer, async () => {
 			AccountUpdate.fundNewAccount(deployer);
 			await state.groupZkapp!.deploy({ admin: admin });
@@ -146,8 +174,8 @@ const functions = {
 		});
 		state.transaction = transaction;
 	},
-	addUserToGroup: async (args: { userKey: string }) => {
-		const userKey = PublicKey.fromBase58(args.userKey);
+	addUserToGroup: async (args: { userKey: PublicKey }) => {
+		const userKey = args.userKey;
 		const vk = state.groupVerificationKey!;
 		const transaction = await Mina.transaction(async () => {
 			AccountUpdate.fundNewAccount(userKey);
@@ -186,8 +214,8 @@ const functions = {
 		return JSON.stringify(paymentRound.toJSON());
 	},
 
-	getUserStorage: async (args: { userKey: string }) => {
-		const userKey = PublicKey.fromBase58(args.userKey);
+	getUserStorage: async (args: { userKey: PublicKey }) => {
+		const userKey = args.userKey;
 		const groupAddress = state.groupZkapp!.address;
 		const derivedTokenId = TokenId.derive(groupAddress);
 		await fetchAccount({
@@ -206,9 +234,31 @@ const functions = {
 	/** 
 	Token transactions
 	*/
-	createTransferTransaction: async (args: { fromKey: string; toKey: string; amount: number }) => {
-		const fromKey = PublicKey.fromBase58(args.fromKey);
-		const toKey = PublicKey.fromBase58(args.toKey);
+
+	deployToken: async (args: { adminPublicKey: PublicKey; zkAppPrivateKey: PrivateKey }) => {
+		console.log('args', args);
+		console.log('argsPub', args.adminPublicKey);
+		const admin = PublicKey.from(args.adminPublicKey);
+		console.log('WRTF', admin.toBase58());
+		const zkAppPrivateKey = args.zkAppPrivateKey;
+		const fetchedAdmin = (await fetchAccount({ publicKey: admin })).account;
+		const deployTokenTx = await Mina.transaction(admin, async () => {
+			AccountUpdate.fundNewAccount(admin); //todo ?!?!
+			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });
+			await state.tokenZkapp!.deploy({
+				owner: admin,
+				supply: UInt64.from(10_000_000_000_000),
+				symbol: 'mUSD',
+				src: 'source code link',
+			});
+		});
+		deployTokenTx.sign([zkAppPrivateKey]);
+		state.transaction = deployTokenTx;
+	},
+
+	createTransferTransaction: async (args: { fromKey: PublicKey; toKey: PublicKey; amount: number }) => {
+		const fromKey = args.fromKey;
+		const toKey = args.toKey;
 		const amount = UInt64.from(args.amount);
 		const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
 		const transaction = await Mina.transaction(async () => {
@@ -266,6 +316,7 @@ export type ZkappWorkerReponse = {
 	data: any;
 	error: boolean;
 	errorMessage: string;
+	errorStack?: string;
 };
 
 if (typeof window) {
@@ -283,12 +334,13 @@ if (typeof window) {
 			postMessage(message);
 		} catch (error: unknown) {
 			// If an error occurs, create a response with an error flag and message
-			const message: string = (error as Error).message;
+			const err: Error = error as Error;
 			const errorMessage: ZkappWorkerReponse = {
 				id: event.data.id,
 				data: null,
 				error: true,
-				errorMessage: message,
+				errorMessage: err.message,
+				errorStack: err.stack,
 			};
 			postMessage(errorMessage);
 		}

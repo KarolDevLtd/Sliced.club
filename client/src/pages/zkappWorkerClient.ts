@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { fetchAccount, PublicKey, Field, UInt64 } from 'o1js';
+import { fetchAccount, PublicKey, Field, UInt64, PrivateKey } from 'o1js';
 
 import type { ZkappWorkerRequest, ZkappWorkerReponse, WorkerFunctions } from './zkappWorker';
 
@@ -16,19 +16,21 @@ export default class ZkappWorkerClient {
 	setActiveInstanceToDevnet() {
 		return this._call('setActiveInstanceToDevnet', {});
 	}
+	setActiveInstanceToBerkeley() {
+		return this._call('setActiveInstanceToBerkeley', {});
+	}
 
 	async fetchAccount({
 		publicKey,
 		tokenId,
 	}: {
-		publicKey: string;
-		tokenId?: string;
+		publicKey: PublicKey;
+		tokenId?: Field;
 	}): ReturnType<typeof fetchAccount> {
-		const result = await this._call('fetchAccount', {
-			publicKey58: publicKey,
+		return await this._callFetchAccount('fetchAccount', {
+			publicKey,
 			tokenId: tokenId,
 		});
-		return result as ReturnType<typeof fetchAccount>;
 	}
 
 	proveTransaction() {
@@ -44,11 +46,11 @@ export default class ZkappWorkerClient {
 		return this._call('loadContracts', {});
 	}
 
-	compileContract() {
+	compileContracts() {
 		return this._call('compileContracts', {});
 	}
 
-	initContractsInstance(groupAddress: string, tokenAddress: string) {
+	initContractsInstance(groupAddress: PublicKey, tokenAddress: PublicKey) {
 		return this._call('initContractsInstance', {
 			groupAddress,
 			tokenAddress,
@@ -63,7 +65,7 @@ export default class ZkappWorkerClient {
 		return this._call('compileTokenContract', {});
 	}
 
-	initTokenInstance(publicKey: string) {
+	initTokenInstance(publicKey: PublicKey) {
 		return this._call('initTokenInstance', {
 			publicKey58: publicKey,
 		});
@@ -76,12 +78,12 @@ export default class ZkappWorkerClient {
 	compileGroupContract() {
 		return this._call('compileGroupContract', {});
 	}
-	initGroupInstance(publicKey: string) {
+	initGroupInstance(publicKey: PublicKey) {
 		return this._call('initGroupInstance', {
 			publicKey58: publicKey,
 		});
 	}
-	async deployGroup(adminPublicKey: string, deployer?: string) {
+	async deployGroup(adminPublicKey: PublicKey, deployer?: PublicKey) {
 		return await this._call('deployGroup', {
 			adminPublicKey,
 			deployer,
@@ -95,7 +97,7 @@ export default class ZkappWorkerClient {
 			signature,
 		});
 	}
-	async addUserToGroup(userKey: string) {
+	async addUserToGroup(userKey: PublicKey) {
 		return await this._call('addUserToGroup', {
 			userKey,
 		});
@@ -115,13 +117,21 @@ export default class ZkappWorkerClient {
 		return await this._call('getPaymentRound', {});
 	}
 
-	async getUserStorage(userKey: string) {
+	async getUserStorage(userKey: PublicKey) {
 		return await this._call('getUserStorage', {
 			userKey,
 		});
 	}
 
-	async createTransferTransaction(fromKey: string, toKey: string, amount: number) {
+	async deployToken(adminPublicKey: PublicKey, zkappPrivateKey: PrivateKey) {
+		console.log('deployToken', adminPublicKey.toBase58(), zkappPrivateKey.toBase58());
+		return await this._call('deployToken', {
+			adminPublicKey,
+			zkappPrivateKey,
+		});
+	}
+
+	async createTransferTransaction(fromKey: PublicKey, toKey: PublicKey, amount: number) {
 		return await this._call('createTransferTransaction', {
 			fromKey,
 			toKey,
@@ -161,7 +171,9 @@ export default class ZkappWorkerClient {
 		this.worker.onmessage = (event: MessageEvent<ZkappWorkerReponse>) => {
 			const response = event.data;
 			if (response.error) {
-				this.promises[response.id].reject(new Error(response.errorMessage));
+				const error = new Error(response.errorMessage);
+				error.stack = response.errorStack ?? error.stack; // Preserve the original stack if available
+				this.promises[response.id].reject(error);
 			} else {
 				this.promises[response.id].resolve(response.data);
 			}
@@ -170,6 +182,21 @@ export default class ZkappWorkerClient {
 	}
 
 	_call(fn: WorkerFunctions, args: any) {
+		return new Promise((resolve, reject) => {
+			this.promises[this.nextId] = { resolve, reject };
+
+			const message: ZkappWorkerRequest = {
+				id: this.nextId,
+				fn,
+				args,
+			};
+
+			this.worker.postMessage(message);
+
+			this.nextId++;
+		});
+	}
+	_callFetchAccount(fn: WorkerFunctions, args: any): Promise<ReturnType<typeof fetchAccount>> {
 		return new Promise((resolve, reject) => {
 			this.promises[this.nextId] = { resolve, reject };
 

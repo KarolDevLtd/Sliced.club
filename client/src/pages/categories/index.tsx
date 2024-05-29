@@ -77,6 +77,7 @@ export default function Categories() {
 				console.log('Done loading web worker');
 
 				await zkappWorkerClient.setActiveInstanceToLightnet();
+				// await zkappWorkerClient.setActiveInstanceToBerkeley();
 
 				const mina = (window as any).mina;
 
@@ -85,17 +86,17 @@ export default function Categories() {
 					return;
 				}
 
-				const publicKeyBase58: string = (await mina.requestAccounts())[0];
-				const publicKey = PublicKey.fromBase58(publicKeyBase58);
+				const userPubKey58: string = (await mina.requestAccounts())[0];
+				const userPublicKey = PublicKey.fromBase58(userPubKey58);
 
-				console.log(`Using key:${publicKey.toBase58()}`);
-				setDisplayText(`Using key:${publicKey.toBase58()}`);
+				console.log(`Using key:${userPublicKey.toBase58()}`);
+				setDisplayText(`Using key:${userPublicKey.toBase58()}`);
 
 				setDisplayText('Checking if fee payer account exists...');
 				console.log('Checking if fee payer account exists...');
 
 				const res = await zkappWorkerClient.fetchAccount({
-					publicKey: publicKeyBase58,
+					publicKey: userPublicKey,
 				});
 				const accountExists = res.error == null;
 
@@ -103,24 +104,28 @@ export default function Categories() {
 
 				console.log('Compiling zkApp...');
 				setDisplayText('Compiling zkApp...');
-				await zkappWorkerClient.compileContract();
+				await zkappWorkerClient.compileTokenContract();
 				console.log('zkApp compiled');
 				setDisplayText('zkApp compiled...');
 
 				const zkappPublicKey = PublicKey.fromBase58(ZKAPP_ADDRESS);
+				const tokenPrivKey = PrivateKey.random();
+				const tokenPubKey = tokenPrivKey.toPublicKey();
+				console.log('Token public key:', tokenPubKey.toBase58());
 
-				await zkappWorkerClient.initTokenInstance(ZKAPP_ADDRESS);
+				await zkappWorkerClient.initTokenInstance(tokenPubKey);
 
 				console.log('Getting zkApp state...');
 				setDisplayText('Getting zkApp state...');
-				await zkappWorkerClient.fetchAccount({ publicKey: ZKAPP_ADDRESS });
+				await zkappWorkerClient.fetchAccount({ publicKey: tokenPubKey });
 
-				await zkappWorkerClient.createTransferTransaction(
-					publicKeyBase58,
-					'B62qq6LVZ2E3RgJoDMaCzQepYShJ339B6BW6myUrra9vgXMZbN2sGtE',
-					6
-				);
+				// await zkappWorkerClient.createTransferTransaction(
+				// 	publicKeyBase58,
+				// 	'B62qq6LVZ2E3RgJoDMaCzQepYShJ339B6BW6myUrra9vgXMZbN2sGtE',
+				// 	6
+				// );
 				const currentSupply = new UInt64(2);
+				await zkappWorkerClient.deployToken(userPublicKey, tokenPrivKey);
 
 				await zkappWorkerClient.proveTransaction();
 				console.log('Transaction proved');
@@ -142,7 +147,7 @@ export default function Categories() {
 					zkappWorkerClient,
 					hasWallet: true,
 					hasBeenSetup: true,
-					publicKey,
+					//  ,
 					zkappPublicKey,
 					accountExists,
 					currentSupply,
