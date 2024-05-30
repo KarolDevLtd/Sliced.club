@@ -48,7 +48,7 @@
 		"postcss": "8.4.38",
 		"tailwindcss": "3.4.1",
 		"typescript": "5.4.3",
-		"sliced-contracts": "/home/karol/Documents/Sliced.club/contracts/sliced-contracts-0.1.0.tgz"
+		"sliced-contracts": "/Users/karol/Documents/Sliced.club/contracts/sliced-contracts-0.1.2.tgz"
 	},
 	"devDependencies": {
 		"@types/eslint": "^8.56.2",

@@ -29,7 +29,7 @@ export default class ZkappWorkerClient {
 	}): ReturnType<typeof fetchAccount> {
 		return await this._callFetchAccount('fetchAccount', {
 			publicKey,
-			tokenId: tokenId,
+			tokenId,
 		});
 	}
 
@@ -83,9 +83,10 @@ export default class ZkappWorkerClient {
 			publicKey58: publicKey,
 		});
 	}
-	async deployGroup(adminPublicKey: PublicKey, deployer?: PublicKey) {
+	async deployGroup(adminPublicKey: string, groupPrivKey: string, deployer?: PublicKey) {
 		return await this._call('deployGroup', {
 			adminPublicKey,
+			groupPrivKey,
 			deployer,
 		});
 	}
@@ -123,11 +124,17 @@ export default class ZkappWorkerClient {
 		});
 	}
 
-	async deployToken(adminPublicKey: PublicKey, zkappPrivateKey: PrivateKey) {
-		console.log('deployToken', adminPublicKey.toBase58(), zkappPrivateKey.toBase58());
+	async deployToken(adminPublicKey: string, zkAppPrivateKey: string) {
 		return await this._call('deployToken', {
 			adminPublicKey,
-			zkappPrivateKey,
+			zkAppPrivateKey,
+		});
+	}
+	async mintToken(admin: string, toKey: string, amount: number) {
+		return await this._call('mintToken', {
+			admin,
+			toKey,
+			amount,
 		});
 	}
 

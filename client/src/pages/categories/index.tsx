@@ -40,8 +40,8 @@ export default function Categories() {
 		hasBeenSetup: false,
 		accountExists: false,
 		currentSupply: null as null | UInt64,
-		publicKey: null as null | PublicKey,
-		zkappPublicKey: null as null | PublicKey,
+		userPublicKey: null as null | PublicKey,
+		tokenPubKey: null as null | PublicKey,
 		creatingTransaction: false,
 	});
 	const [displayText, setDisplayText] = useState('');
@@ -77,7 +77,7 @@ export default function Categories() {
 				console.log('Done loading web worker');
 
 				await zkappWorkerClient.setActiveInstanceToLightnet();
-				// await zkappWorkerClient.setActiveInstanceToBerkeley();
+				// await zkappWorkerClient.setActiveInstanceToDevnet();
 
 				const mina = (window as any).mina;
 
@@ -102,13 +102,12 @@ export default function Categories() {
 
 				await zkappWorkerClient.loadContracts();
 
-				console.log('Compiling zkApp...');
-				setDisplayText('Compiling zkApp...');
+				console.log('Compiling token contract...');
+				setDisplayText('Compiling token contract...');
 				await zkappWorkerClient.compileTokenContract();
-				console.log('zkApp compiled');
-				setDisplayText('zkApp compiled...');
+				console.log('zkApp token contract compiled');
+				setDisplayText('zkApp token contract compiled');
 
-				const zkappPublicKey = PublicKey.fromBase58(ZKAPP_ADDRESS);
 				const tokenPrivKey = PrivateKey.random();
 				const tokenPubKey = tokenPrivKey.toPublicKey();
 				console.log('Token public key:', tokenPubKey.toBase58());
@@ -125,7 +124,7 @@ export default function Categories() {
 				// 	6
 				// );
 				const currentSupply = new UInt64(2);
-				await zkappWorkerClient.deployToken(userPublicKey, tokenPrivKey);
+				await zkappWorkerClient.deployToken(userPubKey58, tokenPrivKey.toBase58());
 
 				await zkappWorkerClient.proveTransaction();
 				console.log('Transaction proved');
@@ -147,8 +146,8 @@ export default function Categories() {
 					zkappWorkerClient,
 					hasWallet: true,
 					hasBeenSetup: true,
-					//  ,
-					zkappPublicKey,
+					userPublicKey,
+					tokenPubKey,
 					accountExists,
 					currentSupply,
 				});
@@ -179,74 +178,83 @@ export default function Categories() {
 	// 	})();
 	// }, [state.hasBeenSetup]);
 
-	// const handleClick = async () => {
-	// 	try {
-	// 		const mina = (window as any).mina;
-	// 		console.log('Before import');
-	// 		const Network = Mina.Network({
-	// 			networkId: 'testnet',
-	// 			mina: 'http://localhost:8080/graphql',
-	// 			archive: 'http://localhost:8282',
-	// 			lightnetAccountManager: 'http://localhost:8181',
-	// 		});
-	// 		const fee = Number(0.01) * 1e9; // in nanomina (1 billion = 1.0 mina)
-	// 		Mina.setActiveInstance(Network);
-	// 		// const Local = await Mina.LocalBlockchain({ proofsEnabled: true });
-	// 		// Mina.setActiveInstance(Local);
-	// 		const { FungibleToken } = await import('~/../../contracts/src/token/FungibleToken');
-	// 		console.log('After import');
+	const handleDeployGroup = async () => {
+		try {
+			const { zkappWorkerClient } = state;
+			if (zkappWorkerClient == null) {
+				console.log('zkappWorkerClient is null');
+				return;
+			}
 
-	// 		const publicKeyBase58: string = (await mina.requestAccounts())[0];
-	// 		console.log('users pubkey ', publicKeyBase58);
-	// 		const publicKey = PublicKey.fromBase58(publicKeyBase58);
-	// 		// This is the public key of the deployed zkapp you want to interact with.
-	// 		const zkAppAddress = PublicKey.fromBase58('B62qibDQ9yLEoLeHVQ3SuTdUDJMYv4xU1Av2HSugSDGu7BF3XxVEyye');
-	// 		console.log('Before compile');
+			await zkappWorkerClient.fetchAccount({ publicKey: state.userPublicKey! });
 
-	// 		await FungibleToken.compile().then(() => {
-	// 			console.log('compile complete');
-	// 		});
-	// 		const tokenApp = new FungibleToken(zkAppAddress);
+			const groupPrivKey = PrivateKey.random();
+			const groupPubKey = groupPrivKey.toPublicKey();
+			console.log('Group public key:', groupPubKey.toBase58());
+			console.log('compiling group contract...');
+			await zkappWorkerClient.compileGroupContract();
+			console.log('deploying group contract...');
+			await zkappWorkerClient.deployGroup(state.userPublicKey!.toBase58(), groupPrivKey.toBase58());
+			await zkappWorkerClient.proveTransaction();
+			const txn = await zkappWorkerClient.getTransactionJSON();
+			const { hash } = await window.mina.sendTransaction({
+				transaction: txn,
+				feePayer: {
+					fee: 0.01 * 1e9,
+					memo: 'zk',
+				},
+			});
 
-	// 		console.log('Before fetch account');
+			console.log('hash', hash);
+		} catch (err) {
+			// You may want to show the error message in your UI to the user if the transaction fails.
+			console.log(err);
+		}
+	};
+	const handleMint = async () => {
+		try {
+			const { zkappWorkerClient } = state;
+			if (zkappWorkerClient == null) {
+				console.log('zkappWorkerClient is null');
+				return;
+			}
 
-	// 		await fetchAccount({ publicKey: publicKey });
-	// 		await fetchAccount({ publicKey: zkAppAddress });
+			await zkappWorkerClient.fetchAccount({ publicKey: state.userPublicKey! });
 
-	// 		console.log('Before transaction');
-	// 		const reciever = PublicKey.fromBase58('B62qq6LVZ2E3RgJoDMaCzQepYShJ339B6BW6myUrra9vgXMZbN2sGtE');
-	// 		const txn = await Mina.transaction(async () => {
-	// 			AccountUpdate.fundNewAccount(publicKey);
-	// 			// await tokenApp.transfer(publicKey, reciever, new UInt64(100));
-	// 			await tokenApp.mint(reciever, new UInt64(100));
-	// 		});
-	// 		await txn.prove();
+			const reciverPubKey = PublicKey.fromBase58('B62qpwAGs3Gy8vDWga4sCWwis5Yiv9s6puSvwZ4J6528hccPHyU3nEY');
+			const admin = state.userPublicKey!.toBase58();
+			console.log('here 0');
+			//only deployer of initial token can mint
+			await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 100);
+			await zkappWorkerClient.proveTransaction();
+			const txn = await zkappWorkerClient.getTransactionJSON();
+			const { hash } = await window.mina.sendTransaction({
+				transaction: txn,
+				feePayer: {
+					fee: 0.01 * 1e9,
+					memo: 'zk',
+				},
+			});
+			console.log('hash', hash);
+			//todo how to wait for tx to be approved ?
+			await zkappWorkerClient.fetchAccount({ publicKey: reciverPubKey });
+			console.log('balance', await zkappWorkerClient.getBalanceOf(reciverPubKey));
+		} catch (err) {
+			// You may want to show the error message in your UI to the user if the transaction fails.
+			console.log(err);
+		}
+	};
 
-	// 		console.log('After proof');
+	const logBalance = async () => {
+		const { zkappWorkerClient } = state;
+		if (zkappWorkerClient == null) {
+			console.log('zkappWorkerClient is null');
+			return;
+		}
+		const reciverPubKey = PublicKey.fromBase58('B62qpwAGs3Gy8vDWga4sCWwis5Yiv9s6puSvwZ4J6528hccPHyU3nEY');
 
-	// 		// await (
-	// 		// 	await txn.sign([deployer.key, tokenPrivateKey]).send()
-	// 		// ).wait();
-
-	// 		// const tx = await Mina.transaction(async () => {
-	// 		// 	const YourSmartContractInstance = new FungibleToken(zkAppAddress);
-	// 		// 	await YourSmartContractInstance.mint(publicKey, new UInt64(100));
-	// 		// });
-
-	// 		const { hash } = await window.mina.sendTransaction({
-	// 			transaction: txn.toJSON(),
-	// 			feePayer: {
-	// 				fee,
-	// 				memo: 'zk',
-	// 			},
-	// 		});
-
-	// 		console.log(hash);
-	// 	} catch (err) {
-	// 		// You may want to show the error message in your UI to the user if the transaction fails.
-	// 		console.log(err);
-	// 	}
-	// };
+		console.log('balance', await zkappWorkerClient.getBalanceOf(reciverPubKey));
+	};
 	// -------------------------------------------------------
 	// Create UI elements
 
@@ -277,17 +285,6 @@ export default function Categories() {
 	);
 
 	let accountDoesNotExist;
-	if (state.hasBeenSetup && !state.accountExists) {
-		const faucetLink = 'https://faucet.minaprotocol.com/?address=' + state.publicKey!.toBase58();
-		accountDoesNotExist = (
-			<div>
-				<span style={{ paddingRight: '1rem' }}>Account does not exist.</span>
-				<a href={faucetLink} target="_blank" rel="noreferrer">
-					Visit the faucet to fund this fee payer account
-				</a>
-			</div>
-		);
-	}
 
 	let mainContent;
 	if (state.hasBeenSetup && state.accountExists) {
@@ -305,11 +302,14 @@ export default function Categories() {
 	return (
 		<>
 			<PageHeader text="Categories" />
-			<BasicButton
-				type={'primary'}
-				// onClick={handleClick}
-			>
-				TEST MINT
+			<BasicButton type={'primary'} onClick={handleDeployGroup}>
+				Deploy Group
+			</BasicButton>{' '}
+			<BasicButton type={'primary'} onClick={handleMint}>
+				Mint tokens
+			</BasicButton>{' '}
+			<BasicButton type={'primary'} onClick={logBalance}>
+				Log token balance
 			</BasicButton>{' '}
 			{/* <GradientBG> */}
 			<div style={{ padding: 0 }}>

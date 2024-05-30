@@ -14,7 +14,7 @@ import {
 	UInt32,
 	UInt64,
 	fetchAccount,
-	Field,
+	type Field,
 	TokenId,
 	PrivateKey,
 } from 'o1js';
@@ -148,13 +148,17 @@ const functions = {
 	/** 
 	Group transactions
 	*/
-	deployGroup: async (args: { adminPublicKey: PublicKey; deployer?: PublicKey }) => {
-		const admin = args.adminPublicKey;
+	deployGroup: async (args: { adminPublicKey: string; groupPrivKey: string; deployer?: PublicKey }) => {
+		const admin = PublicKey.fromBase58(args.adminPublicKey);
+		const groupPrivKey = PrivateKey.fromBase58(args.groupPrivKey);
 		const deployer = args.deployer ? args.deployer : admin;
+		const instance = new GroupBasic(groupPrivKey.toPublicKey());
 		const transaction = await Mina.transaction(deployer, async () => {
 			AccountUpdate.fundNewAccount(deployer);
-			await state.groupZkapp!.deploy({ admin: admin });
+			await instance.deploy({ admin: admin });
 		});
+		transaction.sign([groupPrivKey]);
+		state.groupZkapp = instance;
 		state.transaction = transaction;
 	},
 	setGroupSettings: async (args: {
@@ -235,17 +239,14 @@ const functions = {
 	Token transactions
 	*/
 
-	deployToken: async (args: { adminPublicKey: PublicKey; zkAppPrivateKey: PrivateKey }) => {
-		console.log('args', args);
-		console.log('argsPub', args.adminPublicKey);
-		const admin = PublicKey.from(args.adminPublicKey);
-		console.log('WRTF', admin.toBase58());
-		const zkAppPrivateKey = args.zkAppPrivateKey;
-		const fetchedAdmin = (await fetchAccount({ publicKey: admin })).account;
+	deployToken: async (args: { adminPublicKey: string; zkAppPrivateKey: string }) => {
+		const admin = PublicKey.fromBase58(args.adminPublicKey);
+		const zkAppPrivateKey = PrivateKey.fromBase58(args.zkAppPrivateKey);
+		const instance = new FungibleToken(zkAppPrivateKey.toPublicKey());
 		const deployTokenTx = await Mina.transaction(admin, async () => {
 			AccountUpdate.fundNewAccount(admin); //todo ?!?!
 			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });
-			await state.tokenZkapp!.deploy({
+			await instance.deploy({
 				owner: admin,
 				supply: UInt64.from(10_000_000_000_000),
 				symbol: 'mUSD',
@@ -254,6 +255,21 @@ const functions = {
 		});
 		deployTokenTx.sign([zkAppPrivateKey]);
 		state.transaction = deployTokenTx;
+		state.tokenZkapp = instance;
+	},
+
+	mintToken: async (args: { admin: string; toKey: string; amount: number }) => {
+		const toKey = PublicKey.fromBase58(args.toKey);
+		const admin = PublicKey.fromBase58(args.admin);
+		const amount = UInt64.from(args.amount);
+		// const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
+		const transaction = await Mina.transaction(admin, async () => {
+			// if (!target.account) {
+			AccountUpdate.fundNewAccount(toKey);
+			// }
+			await state.tokenZkapp!.mint(toKey, amount);
+		});
+		state.transaction = transaction;
 	},
 
 	createTransferTransaction: async (args: { fromKey: PublicKey; toKey: PublicKey; amount: number }) => {
@@ -277,6 +293,7 @@ const functions = {
 		const currentSupply = await state.tokenZkapp!.getSupply();
 		return JSON.stringify(currentSupply.toJSON());
 	},
+	//todo getTokenBalanceOf
 	getBalanceOf: async (args: { publicKey58: string }) => {
 		const publicKey = PublicKey.fromBase58(args.publicKey58);
 		const balance = await state.tokenZkapp!.getBalanceOf(publicKey);
