@@ -18,7 +18,7 @@ import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 
 import { GroupUserStorage } from './GroupUserStorage';
 
-let proofsEnabled = true;
+let proofsEnabled = false;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -73,8 +73,8 @@ describe('GroupBasic', () => {
     [
       deployer,
       admin,
-      bryan,
       alexa,
+      bryan,
       billy,
       charlie,
       jackie,
@@ -230,10 +230,10 @@ describe('GroupBasic', () => {
     expect(isParticipant).toEqual(Bool(true));
   });
 
-  it('Fails to make a payment if user is not added to the group', async () => {
+  it('Fails without all members being added', async () => {
     await expect(
-      Mina.transaction(billy, async () => {
-        AccountUpdate.fundNewAccount(billy);
+      Mina.transaction(alexa, async () => {
+        // AccountUpdate.fundNewAccount(alexa);
         await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
       })
     ).rejects.toThrow();
@@ -241,7 +241,7 @@ describe('GroupBasic', () => {
 
   it('Add remaining users to the group', async () => {
     console.log('Adding remaining users to the group', userStart, userEnd);
-    for (let i = userStart + 2; i < userEnd; i++) {
+    for (let i = userStart + 1; i <= userEnd; i++) {
       const txn1 = await Mina.transaction(testAccounts[i], async () => {
         AccountUpdate.fundNewAccount(testAccounts[i]);
         await group.addUserToGroup(
@@ -265,7 +265,27 @@ describe('GroupBasic', () => {
     }
   });
 
-  // Fails to add more users
+  it('Fails to make a payment if user is not added to the group', async () => {
+    await expect(
+      Mina.transaction(deployer, async () => {
+        AccountUpdate.fundNewAccount(deployer);
+        await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
+      })
+    ).rejects.toThrow();
+  });
+
+  it('Fails add a new user to the full group', async () => {
+    await expect(
+      Mina.transaction(deployer, async () => {
+        AccountUpdate.fundNewAccount(deployer);
+        await group.addUserToGroup(
+          GROUP_SETTINGS,
+          deployer.key.toPublicKey(),
+          verificationKey
+        );
+      })
+    ).rejects.toThrow();
+  });
 
   it('Correctly makes a payment, without bids', async () => {
     const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();

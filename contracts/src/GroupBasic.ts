@@ -21,6 +21,7 @@ import {
   UInt64,
   PrivateKey,
   Group,
+  provable,
 } from 'o1js';
 import { FungibleToken } from './token/FungibleToken';
 import { GroupUserStorage } from './GroupUserStorage';
@@ -191,8 +192,11 @@ export class GroupBasic extends TokenContract {
     groupSettingsHash.assertEquals(_groupSettings.hash());
 
     // Cant pay unless group is full
-    // let members = this.members.getAndRequireEquals();
-    // members.equals(_groupSettings.members);
+    let members = this.members.getAndRequireEquals();
+    members.assertEquals(_groupSettings.members);
+
+    Provable.log('Members', members);
+    Provable.log('_groupSettings.members', _groupSettings.members);
 
     const token = new FungibleToken(_groupSettings.tokenAddress);
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
