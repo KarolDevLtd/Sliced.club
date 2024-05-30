@@ -192,18 +192,20 @@ export const FirebasePostRouter = createTRPCRouter({
 			return { comment };
 		}),
 
-	//GET COMMENTS
+	//GET COMMENTS W NUMBER OF COMMENTS (INFINITE SCROLL)
 	getComments: publicProcedure
 		.input(
 			z.object({
 				parentMessageId: z.string(),
+				commentCount: z.number(),
 			})
 		)
 		.query(async ({ input }) => {
 			const q = firestorequery(
 				commentCollection,
 				where('parentMessageId', '==', input.parentMessageId),
-				orderBy('datetime', 'desc')
+				orderBy('datetime', 'desc'),
+				limit(input.commentCount)
 			);
 			const comments: FirebaseCommentModel[] = [];
 			await getDocs(q).then((response) => {
@@ -212,9 +214,23 @@ export const FirebasePostRouter = createTRPCRouter({
 						id: doc.id,
 						hash: doc.data().commentContent as string,
 						posterKey: doc.data().poster as string,
+						dateTime: doc.data().datetime as string,
 					});
 				});
 			});
 			return { comments };
+		}),
+
+	//GET NUMBER OF POSTS FOR GROUP
+	getTotalCommentNumber: publicProcedure
+		.input(z.object({ parentMessageId: z.string().nullish() }))
+		.query(async ({ input }) => {
+			const totalQuery = firestorequery(commentCollection, where('parentMessageId', '==', input.parentMessageId));
+
+			let totalComments = 0;
+			await getDocs(totalQuery).then((response) => {
+				totalComments = response.size;
+			});
+			return { totalComments };
 		}),
 });

@@ -25,18 +25,16 @@ import { MdOutlineThumbUp } from 'react-icons/md';
 const GroupPostItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
 	const { data: likesData } = api.FirebasePost.getPostLikes.useQuery({ postId: currentPost.hash });
-	// const { data: commentsData } = api.FirebasePost.getComments.useQuery({ postId: currentPost.hash });
-	const {
-		data: commentsData,
-		// error,
-		refetch,
-	} = api.FirebasePost.getComments.useQuery({ parentMessageId: currentPost.hash });
+	const { data: commentCountData, refetch: refetchComments } = api.FirebasePost.getTotalCommentNumber.useQuery({
+		parentMessageId: currentPost.hash,
+	});
 
 	const [post, setPost] = useState<IPFSPostModel>();
 	const [isLoading, setIsLoading] = useState(false);
 	const [likeCount, setLikeCount] = useState(0);
 	const [isLiked, setIsLiked] = useState(false);
 	const [showComments, setShowComments] = useState(false);
+	const [totalCommentCount, setTotalCommentCount] = useState(0);
 	const { isConnected, walletAddress } = useWallet();
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [hasImage, setHasImage] = useState<boolean>(false);
@@ -133,6 +131,11 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 		void fetchLikeData();
 	}, [fetchLikeData, likesData?.likes, postData, walletAddress]);
 
+	//Post comment triggers refetch of total comment number, if this has changed re-render comment list w. new comment
+	useEffect(() => {
+		setTotalCommentCount(commentCountData == null ? 0 : commentCountData.totalComments);
+	}, [commentCountData, totalCommentCount]);
+
 	return (
 		<div className="flex flex-col mb-4 rounded-xl bg-white border-solid border border-neutral bg-accent p-4">
 			{isLoading ? (
@@ -203,14 +206,17 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 								icon={<FaRegCommentDots />}
 								iconBefore={true}
 							>
-								{commentsData != null ? commentsData.comments.length : 0}
+								{commentCountData != null ? commentCountData.totalComments : 0}
 							</BasicButton>
 						</div>
 					</div>
 					{showComments ? (
 						<div>
-							<PostComment postId={currentPost.hash} refetchComments={() => refetch()} />
-							<PostCommentList comments={commentsData?.comments ?? null} />
+							<PostComment postId={currentPost.hash} refetchComments={refetchComments} />
+							<PostCommentList
+								parentMessageId={currentPost.hash}
+								totalCommentCountNumber={totalCommentCount}
+							/>
 						</div>
 					) : null}
 				</div>
