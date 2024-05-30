@@ -69,7 +69,7 @@ export class Entry extends Struct({
   // }
 }
 export class GroupSettings extends Struct({
-  maxMembers: UInt32,
+  members: UInt32,
   itemPrice: UInt32,
   /** In payment rounds */
   groupDuration: UInt32,
@@ -77,12 +77,12 @@ export class GroupSettings extends Struct({
   tokenAddress: PublicKey,
 }) {
   constructor(
-    maxMembers: UInt32,
+    members: UInt32,
     itemPrice: UInt32,
     groupDuration: UInt32,
     tokenAddress: PublicKey
   ) {
-    super({ maxMembers, itemPrice, groupDuration, tokenAddress });
+    super({ members, itemPrice, groupDuration, tokenAddress });
   }
   hash(): Field {
     return Poseidon.hash(GroupSettings.toFields(this));
@@ -105,6 +105,7 @@ export class GroupBasic extends TokenContract {
   @state(Field) groupSettingsHash = State<Field>();
   @state(PublicKey) admin = State<PublicKey>();
   @state(UInt64) paymentRound = State<UInt64>();
+  @state(UInt32) members = State<UInt32>();
   reducer = Reducer({ actionType: Entry });
   events = {
     'lottery-winner': PublicKey,
@@ -142,10 +143,26 @@ export class GroupBasic extends TokenContract {
   }
 
   /** Called once at the start. User relinquishes ability to modify token account bu signing */
-  @method async addUserToGroup(address: PublicKey, vk: VerificationKey) {
+  @method async addUserToGroup(
+    _groupSettings: GroupSettings,
+    address: PublicKey,
+    vk: VerificationKey
+  ) {
     const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
-
     this.approve(groupUserStorageUpdate); // TODO: check if this is needed
+
+    // Check for correct settings given
+    let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
+    groupSettingsHash.assertEquals(_groupSettings.hash());
+
+    // Read members so far
+    let members = this.members.getAndRequireEquals();
+
+    // Ensure new addition doesn't exceed max allowed
+    members.assertLessThan(_groupSettings.members);
+
+    // Increment members
+    this.members.set(members.add(UInt32.one));
 
     groupUserStorageUpdate.body.update.verificationKey = {
       isSome: Bool(true),
@@ -175,10 +192,10 @@ export class GroupBasic extends TokenContract {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
 
+    //
+
     const token = new FungibleToken(_groupSettings.tokenAddress);
-
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
-
     let paymentAmount = this.getPaymentAmount(_groupSettings);
     //check if has the actual bidding amount
     // let balance = await token.getBalanceOf(senderAddr);
@@ -323,7 +340,7 @@ export class GroupBasic extends TokenContract {
 
   private getPaymentAmount(groupSettings: GroupSettings): UInt64 {
     return new UInt64(
-      groupSettings.itemPrice.div(groupSettings.maxMembers).mul(new UInt32(2)) // 2 items per payment round
+      groupSettings.itemPrice.div(groupSettings.members).mul(new UInt32(2)) // 2 items per payment round
     );
   }
 

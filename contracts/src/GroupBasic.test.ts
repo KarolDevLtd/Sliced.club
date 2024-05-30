@@ -25,11 +25,14 @@ describe('GroupBasic', () => {
   let testAccounts: TestPublicKey[],
     deployer: TestPublicKey,
     admin: TestPublicKey,
-    organiser: TestPublicKey,
+    bryan: TestPublicKey,
     alexa: TestPublicKey,
     billy: TestPublicKey,
     charlie: TestPublicKey,
     jackie: TestPublicKey,
+    timmy: TestPublicKey,
+    jimmy: TestPublicKey,
+    theodore: TestPublicKey,
     tokenKey: PrivateKey,
     groupPrivateKey = PrivateKey.random(),
     groupAddress = groupPrivateKey.toPublicKey(),
@@ -41,15 +44,17 @@ describe('GroupBasic', () => {
     derivedTokenId: Field,
     verificationKey: VerificationKey;
 
+  let userStart: number, userEnd: number;
+
   const GROUP_SETTINGS = new GroupSettings(
-    new UInt32(12), // maxMembers
+    new UInt32(8), // members
     new UInt32(3000), // itemPrice
     new UInt32(6), // groupDuration
     tokenAddress
   ); // 500 monthly
 
   const paymentAmount = GROUP_SETTINGS.itemPrice
-    .div(GROUP_SETTINGS.maxMembers)
+    .div(GROUP_SETTINGS.members)
     .mul(new UInt32(2));
 
   beforeAll(async () => {
@@ -62,8 +67,21 @@ describe('GroupBasic', () => {
     }
     const Local = await Mina.LocalBlockchain({ proofsEnabled });
     Mina.setActiveInstance(Local);
-    [deployer, admin, organiser, alexa, billy, charlie, jackie] = testAccounts =
-      Local.testAccounts;
+    // users at indexes: 2 - 9
+    userStart = 2;
+    userEnd = 9;
+    [
+      deployer,
+      admin,
+      bryan,
+      alexa,
+      billy,
+      charlie,
+      jackie,
+      timmy,
+      jimmy,
+      theodore,
+    ] = testAccounts = Local.testAccounts;
 
     group = new GroupBasic(groupAddress);
     tokenKey = PrivateKey.random();
@@ -78,6 +96,9 @@ describe('GroupBasic', () => {
     billy ${billy.toBase58()}
     charlie ${charlie.toBase58()}
     jackie ${jackie.toBase58()}
+    timmy ${timmy.toBase58()}
+    jimmy ${jimmy.toBase58()}
+    theodore ${theodore.toBase58()}
 
     token ${tokenAddress.toBase58()}
     groupBasic ${groupAddress.toBase58()}
@@ -125,7 +146,7 @@ describe('GroupBasic', () => {
     expect(groupAdmin.toBase58()).toEqual(admin.toBase58());
   });
 
-  it('mints and distributes tokens ', async () => {
+  it('Mints and distributes tokens ', async () => {
     const mintAmount = new UInt64(1_000_000_000);
     const initialBalanceAdmin = (await tokenApp.getBalanceOf(admin)).toBigInt();
 
@@ -147,7 +168,9 @@ describe('GroupBasic', () => {
     );
 
     const userAmount = new UInt64(2000);
-    for (let i = 3; i < 7; i++) {
+
+    // All user get fake stable
+    for (let i = userStart; i <= userEnd; i++) {
       const transferTx = await Mina.transaction(
         {
           sender: admin,
@@ -184,10 +207,14 @@ describe('GroupBasic', () => {
     await initTokenStable.send().then((v) => v.wait());
   });
 
-  it('Add user to the group', async () => {
+  it('Adds a single user to the group', async () => {
     const txn1 = await Mina.transaction(alexa, async () => {
       AccountUpdate.fundNewAccount(alexa);
-      await group.addUserToGroup(alexa.key.toPublicKey(), verificationKey);
+      await group.addUserToGroup(
+        GROUP_SETTINGS,
+        alexa.key.toPublicKey(),
+        verificationKey
+      );
     });
     await txn1.prove();
     await txn1.sign([alexa.key, tokenKey]).send();
@@ -202,6 +229,44 @@ describe('GroupBasic', () => {
     ).isParticipant.get();
     expect(isParticipant).toEqual(Bool(true));
   });
+
+  it('Fails to make a payment if user is not added to the group', async () => {
+    await expect(
+      Mina.transaction(billy, async () => {
+        AccountUpdate.fundNewAccount(billy);
+        await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
+      })
+    ).rejects.toThrow();
+  });
+
+  it('Add remaining users to the group', async () => {
+    console.log('Adding remaining users to the group', userStart, userEnd);
+    for (let i = userStart + 2; i < userEnd; i++) {
+      const txn1 = await Mina.transaction(testAccounts[i], async () => {
+        AccountUpdate.fundNewAccount(testAccounts[i]);
+        await group.addUserToGroup(
+          GROUP_SETTINGS,
+          testAccounts[i].key.toPublicKey(),
+          verificationKey
+        );
+      });
+      await txn1.prove();
+      await txn1.sign([testAccounts[i].key, tokenKey]).send();
+      // console.log(txn1.toPretty());
+      await fetchAccount({
+        publicKey: testAccounts[i].key.toPublicKey(),
+        tokenId: derivedTokenId,
+      });
+      let isParticipant = new GroupUserStorage(
+        testAccounts[i].key.toPublicKey(),
+        derivedTokenId
+      ).isParticipant.get();
+      expect(isParticipant).toEqual(Bool(true));
+    }
+  });
+
+  // Fails to add more users
+
   it('Correctly makes a payment, without bids', async () => {
     const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
     const initialBalanceGroup = (
@@ -221,38 +286,6 @@ describe('GroupBasic', () => {
       initialBalanceGroup + paymentAmount.toBigint()
     );
     // TODO check if paymentsBool updated correctly
-  });
-  it('fails to make a payment if user is not added to the group', async () => {
-    await expect(
-      Mina.transaction(billy, async () => {
-        AccountUpdate.fundNewAccount(billy);
-        await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
-      })
-    ).rejects.toThrow();
-  });
-
-  it('Add remaining users to the group', async () => {
-    for (let i = 4; i < 7; i++) {
-      const txn1 = await Mina.transaction(testAccounts[i], async () => {
-        AccountUpdate.fundNewAccount(testAccounts[i]);
-        await group.addUserToGroup(
-          testAccounts[i].key.toPublicKey(),
-          verificationKey
-        );
-      });
-      await txn1.prove();
-      await txn1.sign([testAccounts[i].key, tokenKey]).send();
-      // console.log(txn1.toPretty());
-      await fetchAccount({
-        publicKey: testAccounts[i].key.toPublicKey(),
-        tokenId: derivedTokenId,
-      });
-      let isParticipant = new GroupUserStorage(
-        testAccounts[i].key.toPublicKey(),
-        derivedTokenId
-      ).isParticipant.get();
-      expect(isParticipant).toEqual(Bool(true));
-    }
   });
 
   const billyBid = UInt64.from(2);
@@ -295,7 +328,7 @@ describe('GroupBasic', () => {
       initialBalanceGroup + paymentAmount.mul(2).toBigint()
     );
   });
-  it('correctly chooses the winners', async () => {
+  it('Correctly chooses the winners', async () => {
     const paymentRound = group.paymentRound.get();
     const randomIndex = Math.floor(Math.random() * 20);
     const txn = await Mina.transaction(admin, async () => {
