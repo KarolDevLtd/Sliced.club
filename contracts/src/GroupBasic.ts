@@ -155,10 +155,8 @@ export class GroupBasic extends TokenContract {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
 
-    // Read members so far
-    let members = this.members.getAndRequireEquals();
-
     // Ensure new addition doesn't exceed max allowed
+    let members = this.members.getAndRequireEquals();
     members.assertLessThan(_groupSettings.members);
 
     // Increment members
@@ -192,7 +190,9 @@ export class GroupBasic extends TokenContract {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(_groupSettings.hash());
 
-    //
+    // Cant pay unless group is full
+    // let members = this.members.getAndRequireEquals();
+    // members.equals(_groupSettings.members);
 
     const token = new FungibleToken(_groupSettings.tokenAddress);
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
