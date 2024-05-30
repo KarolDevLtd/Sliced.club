@@ -26,7 +26,6 @@ const GroupPostsList = ({ groupId, refreshPosts, onRefresh }: GroupPostsListProp
 		refetch,
 		isLoading,
 	} = api.FirebasePost.getPosts.useQuery({ groupId: groupId, postCount: displayPostCount });
-
 	const { data: totalPostCountData } = api.FirebasePost.getTotalPostNumber.useQuery({ groupId: groupId });
 
 	const { ref, inView } = useInView();
