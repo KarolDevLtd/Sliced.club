@@ -390,9 +390,9 @@ export class GroupBasic extends TokenContract {
   }
 
   /** Returns total payments made so far */
-  private async totalPayments(): Promise<Field> {
+  private async totalPayments(user: PublicKey): Promise<UInt32> {
     // Extract compensations
-    let user: PublicKey = this.sender.getAndRequireSignature();
+    // let user: PublicKey = this.sender.getAndRequireSignature();
     let ud = new GroupUserStorage(user, this.deriveTokenId());
     let compensationsField = ud.compensations.getAndRequireEquals();
     const compensations: Payments = Payments.fromBools(
@@ -409,24 +409,24 @@ export class GroupBasic extends TokenContract {
 
     let paymentsBools: Bool[] = Payments.unpack(payments.packed);
 
-    // Variable for total payments count
-    let count: Field = Field(0);
+    // Variable for total payments tally
+    let count: UInt32 = new UInt32(0);
 
     // Loop over both
     for (let i = 0; i < 240; i++) {
-      let add_payments: Field = Provable.if(
+      let add_payments: UInt32 = Provable.if(
         paymentsBools[i].equals(true),
-        Field(1),
-        Field(0)
+        new UInt32(1),
+        new UInt32(0)
       );
 
-      let add_compensation: Field = Provable.if(
+      let add_compensation: UInt32 = Provable.if(
         compensationBools[i].equals(true),
-        Field(1),
-        Field(0)
+        new UInt32(1),
+        new UInt32(0)
       );
 
-      // Add to count
+      // Add to the running sum
       count = count.add(add_payments).add(add_compensation);
     }
 
@@ -437,15 +437,19 @@ export class GroupBasic extends TokenContract {
   /** Gate for lottery */
   private async lotteryAccess(currentSegment: Field): Promise<Bool> {
     // Get payments so far
-    const totalPayments: Field = await this.totalPayments();
-
-    // Return true if it equals current segment number
-    return totalPayments.equals(currentSegment);
+    // const totalPayments: Field = await this.totalPayments();
+    // // Return true if it equals current segment number
+    // return totalPayments.equals(currentSegment);
+    return Bool(true);
   }
 
   /** Make up for prior missed payments */
-  private async compensate(numberOfCompensations: UInt64) {
+  @method
+  async compensate(numberOfCompensations: UInt32) {
     // Need to ensure no missed payment, otherwise just call paySegments
+
+    // TODO later ensure someone doesnt over-over compnensate near the end
+    // Can trim numberOfCompensations to whats left to pay
 
     // Extract compensations
     let user: PublicKey = this.sender.getAndRequireSignature();
@@ -466,33 +470,56 @@ export class GroupBasic extends TokenContract {
 
     // console.log('paymentsField', paymentsField);
 
-    let change: Bool;
+    let swap: Bool;
 
     // Iterate over untill the end
     for (let i = 0; i < 240; i++) {
       // console.log('Loop vallue: ', paymentsBools[i]);
       // Change will occur if there is enough to pay and this month is to be paid
-      change = Provable.if(
-        // numberOfCompensations
-        //   .greaterThan(new UInt64(0)) // Something left to pay off
-        //   .and(paymentsBools[i].equals(Bool(false))), // This entry has not been paid
-        paymentsBools[i].equals(Bool(false)),
+      swap = Provable.if(
+        // Needs to be false for payments and compoensations
+        paymentsBools[i]
+          .equals(Bool(false))
+          .and(compensationBools[i].equals(Bool(false))),
         Bool(true),
         Bool(false)
       );
 
+      // Provable.log('numberOfCompensations left: ', numberOfCompensations);
+
+      // Check if money left
+      let doughLeft: Bool = numberOfCompensations.greaterThan(UInt32.zero);
+
       // Update array of compensations
-      compensationBools[i] = Provable.if(change, Bool(true), Bool(false));
+      compensationBools[i] = Provable.if(
+        swap.and(doughLeft),
+        Bool(true),
+        Bool(false)
+      );
 
       // Set the amount to be subtracted
-      let subAmount: UInt64 = Provable.if(change, new UInt64(1), new UInt64(0));
+      let subAmount: UInt32 = Provable.if(
+        swap.and(doughLeft),
+        UInt32.one,
+        UInt32.zero
+      );
+
+      // Provable.log('Sub amount: ', subAmount);
 
       // Deduct from numberOfCompensations
       numberOfCompensations = numberOfCompensations.sub(subAmount);
     }
 
+    Provable.log('Comp train end: ', compensationBools);
+
     // Update compensations
-    ud.compensations.set(Payments.fromBoolsField(compensationBools));
+    // ud.compensations.set(Payments.fromBoolsField(compensationBools));
+
+    const update = AccountUpdate.createSigned(user, this.deriveTokenId());
+    AccountUpdate.setValue(
+      update.body.update.appState[2],
+      Payments.fromBoolsField(compensationBools)
+    );
   }
 
   //TODO extraPayment()
@@ -502,9 +529,14 @@ export class GroupBasic extends TokenContract {
   // Testign helpers
   //**********************************************************************
 
-  /** Function for testing only, allows to increment payment round */
+  /** Function for testing only. Sets round to this. */
   @method async roundUpdate(roundIndex: UInt64) {
-    let currentPaymentRound = this.paymentRound.getAndRequireEquals();
-    this.paymentRound.set(currentPaymentRound.add(roundIndex));
+    this.paymentRound.set(roundIndex);
+  }
+
+  /** Function for testing only. Retrieves how many payments given user has made. */
+  @method.returns(UInt32) async totalPaid(user: PublicKey): Promise<UInt32> {
+    // let currentPaymentRound = this.paymentRound.getAndRequireEquals();
+    return this.totalPayments(user);
   }
 }

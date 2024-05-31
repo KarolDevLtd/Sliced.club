@@ -46,10 +46,12 @@ describe('GroupBasic', () => {
 
   let userStart: number, userEnd: number;
 
+  let groupRounds: number = 6;
+
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(8), // members
     new UInt32(3000), // itemPrice
-    new UInt32(6), // groupDuration
+    new UInt32(groupRounds), // groupDuration
     tokenAddress
   ); // 500 monthly
 
@@ -392,5 +394,58 @@ describe('GroupBasic', () => {
 
     const newPaymentRound = group.paymentRound.get();
     expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
+  });
+
+  it('Compensation tests one missed payment', async () => {
+    // Increment payment round by 2 from the current
+    const paymentRound = group.paymentRound.get();
+    const txn = await Mina.transaction(admin, async () => {
+      await group.roundUpdate(paymentRound.add(2));
+    });
+    await txn.prove();
+    await txn.sign([admin.key]).send();
+
+    let paidBeforeComp: number = parseInt(
+      (await group.totalPaid(alexa)).toString()
+    );
+
+    console.log('Balance prior to compensation: ', paidBeforeComp);
+
+    // Compensate for missed payment
+    const txn2 = await Mina.transaction(alexa, async () => {
+      await group.compensate(UInt32.one);
+    });
+
+    await txn2.prove();
+    await txn2.sign([alexa.key]).send();
+
+    let paidAfterComp: number = parseInt(
+      (await group.totalPaid(alexa)).toString()
+    );
+    console.log('Balance after the compensation: ', paidAfterComp);
+
+    // Log users compensation balance
+    let ud = new GroupUserStorage(alexa, group.deriveTokenId());
+    let compensationsField = ud.compensations.getAndRequireEquals();
+
+    console.log('Compensation field for this user: ', compensationsField);
+
+    // console.log('Alexa has paid: ', paid);
+    // // Loop over all the rounds
+    // for (let r = 1; r <= groupRounds; r++) {
+    //   const txn = await Mina.transaction(admin, async () => {
+    //     await group.roundUpdate(new UInt64(r));
+    //   });
+    //   // Fetch balance of Alexa
+    //   let paidNew: number = parseInt((await group.totalPaid(alexa)).toString());
+    //   console.log('Alexa has paid: ', paid);
+    //   // Require this balance not being changed
+    //   expect(paid).toEqual(paidNew);
+    // }
+
+    // Alexa misses 1 payment, and compensates
+    // Billy misses 2 payment, and compensates
+    // Charlie misses 3 payment, and compensates
+    // Jackie misses 1 payment, and rejects
   });
 });
