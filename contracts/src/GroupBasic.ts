@@ -103,9 +103,13 @@ export class GroupSettings extends Struct({
 const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
 export class GroupBasic extends TokenContract {
+  /** Settings specified by the organiser. */
   @state(Field) groupSettingsHash = State<Field>();
+  /** Also organiser. */
   @state(PublicKey) admin = State<PublicKey>();
+  /** Current index of the payment. */
   @state(UInt64) paymentRound = State<UInt64>();
+  /** Exact number of members needed for this group . */
   @state(UInt32) members = State<UInt32>();
   reducer = Reducer({ actionType: Entry });
   events = {
@@ -385,7 +389,7 @@ export class GroupBasic extends TokenContract {
     update.requireSignature();
   }
 
-  /** Make up for prior missed payments */
+  /** Returns total payments made so far */
   private async totalPayments(): Promise<Field> {
     // Extract compensations
     let user: PublicKey = this.sender.getAndRequireSignature();
@@ -441,6 +445,8 @@ export class GroupBasic extends TokenContract {
 
   /** Make up for prior missed payments */
   private async compensate(numberOfCompensations: UInt64) {
+    // Need to ensure no missed payment, otherwise just call paySegments
+
     // Extract compensations
     let user: PublicKey = this.sender.getAndRequireSignature();
     let ud = new GroupUserStorage(user, this.deriveTokenId());
@@ -492,4 +498,13 @@ export class GroupBasic extends TokenContract {
   //TODO extraPayment()
   //TODO claimLottery()
   //TODO claimAuction()
+
+  // Testign helpers
+  //**********************************************************************
+
+  /** Function for testing only, allows to increment payment round */
+  @method async roundUpdate(roundIndex: UInt64) {
+    let currentPaymentRound = this.paymentRound.getAndRequireEquals();
+    this.paymentRound.set(currentPaymentRound.add(roundIndex));
+  }
 }

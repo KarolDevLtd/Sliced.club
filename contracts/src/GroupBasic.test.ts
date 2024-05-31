@@ -1,5 +1,5 @@
 import { FungibleToken } from './token/FungibleToken';
-import { GroupBasic, GroupSettings } from './GroupBasic';
+import { GroupBasic, GroupSettings, Payments } from './GroupBasic';
 import {
   Field,
   Mina,
@@ -242,6 +242,7 @@ describe('GroupBasic', () => {
   it('Add remaining users to the group', async () => {
     console.log('Adding remaining users to the group', userStart, userEnd);
     for (let i = userStart + 1; i <= userEnd; i++) {
+      const usersStart: number = parseInt(group.members.get().toString());
       const txn1 = await Mina.transaction(testAccounts[i], async () => {
         AccountUpdate.fundNewAccount(testAccounts[i]);
         await group.addUserToGroup(
@@ -262,6 +263,9 @@ describe('GroupBasic', () => {
         derivedTokenId
       ).isParticipant.get();
       expect(isParticipant).toEqual(Bool(true));
+      const usersEnd: number = parseInt(group.members.get().toString());
+      // Assert one more user added in contract
+      expect(usersEnd).toEqual(usersStart + 1);
     }
   });
 
@@ -288,6 +292,16 @@ describe('GroupBasic', () => {
   });
 
   it('Correctly makes a payment, without bids', async () => {
+    // Check that it has not been ticked off
+    const paymentsBoolStart: Bool[] = Payments.unpack(
+      new GroupUserStorage(
+        alexa.key.toPublicKey(),
+        derivedTokenId
+      ).payments.get()
+    );
+    expect(
+      paymentsBoolStart[parseInt(group.paymentRound.get().toString())]
+    ).toEqual(Bool(false));
     const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
     const initialBalanceGroup = (
       await tokenApp.getBalanceOf(groupAddress)
@@ -305,6 +319,18 @@ describe('GroupBasic', () => {
     expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
       initialBalanceGroup + paymentAmount.toBigint()
     );
+
+    // Check that it has been ticked off
+    const paymentsBoolEnd: Bool[] = Payments.unpack(
+      new GroupUserStorage(
+        alexa.key.toPublicKey(),
+        derivedTokenId
+      ).payments.get()
+    );
+    expect(
+      paymentsBoolEnd[parseInt(group.paymentRound.get().toString())]
+    ).toEqual(Bool(true));
+
     // TODO check if paymentsBool updated correctly
   });
 
