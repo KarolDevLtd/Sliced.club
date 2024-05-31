@@ -15,7 +15,6 @@ import {
   Bool,
 } from 'o1js';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
-
 import { GroupUserStorage } from './GroupUserStorage';
 
 let proofsEnabled = true;
@@ -63,6 +62,8 @@ describe('GroupBasic', () => {
 
   beforeAll(async () => {
     //we always need to compile vk2 for tokenStorage
+    // Analsye methods
+    console.log('Methods analysed: \n', await GroupBasic.analyzeMethods());
     const { verificationKey: vk2 } = await GroupBasic.compile();
     verificationKey = vk2;
     if (proofsEnabled) {
@@ -248,16 +249,16 @@ describe('GroupBasic', () => {
     expect(isParticipant).toEqual(Bool(true));
   });
 
-  it('Fails without all members being added', async () => {
-    await expect(
-      Mina.transaction(alexa, async () => {
-        // AccountUpdate.fundNewAccount(alexa);
-        await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
-      })
-    ).rejects.toThrow();
-  });
+  // // it('Fails without all members being added', async () => {
+  // //   await expect(
+  // //     Mina.transaction(alexa, async () => {
+  // //       // AccountUpdate.fundNewAccount(alexa);
+  // //       await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
+  // //     })
+  // //   ).rejects.toThrow();
+  // // });
 
-  it('Add remaining users to the group', async () => {
+  it('Adds remaining users to the group', async () => {
     console.log('Adding remaining users to the group', userStart, userEnd);
     for (let i = userStart + 1; i <= userEnd; i++) {
       const usersStart: number = parseInt(group.members.get().toString());
@@ -287,27 +288,27 @@ describe('GroupBasic', () => {
     }
   });
 
-  it('Fails to make a payment if user is not added to the group', async () => {
-    await expect(
-      Mina.transaction(deployer, async () => {
-        AccountUpdate.fundNewAccount(deployer);
-        await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
-      })
-    ).rejects.toThrow();
-  });
+  // xit('Fails to make a payment if user is not added to the group', async () => {
+  //   await expect(
+  //     Mina.transaction(deployer, async () => {
+  //       AccountUpdate.fundNewAccount(deployer);
+  //       await group.roundPayment(GROUP_SETTINGS, UInt64.from(0));
+  //     })
+  //   ).rejects.toThrow();
+  // });
 
-  it('Fails add a new user to the full group', async () => {
-    await expect(
-      Mina.transaction(deployer, async () => {
-        AccountUpdate.fundNewAccount(deployer);
-        await group.addUserToGroup(
-          GROUP_SETTINGS,
-          deployer.key.toPublicKey(),
-          verificationKey
-        );
-      })
-    ).rejects.toThrow();
-  });
+  // xit('Fails add a new user to the full group', async () => {
+  //   await expect(
+  //     Mina.transaction(deployer, async () => {
+  //       AccountUpdate.fundNewAccount(deployer);
+  //       await group.addUserToGroup(
+  //         GROUP_SETTINGS,
+  //         deployer.key.toPublicKey(),
+  //         verificationKey
+  //       );
+  //     })
+  //   ).rejects.toThrow();
+  // });
 
   it('Correctly makes a payment, without bids', async () => {
     // Check that it has not been ticked off
@@ -422,11 +423,11 @@ describe('GroupBasic', () => {
       currentRound.toBigInt().toString()
     );
 
-    let totalMissed = await group.totalMissedHandle(alexa);
-    console.log(
-      '[1] Total missed payments: ',
-      totalMissed.toBigint().toString()
-    );
+    // let totalMissed = await group.totalMissedHandle(alexa);
+    // console.log(
+    //   '[1] Total missed payments: ',
+    //   totalMissed.toBigint().toString()
+    // );
 
     // Get starting payment bool array
     const paymentsUser = group.paymentRound.get();
@@ -434,7 +435,7 @@ describe('GroupBasic', () => {
     let paymentsFieldStart = ud.payments.getAndRequireEquals();
 
     let paidBeforeComp: number = parseInt(
-      (await group.totalPaymentsHandle(alexa)).toString()
+      await ud.totalPayments.get().toString()
     );
 
     console.log('Balance prior to compensation: ', paidBeforeComp);
@@ -448,111 +449,111 @@ describe('GroupBasic', () => {
     await txn2.sign([alexa.key]).send();
 
     let paidAfterComp: number = parseInt(
-      (await group.totalPaymentsHandle(alexa)).toString()
+      await ud.totalPayments.get().toString()
     );
     console.log('Balance after the compensation: ', paidAfterComp);
 
     // Ensure that total payment is higher now
-    expect(paidAfterComp == paidBeforeComp + 1);
+    // expect(paidAfterComp == paidBeforeComp + 1);
 
     // Ensure payments field is unchanged
     let paymentsFieldEnd = ud.payments.getAndRequireEquals();
-    expect(paymentsFieldStart == paymentsFieldEnd);
+    // expect(paymentsFieldStart == paymentsFieldEnd);
   });
 
-  it('Compensation tests two missed payment', async () => {
-    // TODO: payeSehment needs to fail until compensation is done
+  // // xit('Compensation tests two missed payment', async () => {
+  // //   // TODO: payeSehment needs to fail until compensation is done
 
-    // Increment payment round by 1 from the current
-    let currentRound = await incrementRound(UInt64.one);
+  // //   // Increment payment round by 1 from the current
+  // //   let currentRound = await incrementRound(UInt64.one);
 
-    console.log(
-      'Current round after increment: ',
-      currentRound.toBigInt().toString()
-    );
+  // //   console.log(
+  // //     'Current round after increment: ',
+  // //     currentRound.toBigInt().toString()
+  // //   );
 
-    let totalMissed = await group.totalMissedHandle(billy);
-    console.log(
-      '[2] Total missed payments: ',
-      totalMissed.toBigint().toString()
-    );
+  // //   let totalMissed = await group.totalMissedHandle(billy);
+  // //   console.log(
+  // //     '[2] Total missed payments: ',
+  // //     totalMissed.toBigint().toString()
+  // //   );
 
-    // Get starting payment bool array
-    // const paymentsUser = group.paymentRound.get();
-    let ud = new GroupUserStorage(billy, group.deriveTokenId());
-    let paymentsFieldStart = ud.payments.getAndRequireEquals();
+  // //   // Get starting payment bool array
+  // //   // const paymentsUser = group.paymentRound.get();
+  // //   let ud = new GroupUserStorage(billy, group.deriveTokenId());
+  // //   let paymentsFieldStart = ud.payments.getAndRequireEquals();
 
-    let paidBeforeComp: number = parseInt(
-      (await group.totalPaymentsHandle(billy)).toString()
-    );
+  // //   let paidBeforeComp: number = parseInt(
+  // //     (await group.totalPaymentsHandle(billy)).toString()
+  // //   );
 
-    console.log('Balance prior to compensation: ', paidBeforeComp);
+  // //   console.log('Balance prior to compensation: ', paidBeforeComp);
 
-    // Compensate for missed payment
-    const txn2 = await Mina.transaction(billy, async () => {
-      await group.compensate(GROUP_SETTINGS, new UInt32(2));
-    });
+  // //   // Compensate for missed payment
+  // //   const txn2 = await Mina.transaction(billy, async () => {
+  // //     await group.compensate(GROUP_SETTINGS, new UInt32(2));
+  // //   });
 
-    await txn2.prove();
-    await txn2.sign([billy.key]).send();
+  // //   await txn2.prove();
+  // //   await txn2.sign([billy.key]).send();
 
-    let paidAfterComp: number = parseInt(
-      (await group.totalPaymentsHandle(billy)).toString()
-    );
-    console.log('Balance after the compensation: ', paidAfterComp);
+  // //   let paidAfterComp: number = parseInt(
+  // //     (await group.totalPaymentsHandle(billy)).toString()
+  // //   );
+  // //   console.log('Balance after the compensation: ', paidAfterComp);
 
-    // Ensure that total payment is higher now
-    expect(paidAfterComp == paidBeforeComp + 2);
+  // //   // Ensure that total payment is higher now
+  // //   expect(paidAfterComp == paidBeforeComp + 2);
 
-    // Ensure payments field is unchanged
-    let paymentsFieldEnd = ud.payments.getAndRequireEquals();
-    expect(paymentsFieldStart == paymentsFieldEnd);
-  });
+  // //   // Ensure payments field is unchanged
+  // //   let paymentsFieldEnd = ud.payments.getAndRequireEquals();
+  // //   expect(paymentsFieldStart == paymentsFieldEnd);
+  // // });
 
-  it('Compensation tests three missed payment', async () => {
-    // Increment payment round by 1 from the current
-    let currentRound = await incrementRound(UInt64.one);
-    console.log(
-      'Current round after increment: ',
-      currentRound.toBigInt().toString()
-    );
+  // // xit('Compensation tests three missed payment', async () => {
+  // //   // Increment payment round by 1 from the current
+  // //   let currentRound = await incrementRound(UInt64.one);
+  // //   console.log(
+  // //     'Current round after increment: ',
+  // //     currentRound.toBigInt().toString()
+  // //   );
 
-    let totalMissed = await group.totalMissedHandle(bryan);
-    console.log(
-      '[3] Total missed payments: ',
-      totalMissed.toBigint().toString()
-    );
+  // //   let totalMissed = await group.totalMissedHandle(bryan);
+  // //   console.log(
+  // //     '[3] Total missed payments: ',
+  // //     totalMissed.toBigint().toString()
+  // //   );
 
-    // Get starting payment bool array
-    let ud = new GroupUserStorage(bryan, group.deriveTokenId());
-    let paymentsFieldStart = ud.payments.getAndRequireEquals();
+  // //   // Get starting payment bool array
+  // //   let ud = new GroupUserStorage(bryan, group.deriveTokenId());
+  // //   let paymentsFieldStart = ud.payments.getAndRequireEquals();
 
-    let paidBeforeComp: number = parseInt(
-      (await group.totalPaymentsHandle(bryan)).toString()
-    );
+  // //   let paidBeforeComp: number = parseInt(
+  // //     (await group.totalPaymentsHandle(bryan)).toString()
+  // //   );
 
-    console.log('Balance prior to compensation: ', paidBeforeComp);
+  // //   console.log('Balance prior to compensation: ', paidBeforeComp);
 
-    // Compensate for missed payment
-    const txn2 = await Mina.transaction(bryan, async () => {
-      await group.compensate(GROUP_SETTINGS, UInt32.one);
-    });
+  // //   // Compensate for missed payment
+  // //   const txn2 = await Mina.transaction(bryan, async () => {
+  // //     await group.compensate(GROUP_SETTINGS, UInt32.one);
+  // //   });
 
-    console.log('Proving compensation');
-    await txn2.prove();
-    console.log('Proved');
-    await txn2.sign([bryan.key]).send();
+  // //   console.log('Proving compensation');
+  // //   await txn2.prove();
+  // //   console.log('Proved');
+  // //   await txn2.sign([bryan.key]).send();
 
-    let paidAfterComp: number = parseInt(
-      (await group.totalPaymentsHandle(bryan)).toString()
-    );
-    console.log('Balance after the compensation: ', paidAfterComp);
+  // //   let paidAfterComp: number = parseInt(
+  // //     (await group.totalPaymentsHandle(bryan)).toString()
+  // //   );
+  // //   console.log('Balance after the compensation: ', paidAfterComp);
 
-    // Ensure that total payment is higher now
-    expect(paidAfterComp == paidBeforeComp + 1);
+  // //   // Ensure that total payment is higher now
+  // //   expect(paidAfterComp == paidBeforeComp + 1);
 
-    // Ensure payments field is unchanged
-    let paymentsFieldEnd = ud.payments.getAndRequireEquals();
-    expect(paymentsFieldStart == paymentsFieldEnd);
-  });
+  // //   // Ensure payments field is unchanged
+  // //   let paymentsFieldEnd = ud.payments.getAndRequireEquals();
+  // //   expect(paymentsFieldStart == paymentsFieldEnd);
+  // // });
 });

@@ -77,10 +77,10 @@ export class GroupSettings extends Struct({
   groupDuration: UInt32,
   /** Stablecoin token */
   tokenAddress: PublicKey,
-  /** Number of payments that can be missed */
-  missable: UInt32,
-  /** Duration of each payment round in seconds */
-  payemntDuration: UInt64,
+  // /** Number of payments that can be missed */
+  // missable: UInt32,
+  // /** Duration of each payment round in seconds */
+  // payemntDuration: UInt64,
 }) {
   constructor(
     members: UInt32,
@@ -95,8 +95,8 @@ export class GroupSettings extends Struct({
       itemPrice,
       groupDuration,
       tokenAddress,
-      missable,
-      payemntDuration,
+      // missable,
+      // payemntDuration,
     });
   }
   hash(): Field {
@@ -120,7 +120,7 @@ const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
 
 // TODO add validation for group settings
-const MAX_PAYMENTS = 245;
+const MAX_PAYMENTS = 250;
 export class GroupBasic extends TokenContract {
   /** Settings specified by the organiser. */
   @state(Field) groupSettingsHash = State<Field>();
@@ -150,10 +150,6 @@ export class GroupBasic extends TokenContract {
     // this.admin.set(args.groupSettings);
 
     // this.setGroupSettings(groupSettings);
-    // Assert group duration does not exceed max allowd
-    // args.groupSettings.groupDuration.assertLessThanOrEqual(
-    //   new UInt32(MAX_PAYMENTS)
-    // );
 
     // Set group hash
     this.groupSettingsHash.set(args.groupSettings.hash());
@@ -409,53 +405,59 @@ export class GroupBasic extends TokenContract {
       update.body.update.appState[0],
       Payments.fromBoolsField(paymentsBools)
     );
+    AccountUpdate.setValue(
+      update.body.update.appState[4],
+      ud.totalPayments.get().add(UInt32.one).toFields()[0]
+    );
+
+    // let isParticipant = ud.isParticipant.get();
     update.requireSignature();
   }
 
-  /** Returns total payments made so far */
-  private async totalPayments(user: PublicKey): Promise<UInt32> {
-    // Extract compensations
-    // let user: PublicKey = this.sender.getAndRequireSignature();
-    let ud = new GroupUserStorage(user, this.deriveTokenId());
-    let compensationsField = ud.compensations.getAndRequireEquals();
-    const compensations: Payments = Payments.fromBools(
-      Payments.unpack(compensationsField)
-    );
+  // /** Returns total payments made so far */
+  // private async totalPayments(user: PublicKey): Promise<UInt32> {
+  //   // Extract compensations
+  //   // let user: PublicKey = this.sender.getAndRequireSignature();
+  //   let ud = new GroupUserStorage(user, this.deriveTokenId());
+  //   let compensationsField = ud.compensations.get();
+  //   const compensations: Payments = Payments.fromBools(
+  //     Payments.unpack(compensationsField)
+  //   );
 
-    let compensationBools: Bool[] = Payments.unpack(compensations.packed);
+  //   let compensationBools: Bool[] = Payments.unpack(compensations.packed);
 
-    // Extract payments
-    let paymentsField = ud.payments.getAndRequireEquals();
-    const payments: Payments = Payments.fromBools(
-      Payments.unpack(paymentsField)
-    );
+  //   // Extract payments
+  //   let paymentsField = ud.payments.get();
+  //   const payments: Payments = Payments.fromBools(
+  //     Payments.unpack(paymentsField)
+  //   );
 
-    let paymentsBools: Bool[] = Payments.unpack(payments.packed);
+  //   let paymentsBools: Bool[] = Payments.unpack(payments.packed);
 
-    // Variable for total payments tally
-    let count: UInt32 = new UInt32(0);
+  //   // Variable for total payments tally
+  //   let count: UInt32 = new UInt32(0);
 
-    // Loop over both
-    for (let i = 0; i < MAX_PAYMENTS; i++) {
-      let add_payments: UInt32 = Provable.if(
-        paymentsBools[i].equals(true),
-        new UInt32(1),
-        new UInt32(0)
-      );
+  //   // Loop over both
+  //   for (let i = 0; i < MAX_PAYMENTS; i++) {
+  //     let add_payments: UInt32 = Provable.if(
+  //       paymentsBools[i].equals(true),
+  //       new UInt32(1),
+  //       new UInt32(0)
+  //     );
 
-      let add_compensation: UInt32 = Provable.if(
-        compensationBools[i].equals(true),
-        new UInt32(1),
-        new UInt32(0)
-      );
+  //     let add_compensation: UInt32 = Provable.if(
+  //       compensationBools[i].equals(true),
+  //       new UInt32(1),
+  //       new UInt32(0)
+  //     );
 
-      // Add to the running sum
-      count = count.add(add_payments).add(add_compensation);
-    }
+  //     // Add to the running sum
+  //     count = count.add(add_payments).add(add_compensation);
+  //   }
 
-    // Add any overpayments
-    return count;
-  }
+  //   // Add any overpayments
+  //   return count;
+  // }
 
   /** Returns how many total payments have been missed */
   private async totalMissed(user: PublicKey): Promise<UInt32> {
@@ -487,15 +489,6 @@ export class GroupBasic extends TokenContract {
     return new UInt32(MAX_PAYMENTS).sub(tally);
   }
 
-  /** Gate for lottery */
-  private async lotteryAccess(currentSegment: Field): Promise<Bool> {
-    // Get payments so far
-    // const totalPayments: Field = await this.totalPayments();
-    // // Return true if it equals current segment number
-    // return totalPayments.equals(currentSegment);
-    return Bool(true);
-  }
-
   /** Save one line for repetitive assertion. */
   @method
   async assertGroupHash(groupSettings: GroupSettings) {
@@ -524,14 +517,14 @@ export class GroupBasic extends TokenContract {
 
     // Extract compensations
     let ud = new GroupUserStorage(user, this.deriveTokenId());
-    let compensationsField = ud.compensations.getAndRequireEquals();
+    let compensationsField = ud.compensations.get();
     const compensations: Payments = Payments.fromBools(
       Payments.unpack(compensationsField)
     );
     let compensationBools: Bool[] = Payments.unpack(compensations.packed);
 
     // Extract payments
-    let paymentsField = ud.payments.getAndRequireEquals();
+    let paymentsField = ud.payments.get();
     const payments: Payments = Payments.fromBools(
       Payments.unpack(paymentsField)
     );
@@ -588,6 +581,10 @@ export class GroupBasic extends TokenContract {
       update.body.update.appState[2],
       Payments.fromBoolsField(compensationBools)
     );
+    AccountUpdate.setValue(
+      update.body.update.appState[4],
+      ud.totalPayments.get().add(numberOfCompensations).toFields()[0]
+    );
   }
 
   //TODO extraPayment()
@@ -602,17 +599,17 @@ export class GroupBasic extends TokenContract {
     this.paymentRound.set(roundIndex);
   }
 
-  /** Function for testing only. Fetches total missed payments for a given user. */
-  @method.returns(UInt32) async totalMissedHandle(
-    user: PublicKey
-  ): Promise<UInt32> {
-    return this.totalMissed(user);
-  }
+  // /** Function for testing only. Fetches total missed payments for a given user. */
+  // @method.returns(UInt32) async totalMissedHandle(
+  //   user: PublicKey
+  // ): Promise<UInt32> {
+  //   return this.totalMissed(user);
+  // }
 
   /** Function for testing only. Retrieves how many payments a given user has made. */
-  @method.returns(UInt32) async totalPaymentsHandle(
-    user: PublicKey
-  ): Promise<UInt32> {
-    return this.totalPayments(user);
-  }
+  // @method.returns(UInt32) async totalPaymentsHandle(
+  //   user: PublicKey
+  // ): Promise<UInt32> {
+  //   return this.totalPayments(user);
+  // }
 }
