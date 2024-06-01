@@ -42,6 +42,14 @@ export default class ZkappWorkerClient {
 		return result;
 	}
 
+	async loopUntilAccountExists(account: PublicKey, isZkAppAccount: boolean) {
+		return await this._call('loopUntilAccountExists', {
+			account,
+			// eachTimeNotExist,
+			isZkAppAccount,
+		});
+	}
+
 	loadContracts() {
 		return this._call('loadContracts', {});
 	}

@@ -206,6 +206,13 @@ export default function Categories() {
 			});
 
 			console.log('hash', hash);
+			// await zkappWorkerClient.loopUntilAccountExists(
+			// 	groupPubKey,
+			// 	// () => {
+			// 	// 	console.log('no existo on chaino');
+			// 	// },
+			// 	true
+			// );
 		} catch (err) {
 			// You may want to show the error message in your UI to the user if the transaction fails.
 			console.log(err);

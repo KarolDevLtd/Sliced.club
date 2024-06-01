@@ -56,12 +56,15 @@ const functions = {
 		Mina.setActiveInstance(Network);
 	},
 	setActiveInstanceToDevnet: async (args: {}) => {
-		const MINAURL = 'https://proxy.devnet.minaexplorer.com/graphql';
-		const ARCHIVEURL = 'https://archive.devnet.minaexplorer.com';
-		const Network = Mina.Network({
-			mina: MINAURL,
-			archive: ARCHIVEURL,
-		});
+		// mina-devnet.obscura.network/v1/f4cb4f0d-95dd-4a68-a7b7-31bf350d6ef1/graphql
+		const MINAURL = 'mina-devnet.obscura.network/v1/f4cb4f0d-95dd-4a68-a7b7-31bf350d6ef1/graphql';
+		// const ARCHIVEURL = 'https://archive.devnet.minaexplorer.com';
+		// const Network = Mina.Network({
+		// 	mina: MINAURL,
+		// 	networkId: 'testnet',
+		// 	// archive: ARCHIVEURL,
+		// });
+		const Network = Mina.Network('https://api.minascan.io/node/devnet/v1/graphql');
 		console.log('Devnet network instance configured.');
 		Mina.setActiveInstance(Network);
 	},
@@ -93,6 +96,27 @@ const functions = {
 	},
 	getTransactionJSON: async (args: {}) => {
 		return state.transaction!.toJSON();
+	},
+	loopUntilAccountExists: async (args: {
+		account: PublicKey;
+		// eachTimeNotExist: () => void;
+		isZkAppAccount: boolean;
+	}) => {
+		for (;;) {
+			const response = await fetchAccount({ publicKey: args.account });
+			let accountExists = response.account !== undefined;
+			if (args.isZkAppAccount) {
+				accountExists = response.account?.zkapp?.appState !== undefined;
+			}
+			if (!accountExists) {
+				// args.eachTimeNotExist();
+				console.log('no existo on chaino');
+				await new Promise((resolve) => setTimeout(resolve, 5000));
+			} else {
+				console.log('existo');
+				return response.account!;
+			}
+		}
 	},
 	/**
 	General contract setup
@@ -240,9 +264,13 @@ const functions = {
 	*/
 
 	deployToken: async (args: { adminPublicKey: string; zkAppPrivateKey: string }) => {
+		// console.log('args', args);
+		// const admin = PublicKey.fromBase58('B62qmGtQ7kn6zbw4tAYomBJJri1gZSThfQZJaMG6eR3tyNP3RiCcEQZ');
 		const admin = PublicKey.fromBase58(args.adminPublicKey);
 		const zkAppPrivateKey = PrivateKey.fromBase58(args.zkAppPrivateKey);
+		// const zkAppPrivateKey = PrivateKey.random();
 		const instance = new FungibleToken(zkAppPrivateKey.toPublicKey());
+		console.log('acutal token key', zkAppPrivateKey.toPublicKey());
 		const deployTokenTx = await Mina.transaction(admin, async () => {
 			AccountUpdate.fundNewAccount(admin); //todo ?!?!
 			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });
@@ -262,10 +290,14 @@ const functions = {
 		const toKey = PublicKey.fromBase58(args.toKey);
 		const admin = PublicKey.fromBase58(args.admin);
 		const amount = UInt64.from(args.amount);
+		console.log('is correct token?', state.tokenZkapp!.address.toBase58());
+		console.log('admin', admin.toBase58());
+		const instance = new FungibleToken(state.tokenZkapp!.address);
+		// console.log('is correct admin?', state.tokenZkapp!.owner.get().toBase58()
 		// const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
 		const transaction = await Mina.transaction(admin, async () => {
 			// if (!target.account) {
-			AccountUpdate.fundNewAccount(toKey);
+			AccountUpdate.fundNewAccount(admin);
 			// }
 			await state.tokenZkapp!.mint(toKey, amount);
 		});
