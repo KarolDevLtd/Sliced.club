@@ -10,17 +10,15 @@ import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
-// import { useWallet } from '~/providers/walletprovider';
-// import { type FirebaseProductModel } from '~/models/firebase-product-model';
 
 type GroupListProps = {
 	heading?: string;
-	searchValue?: string;
+	searchValue: string | null;
 	isHomeScreen: boolean;
 	// products: Product[];
 };
 
-const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
+const GroupList = ({ heading, isHomeScreen, searchValue }: GroupListProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [groups, setGroups] = useState<IPFSSearchModel[]>([]);
 	const [groupCount, setGroupCount] = useState<number>(0);
@@ -33,7 +31,11 @@ const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 		error,
 		refetch,
 		isLoading,
-	} = api.PinataGroup.getGroups.useQuery({ creatorKey: walletAddress?.toString(), groupCount: displayGroupCount });
+	} = api.PinataGroup.getGroups.useQuery({
+		creatorKey: walletAddress?.toString(),
+		groupCount: displayGroupCount,
+		searchValue: searchValue,
+	});
 
 	useEffect(() => {
 		if (groupData) {

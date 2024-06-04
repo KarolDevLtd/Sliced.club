@@ -75,7 +75,9 @@ export const PinataGroupRouter = createTRPCRouter({
 
 	//getGroups based on creator key
 	getGroups: publicProcedure
-		.input(z.object({ creatorKey: z.string().nullish(), groupCount: z.number() }))
+		.input(
+			z.object({ creatorKey: z.string().nullish(), groupCount: z.number(), searchValue: z.string().nullish() })
+		)
 		.query(async ({ input }) => {
 			let groups;
 			if (input.creatorKey != null) {
@@ -87,7 +89,16 @@ export const PinataGroupRouter = createTRPCRouter({
 							authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
 						},
 					};
-					const response = await fetch(URLBuilder(input.creatorKey, 'group', input.groupCount), options);
+
+					const response = await fetch(
+						URLBuilder({
+							creatorKey: input.creatorKey,
+							type: 'group',
+							pageLimit: input.groupCount,
+							searchValue: input.searchValue,
+						}),
+						options
+					);
 					groups = await response.json();
 				} catch (err) {
 					console.log('Error getting hash from IPFS');

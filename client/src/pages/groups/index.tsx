@@ -19,7 +19,7 @@ export default function Groups() {
 	const groupId = '69';
 	const [groupOpen, setGroupOpen] = useState(false);
 	const [shouldRefreshGroups, setShouldRefreshGroups] = useState(false);
-	const [searchContent, setSearchContent] = useState('');
+	const [searchContent, setSearchContent] = useState<string | null>(null);
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
@@ -55,7 +55,11 @@ export default function Groups() {
 					onChange={(e) => handleSearchContentChange(e)}
 				/>
 			</div>
-			<GroupList key={shouldRefreshGroups ? 'refresh' : 'normal'} />
+			<GroupList
+				key={shouldRefreshGroups ? 'refresh' : 'normal'}
+				isHomeScreen={false}
+				searchValue={searchContent}
+			/>
 			<AddGroupModal groupOpen={groupOpen} hideGroup={closeModal} onGroupSubmitted={handleGroupSubmitted} />
 		</>
 	);
