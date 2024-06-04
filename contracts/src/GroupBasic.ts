@@ -116,11 +116,11 @@ export class GroupSettings extends Struct({
     ) as any;
   }
 }
-const MAX_UPDATES_WITH_ACTIONS = 20;
-const MAX_ACTIONS_PER_UPDATE = 2;
 
 // TODO add validation for group settings
-const MAX_PAYMENTS = 250;
+const MAX_PAYMENTS = 200;
+const MAX_UPDATES_WITH_ACTIONS = 20;
+const MAX_ACTIONS_PER_UPDATE = 2;
 export class GroupBasic extends TokenContract {
   /** Settings specified by the organiser. */
   @state(Field) groupSettingsHash = State<Field>();
@@ -148,9 +148,7 @@ export class GroupBasic extends TokenContract {
     await super.deploy(args);
     this.admin.set(args.admin);
     // this.admin.set(args.groupSettings);
-
     // this.setGroupSettings(groupSettings);
-
     // Set group hash
     this.groupSettingsHash.set(args.groupSettings.hash());
     // this.account.permissions.set({
@@ -221,87 +219,94 @@ export class GroupBasic extends TokenContract {
     // Amount of payments needs to be larger than zero
     amountOfPayments.assertGreaterThan(UInt32.zero);
 
+    // Ensure caller is a patricipant
+    let isParticipant = ud.isParticipant.get();
+    isParticipant.assertEquals(true);
+
     // Get payments and compensations arrays
     let compensationsBools: Bool[] = Payments.unpack(
       Payments.fromBools(Payments.unpack(ud.compensations.get())).packed
     );
     let paymentsBools: Bool[] = Payments.unpack(
-      Payments.fromBools(Payments.unpack(ud.compensations.get())).packed
+      Payments.fromBools(Payments.unpack(ud.payments.get())).packed
     );
 
     // Fetch current round index from contract
     let currentPaymentRound: UInt64 = this.paymentRound.getAndRequireEquals();
 
-    // I do a loop
-    // Comparison point is the current month
-    // For each missing month I add to the compoensartion UInt32
-    // If final month is now, and running sum has not depleted what user wants to pay I set it to true
-
     // Tallys
-    let remainingPayments: UInt32 = new UInt32(amountOfPayments);
+    let paymentBatch: UInt32 = new UInt32(amountOfPayments);
     let totalPayments: UInt32 = UInt32.zero;
+    let totalCompensations: UInt32 = UInt32.zero;
 
     // Total payments that includes compensations and payments
     // Basically I want to do a single loop that accomplishes everything
     for (let i = 0; i < MAX_PAYMENTS; i++) {
       // If either is true, then valid
-      let monthPaid: Bool = paymentsBools[i].or(compensationsBools[i]);
+      let roundPaid: Bool = paymentsBools[i].or(compensationsBools[i]);
+      let iter = new UInt64(i);
+      let pastMonth: Bool = iter.lessThan(currentPaymentRound);
+      let currentMonth: Bool = iter.equals(currentPaymentRound);
 
-      // If not the current month and money left mark month paid as true
-      let takingPayment: Bool = Provable.if(
-        new UInt64(i)
-          .lessThan(currentPaymentRound)
-          .and(remainingPayments.greaterThan(UInt32.zero)),
+      // If it is not future month and there is money left mark canPayCurrentRound as true
+      let canPayCurrentRound: Bool = Provable.if(
+        iter
+          .lessThanOrEqual(currentPaymentRound)
+          .and(paymentBatch.greaterThan(UInt32.zero)),
         Bool(true),
-        monthPaid
+        Bool(false)
       );
 
-      // If payment is being taken set monthPaid to true
-      monthPaid = Provable.if(takingPayment, Bool(true), monthPaid);
+      // Payment taken if round is unpaid and can be paid
+      let payingCurrentRound: Bool = Provable.if(
+        canPayCurrentRound.and(roundPaid.equals(false)),
+        Bool(true),
+        Bool(false)
+      );
 
-      // If payment is being taken and it is current month set payments to true
+      // If payment is being taken set roundPaid to true
+      roundPaid = Provable.if(payingCurrentRound, Bool(true), roundPaid);
+
+      // If payment is being taken and it is current month set payments[i] to true, or keep as is
       paymentsBools[i] = Provable.if(
-        takingPayment.and(new UInt64(i).equals(currentPaymentRound)),
-        takingPayment,
+        payingCurrentRound.and(currentMonth),
+        payingCurrentRound,
         paymentsBools[i]
       );
 
-      // If payment taken and not the last mont set compensation to month, or keep as is
+      // If payment taken and not the last mont set compensations[i] to true, or keep as is
       compensationsBools[i] = Provable.if(
-        takingPayment.and(new UInt64(i).lessThan(currentPaymentRound)),
-        takingPayment,
+        payingCurrentRound.and(pastMonth).and(paymentsBools[i].equals(false)),
+        payingCurrentRound,
         compensationsBools[i]
       );
 
       // Add to total payments if this month has been paid for
-      totalPayments.add(Provable.if(monthPaid, UInt32.one, UInt32.zero));
+      totalPayments = totalPayments.add(
+        Provable.if(roundPaid, UInt32.one, UInt32.zero)
+      );
 
       // Subtract from remaining payments
-      remainingPayments.sub(
-        Provable.if(takingPayment, UInt32.one, UInt32.zero)
+      paymentBatch = paymentBatch.sub(
+        Provable.if(payingCurrentRound, UInt32.one, UInt32.zero)
+      );
+
+      // If compensation is true add to the comp tally
+      // Also if payment marked false for this month TODO
+      totalCompensations = totalCompensations.add(
+        Provable.if(compensationsBools[i], UInt32.one, UInt32.zero)
       );
     }
 
-    // If total payment exceeds max allowed reject
-    totalPayments.assertLessThanOrEqual(_groupSettings.missable);
+    // If total compensations exceeds max allowed for the group reject
+    totalCompensations.assertLessThan(_groupSettings.missable);
 
-    // Cant pay unless group is full
+    // Cant pay unless the group is full
     let members = this.members.getAndRequireEquals();
     members.assertEquals(_groupSettings.members);
 
-    Provable.log('Members', members);
-    Provable.log('_groupSettings.members', _groupSettings.members);
-
-    const token = new FungibleToken(_groupSettings.tokenAddress);
-
-    //ensure user is a patricipant
-    let isParticipant = ud.isParticipant.get();
-    isParticipant.assertEquals(Bool(true));
-
-    // Update payments
-    const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());
-
     // Write back payments and compensations to the token storage
+    const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());
     AccountUpdate.setValue(
       update.body.update.appState[0],
       Payments.fromBoolsField(paymentsBools)
@@ -311,22 +316,23 @@ export class GroupBasic extends TokenContract {
       Payments.fromBoolsField(compensationsBools)
     );
 
-    update.requireSignature();
-
     // Multiply rate by the total payments and bids being provided
-    let rate = this.getPaymentAmount(_groupSettings);
-    Provable.log('rate', rate);
-    Provable.log('amountOfBids', amountOfBids);
-    Provable.log('amountOfPayments', amountOfPayments);
+    let rate: UInt64 = this.getPaymentAmount(_groupSettings);
 
+    // If bids is more than zero, basically takes one extra payemnt
     let totalPay: UInt64 = rate.mul(
-      amountOfBids.add(new UInt64(amountOfPayments))
+      Provable.if(
+        amountOfBids.greaterThan(UInt64.zero),
+        UInt64.one,
+        UInt64.zero
+      ).add(new UInt64(amountOfPayments))
     );
 
     Provable.log('totalPay', totalPay);
     let totalPaymentsU64: UInt64 = new UInt64(totalPayments);
 
-    // Provable.log('paymentAmount', paymentAmount);
+    // Pay the total amount
+    const token = new FungibleToken(_groupSettings.tokenAddress);
     await token.transfer(senderAddr, this.address, totalPay);
     this.reducer.dispatch(
       new Entry(
@@ -347,6 +353,8 @@ export class GroupBasic extends TokenContract {
     );
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
     // adminPubKey;
+
+    update.requireSignature();
   }
   //TODO are we saving last action's hash and using it everyy
   // mitigate the 'latest' most likley to win in underpaid group (eg 15/20 paid, rnd = 18 (15th has 5/20 chance))
@@ -454,6 +462,7 @@ export class GroupBasic extends TokenContract {
 
     //if auction winner == lottery winner, take 2nd closest to lottery winner ? TODO
 
+    // Is this needed here?
     this.paymentRound.set(currentPaymentRound.add(advanceRound));
   }
 
@@ -463,205 +472,14 @@ export class GroupBasic extends TokenContract {
     );
   }
 
-  // /** Tick of a single payment round */
-  // private async paySegment() {
-  //   let senderAddr = this.sender.getAndRequireSignature();
-  //   let ud = new GroupUserStorage(senderAddr, this.deriveTokenId());
-  //   //ensure user is a patricipant
-  //   let isParticipant = ud.isParticipant.get();
-  //   isParticipant.assertEquals(Bool(true));
-  //   // //TODO ensure payment round not yet paid ?
-  //   let paymentsField: UInt32 = ud.payments.get();
-
-  //   // Update payments
-  //   const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());
-  //   // AccountUpdate.setValue(
-  //   //   update.body.update.appState[0],
-  //   //   Payments.fromBoolsField(paymentsBools)
-  //   // );
-  //   AccountUpdate.setValue(
-  //     update.body.update.appState[4],
-  //     paymentsField.add(UInt32.one).toFields()[0]
-  //   );
-
-  //   // let isParticipant = ud.isParticipant.get();
-  //   update.requireSignature();
-  // }
-
-  // /** Returns total payments made so far */
-  // private async totalPayments(user: PublicKey): Promise<UInt32> {
-  //   // Extract compensations
-  //   // let user: PublicKey = this.sender.getAndRequireSignature();
-  //   let ud = new GroupUserStorage(user, this.deriveTokenId());
-  //   let compensationsField = ud.compensations.get();
-  //   const compensations: Payments = Payments.fromBools(
-  //     Payments.unpack(compensationsField)
-  //   );
-
-  //   let compensationBools: Bool[] = Payments.unpack(compensations.packed);
-
-  //   // Extract payments
-  //   let paymentsField = ud.payments.get();
-  //   const payments: Payments = Payments.fromBools(
-  //     Payments.unpack(paymentsField)
-  //   );
-
-  //   let paymentsBools: Bool[] = Payments.unpack(payments.packed);
-
-  //   // Variable for total payments tally
-  //   let count: UInt32 = new UInt32(0);
-
-  //   // Loop over both
-  //   for (let i = 0; i < MAX_PAYMENTS; i++) {
-  //     let add_payments: UInt32 = Provable.if(
-  //       paymentsBools[i].equals(true),
-  //       new UInt32(1),
-  //       new UInt32(0)
-  //     );
-
-  //     let add_compensation: UInt32 = Provable.if(
-  //       compensationBools[i].equals(true),
-  //       new UInt32(1),
-  //       new UInt32(0)
-  //     );
-
-  //     // Add to the running sum
-  //     count = count.add(add_payments).add(add_compensation);
-  //   }
-
-  //   // Add any overpayments
-  //   return count;
-  // }
-
-  /** Returns how many total payments have been missed */
-  // private async totalMissed(user: PublicKey): Promise<UInt32> {
-  //   // Extract payments
-  //   let ud = new GroupUserStorage(user, this.deriveTokenId());
-  //   let paymentsField = ud.payments.getAndRequireEquals();
-  //   const payments: Payments = Payments.fromBools(
-  //     Payments.unpack(paymentsField)
-  //   );
-
-  //   let paymentsBools: Bool[] = Payments.unpack(payments.packed);
-
-  //   // Tally for total missed
-  //   let tally: UInt32 = UInt32.zero;
-
-  //   // Iterate over untill the end
-  //   for (let i = 0; i < MAX_PAYMENTS; i++) {
-  //     let adder: UInt32 = Provable.if(
-  //       paymentsBools[i].equals(Bool(false)),
-  //       UInt32.one,
-  //       UInt32.zero
-  //     );
-
-  //     // Add to the tally
-  //     tally = tally.add(adder);
-  //   }
-
-  //   // Return subtracted from max possible
-  //   return new UInt32(MAX_PAYMENTS).sub(tally);
-  // }
-
-  /** Save one line for repetitive assertion. */
+  /** Saves one line for repetitive assertion. */
   @method
   async assertGroupHash(groupSettings: GroupSettings) {
     let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     groupSettingsHash.assertEquals(groupSettings.hash());
   }
 
-  // /** Make up for prior missed payments */
-  // @method
-  // async compensate(
-  //   groupSettings: GroupSettings,
-  //   numberOfCompensations: UInt32
-  // ) {
-  //   let user: PublicKey = this.sender.getAndRequireSignature();
-
-  //   await this.assertGroupHash(groupSettings);
-
-  //   // TODO later ensure someone doesnt over-over compnensate near the end
-  //   // Can trim numberOfCompensations to whats left to pay
-
-  //   // Need to ensure havent missed three payments total
-  //   // const missed: UInt32 = await this.totalMissed(user);
-  //   // missed.assertLessThanOrEqual(groupSettings.missable);
-
-  //   // Need to ensure no missed payment, otherwise just call paySegments
-
-  //   // Extract compensations
-  //   let ud = new GroupUserStorage(user, this.deriveTokenId());
-  //   let compensationsField = ud.compensations.get();
-  //   const compensations: Payments = Payments.fromBools(
-  //     Payments.unpack(compensationsField)
-  //   );
-  //   let compensationBools: Bool[] = Payments.unpack(compensations.packed);
-
-  //   // Extract payments
-  //   let paymentsField = ud.payments.get();
-  //   const payments: Payments = Payments.fromBools(
-  //     Payments.unpack(paymentsField)
-  //   );
-
-  //   let paymentsBools: Bool[] = Payments.unpack(payments.packed);
-
-  //   // console.log('paymentsField', paymentsField);
-
-  //   let swap: Bool;
-
-  //   // Iterate over untill the end
-  //   for (let i = 0; i < MAX_PAYMENTS; i++) {
-  //     // console.log('Loop vallue: ', paymentsBools[i]);
-  //     // Change will occur if there is enough to pay and this month is to be paid
-  //     swap = Provable.if(
-  //       // Needs to be false for payments and compoensations
-  //       paymentsBools[i]
-  //         .equals(Bool(false))
-  //         .and(compensationBools[i].equals(Bool(false))),
-  //       Bool(true),
-  //       Bool(false)
-  //     );
-
-  //     // Provable.log('numberOfCompensations left: ', numberOfCompensations);
-
-  //     // Check if money left
-  //     let doughLeft: Bool = numberOfCompensations.greaterThan(UInt32.zero);
-
-  //     // Update array of compensations
-  //     compensationBools[i] = Provable.if(
-  //       swap.and(doughLeft),
-  //       Bool(true),
-  //       Bool(false)
-  //     );
-
-  //     // Set the amount to be subtracted
-  //     let subAmount: UInt32 = Provable.if(
-  //       swap.and(doughLeft),
-  //       UInt32.one,
-  //       UInt32.zero
-  //     );
-
-  //     // Provable.log('Sub amount: ', subAmount);
-
-  //     // Deduct from numberOfCompensations
-  //     numberOfCompensations = numberOfCompensations.sub(subAmount);
-  //   }
-
-  //   // Update compensations
-  //   // ud.compensations.set(Payments.fromBoolsField(compensationBools));
-
-  //   const update = AccountUpdate.createSigned(user, this.deriveTokenId());
-  //   AccountUpdate.setValue(
-  //     update.body.update.appState[2],
-  //     Payments.fromBoolsField(compensationBools)
-  //   );
-  //   AccountUpdate.setValue(
-  //     update.body.update.appState[4],
-  //     ud.totalPayments.get().add(numberOfCompensations).toFields()[0]
-  //   );
-  // }
-
-  //TODO extraPayment()
+  //TODO extraPayment() ?
   //TODO claimLottery()
   //TODO claimAuction()
 
