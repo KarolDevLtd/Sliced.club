@@ -14,9 +14,10 @@ import {
 	UInt32,
 	UInt64,
 	fetchAccount,
-	type Field,
+	Field,
 	TokenId,
 	PrivateKey,
+	fetchLastBlock,
 } from 'o1js';
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
@@ -82,13 +83,31 @@ const functions = {
 	/** 
 	General
 	*/
-	fetchAccount: async (args: { publicKey: PublicKey; tokenId?: Field }) => {
-		// const publicKey = PublicKey.fromBase58(args.publicKey58);
-		const tokenId = args.tokenId;
-		if (args.tokenId === undefined) {
-			return await fetchAccount({ publicKey: args.publicKey });
-		} else {
-			return await fetchAccount({ publicKey: args.publicKey, tokenId });
+	// Worker code
+	fetchAccount: async (args: { publicKey: string; tokenId?: string }) => {
+		if (!args?.publicKey) {
+			throw new Error('Invalid arguments: publicKey is required');
+		}
+
+		const publicKey = PublicKey.fromBase58(args.publicKey);
+		console.log('Received args:', args);
+		console.log('Converted publicKey:', publicKey.toBase58());
+		console.log(await fetchLastBlock());
+		try {
+			if (args.tokenId === undefined) {
+				const result = await fetchAccount({ publicKey: args.publicKey });
+				console.log('fetchAccount result:', result);
+				return result;
+			} else {
+				const tokenId = new Field(args.tokenId);
+				console.log('fetching account with token id', args.tokenId);
+				const result = await fetchAccount({ publicKey, tokenId: tokenId });
+				console.log('fetchAccount result:', result);
+				return result;
+			}
+		} catch (error) {
+			console.error('Error in fetchAccount:', error);
+			throw error;
 		}
 	},
 	proveTransaction: async (args: {}) => {
@@ -301,6 +320,7 @@ const functions = {
 			// }
 			await state.tokenZkapp!.mint(toKey, amount);
 		});
+		console.log('minting transaction', transaction.toPretty());
 		state.transaction = transaction;
 	},
 
@@ -329,6 +349,7 @@ const functions = {
 	getBalanceOf: async (args: { publicKey58: string }) => {
 		const publicKey = PublicKey.fromBase58(args.publicKey58);
 		const balance = await state.tokenZkapp!.getBalanceOf(publicKey);
+		console.log('balanceee', balance.toJSON());
 		return JSON.stringify(balance.toJSON());
 	},
 };

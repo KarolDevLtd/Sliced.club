@@ -20,14 +20,9 @@ export default class ZkappWorkerClient {
 		return this._call('setActiveInstanceToBerkeley', {});
 	}
 
-	async fetchAccount({
-		publicKey,
-		tokenId,
-	}: {
-		publicKey: PublicKey;
-		tokenId?: Field;
-	}): ReturnType<typeof fetchAccount> {
-		return await this._callFetchAccount('fetchAccount', {
+	async fetchAccount({ publicKey, tokenId }: { publicKey: string; tokenId?: string }) {
+		// :ReturnType<typeof fetchAccount>
+		return await this._call('fetchAccount', {
 			publicKey,
 			tokenId,
 		});
