@@ -76,7 +76,14 @@ export const PinataGroupRouter = createTRPCRouter({
 	//getGroups based on creator key
 	getGroups: publicProcedure
 		.input(
-			z.object({ creatorKey: z.string().nullish(), groupCount: z.number(), searchValue: z.string().nullish() })
+			z.object({
+				creatorKey: z.string().nullish(),
+				groupCount: z.number(),
+				searchValue: z.string().nullish(),
+				searchCategory: z.string().nullish(),
+				searchMinPrice: z.string().nullish(),
+				searchMaxPrice: z.string().nullish(),
+			})
 		)
 		.query(async ({ input }) => {
 			let groups;
@@ -96,6 +103,9 @@ export const PinataGroupRouter = createTRPCRouter({
 							type: 'group',
 							pageLimit: input.groupCount,
 							searchValue: input.searchValue,
+							searchCategory: input.searchCategory,
+							searchMinPrice: input.searchMinPrice,
+							searchMaxPrice: input.searchMaxPrice,
 						}),
 						options
 					);

@@ -12,16 +12,32 @@ interface URLBuilderParams {
 	pageLimit?: number;
 	status?: string;
 	searchValue?: string | null;
+	searchCategory?: string | null;
+	searchMaxPrice?: string | null;
+	searchMinPrice?: string | null;
 }
 
-export const URLBuilder = ({ creatorKey, type, pageLimit, status, searchValue }: URLBuilderParams): string => {
-	let metadataParams = '';
-	if (searchValue && type == 'group') {
-		//if search value and on group page
-		const encodedSearchValue = encodeURIComponent(searchValue + '%');
-		metadataParams = `metadata[keyvalues]={"type":{"value":"${type}","op":"eq"},"creatorKey":{"value":"${creatorKey}","op":"eq"},"productName":{"value":"${encodedSearchValue}","op":"iLike"}}&`;
-	} else {
-		metadataParams = `metadata[keyvalues]={"type":{"value":"${type}","op":"eq"},"creatorKey":{"value":"${creatorKey}","op":"eq"}}&`;
+export const URLBuilder = ({
+	creatorKey,
+	type,
+	pageLimit,
+	status,
+	searchValue,
+	searchCategory,
+	searchMinPrice,
+	searchMaxPrice,
+}: URLBuilderParams): string => {
+	let filterParams = '';
+	if (type == 'group') {
+		if (searchValue) {
+			//if search value and on group page
+			const encodedSearchValue = encodeURIComponent(searchValue + '%');
+			filterParams += `,"productName":{"value":"${encodedSearchValue}","op":"iLike"}`;
+		}
+		if (searchMinPrice && searchMaxPrice) {
+			filterParams += `,"productPrice":{"value":${searchMinPrice},"secondValue":${searchMaxPrice},"op":"between"}`;
+		}
 	}
+	const metadataParams = `metadata[keyvalues]={"type":{"value":"${type}","op":"eq"},"creatorKey":{"value":"${creatorKey}","op":"eq"}${filterParams}}&`;
 	return `https://api.pinata.cloud/data/pinList?status=${status ?? defaultStatus}&${metadataParams}pageLimit=${pageLimit ?? defaultPageLimit}&includeCount=true`;
 };

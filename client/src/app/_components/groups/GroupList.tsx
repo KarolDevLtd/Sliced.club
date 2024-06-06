@@ -15,10 +15,20 @@ type GroupListProps = {
 	heading?: string;
 	searchValue: string | null;
 	isHomeScreen: boolean;
+	searchCategory: string | null;
+	searchMaxPrice: string | null;
+	searchMinPrice: string | null;
 	// products: Product[];
 };
 
-const GroupList = ({ heading, isHomeScreen, searchValue }: GroupListProps) => {
+const GroupList = ({
+	heading,
+	isHomeScreen,
+	searchValue,
+	searchCategory,
+	searchMaxPrice,
+	searchMinPrice,
+}: GroupListProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [groups, setGroups] = useState<IPFSSearchModel[]>([]);
 	const [groupCount, setGroupCount] = useState<number>(0);
@@ -35,6 +45,9 @@ const GroupList = ({ heading, isHomeScreen, searchValue }: GroupListProps) => {
 		creatorKey: walletAddress?.toString(),
 		groupCount: displayGroupCount,
 		searchValue: searchValue,
+		searchCategory: searchCategory,
+		searchMinPrice: searchMinPrice,
+		searchMaxPrice: searchMaxPrice,
 	});
 
 	useEffect(() => {
