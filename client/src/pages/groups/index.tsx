@@ -111,14 +111,14 @@ export default function Groups() {
 							/>
 						</div>
 					</div>
-					<div className="flex w-2/5 justify-center items-center">
+					{/* <div className="flex w-2/5 justify-center items-center">
 						<SelectOption
 							id={'group-categories-options'}
 							name={'Categories'}
 							options={ProductCategoryOptions}
 							onChange={(e) => handleSelectChange(e)}
 						/>
-					</div>
+					</div> */}
 				</div>
 			</div>
 			<GroupList
