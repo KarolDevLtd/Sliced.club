@@ -21,7 +21,7 @@ import Spinner from '../ui/Spinner';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
 import { DateTime } from 'luxon';
-import BasicSlider from '~/app/_components/ui/InstalmentSlider';
+import InstalmentSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
 import { closeModal } from '~/helpers/modal-helper';
 import { FaUserGroup } from 'react-icons/fa6';
@@ -192,7 +192,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								options={dropdownProducts}
 							/>
 							<div>
-								<BasicSlider
+								<InstalmentSlider
 									participants={participants}
 									duration={duration}
 									onSlide={updateParticipantDuration}

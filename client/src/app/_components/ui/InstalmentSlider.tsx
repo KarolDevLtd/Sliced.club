@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import React from 'react';
+import BasicSlider from './BasicSlider';
 
 type InstalmentSliderProps = {
 	participants: number;
@@ -20,13 +21,12 @@ const InstalmentSlider = ({ participants, duration, onSlide }: InstalmentSliderP
 			<div className="m-3"></div>
 			<div>{`Participants: ${participants}`}</div>
 			<div>{`Duration: ${duration} (months)`}</div>
-			<input
-				className="range"
-				type="range"
-				min="6"
-				max="48"
+			<BasicSlider
 				defaultValue={duration}
-				onChange={handleRangeChange}
+				minValue={6}
+				maxValue={48}
+				onSlide={handleRangeChange}
+				isReversed={false}
 			/>
 		</div>
 	);
