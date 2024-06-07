@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -84,8 +85,11 @@ export default function Groups() {
 								minValue={minProductPrice}
 								defaultValue={maxProductPrice}
 								onSlide={function (event: ChangeEvent<HTMLInputElement>): void {
-									const value = parseInt(event.target.value);
-									setSearchMinimumPrice((maxProductPrice - value + minProductPrice).toString());
+									//debounced
+									setTimeout(() => {
+										const value = parseInt(event.target.value);
+										setSearchMinimumPrice((maxProductPrice - value + minProductPrice).toString());
+									}, 500);
 								}}
 								isReversed={true}
 							/>
@@ -97,8 +101,11 @@ export default function Groups() {
 								minValue={minProductPrice}
 								defaultValue={maxProductPrice}
 								onSlide={function (event: ChangeEvent<HTMLInputElement>): void {
-									const value = parseInt(event.target.value);
-									setSearchMaximumPrice(value.toString());
+									//debounced
+									setTimeout(() => {
+										const value = parseInt(event.target.value);
+										setSearchMaximumPrice(value.toString());
+									}, 500);
 								}}
 								isReversed={false}
 							/>
