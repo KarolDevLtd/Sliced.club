@@ -5,11 +5,8 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import GroupPosts from '~/app/_components/groups/group-post/GroupPosts';
-// import GroupPostInput from '~/app/_components/groups/group-post-input';
-import GroupPostsList from '~/app/_components/groups/group-post/GroupPostsList';
 import Breadcrumbs from '~/app/_components/ui/Breadcrumbs';
 import PageHeader from '~/app/_components/ui/PageHeader';
-import ZoomableImage from '~/app/_components/ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
 import PlatformLayout from '~/layouts/platform';
 import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
@@ -31,6 +28,15 @@ export default function Group() {
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
+
+	const handleClick = (e: Event | undefined) => {
+		//At this point we have all group information from firebase and IPFS
+		//Pass to reduce need to query?
+		void router.push({
+			pathname: `/groups/${groupId}/payment`,
+		});
+		e?.stopPropagation();
+	};
 
 	const handlePostSubmission = () => {
 		// After the post is submitted successfully, set refreshPosts to true to trigger a refresh of posts
@@ -108,7 +114,7 @@ export default function Group() {
 					</div>
 
 					<div className="col-span-4 grid gap-4 grid-cols-4">
-						<div className="card h-44 bg-accent">
+						<div className="card h-44 bg-accent" onClick={(e) => handleClick(e)}>
 							<figure></figure>
 							<div className="card-body justify-end">
 								<h2 className="card-title">Payment</h2>
