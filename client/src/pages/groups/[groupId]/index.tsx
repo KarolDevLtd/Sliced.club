@@ -4,6 +4,7 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import GroupNavigation from '~/app/_components/groups/GroupNavigation';
 import GroupPosts from '~/app/_components/groups/group-post/GroupPosts';
 import Breadcrumbs from '~/app/_components/ui/Breadcrumbs';
 import PageHeader from '~/app/_components/ui/PageHeader';
@@ -28,15 +29,6 @@ export default function Group() {
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
-
-	const handleClick = (e: Event | undefined) => {
-		//At this point we have all group information from firebase and IPFS
-		//Pass to reduce need to query?
-		void router.push({
-			pathname: `/groups/${groupId}/payment`,
-		});
-		e?.stopPropagation();
-	};
 
 	const handlePostSubmission = () => {
 		// After the post is submitted successfully, set refreshPosts to true to trigger a refresh of posts
@@ -113,32 +105,7 @@ export default function Group() {
 						</div>
 					</div>
 
-					<div className="col-span-4 grid gap-4 grid-cols-4">
-						<div className="card h-44 bg-accent" onClick={(e) => handleClick(e)}>
-							<figure></figure>
-							<div className="card-body justify-end">
-								<h2 className="card-title">Payment</h2>
-							</div>
-						</div>
-						<div className="card h-44 bg-accent">
-							<figure></figure>
-							<div className="card-body justify-end">
-								<h2 className="card-title">Offer Details</h2>
-							</div>
-						</div>
-						<div className="card h-44 bg-accent">
-							<figure></figure>
-							<div className="card-body justify-end">
-								<h2 className="card-title">Product Details</h2>
-							</div>
-						</div>
-						<div className="card h-44 bg-accent">
-							<figure></figure>
-							<div className="card-body justify-end">
-								<h2 className="card-title">About GO</h2>
-							</div>
-						</div>
-					</div>
+					<GroupNavigation groupHash={groupId?.toString() ?? ''} />
 				</div>
 
 				<div className="flex-1 mt-6 grid grid-cols-8 gap-4">
