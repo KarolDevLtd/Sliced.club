@@ -147,8 +147,6 @@ export class GroupBasic extends TokenContract {
   ) {
     await super.deploy(args);
     this.admin.set(args.admin);
-    // this.admin.set(args.groupSettings);
-    // this.setGroupSettings(groupSettings);
     // Set group hash
     this.groupSettingsHash.set(args.groupSettings.hash());
     // this.account.permissions.set({
@@ -214,21 +212,22 @@ export class GroupBasic extends TokenContract {
     let senderAddr = this.sender.getAndRequireSignature();
     await this.assertGroupHash(_groupSettings);
 
-    let ud = new GroupUserStorage(senderAddr, this.deriveTokenId());
+    let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());
 
     // Amount of payments needs to be larger than zero
     amountOfPayments.assertGreaterThan(UInt32.zero);
 
     // Ensure caller is a patricipant
-    let isParticipant = ud.isParticipant.get();
+    let isParticipant = userStorage.isParticipant.get();
     isParticipant.assertEquals(true);
 
     // Get payments and compensations arrays
     let compensationsBools: Bool[] = Payments.unpack(
-      Payments.fromBools(Payments.unpack(ud.compensations.get())).packed
+      Payments.fromBools(Payments.unpack(userStorage.compensations.get()))
+        .packed
     );
     let paymentsBools: Bool[] = Payments.unpack(
-      Payments.fromBools(Payments.unpack(ud.payments.get())).packed
+      Payments.fromBools(Payments.unpack(userStorage.payments.get())).packed
     );
 
     // Fetch current round index from contract

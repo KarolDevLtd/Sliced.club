@@ -16,7 +16,7 @@ import {
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
 
-let proofsEnabled = true;
+let proofsEnabled = false;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -43,9 +43,9 @@ describe('GroupBasic', () => {
 
   let userStart: number, userEnd: number;
 
-  let groupRounds: number = 6;
-  let missable: number = 3;
-  let basePayment: UInt32 = UInt32.from(1);
+  let groupRounds = 6;
+  let missable = 3;
+  let basePayment = UInt32.from(1);
 
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(8), // members
@@ -63,7 +63,7 @@ describe('GroupBasic', () => {
   beforeAll(async () => {
     //we always need to compile vk2 for tokenStorage
     // Analsye methods
-    console.log('Methods analysed: \n', await GroupBasic.analyzeMethods());
+    // console.log('Methods analysed: \n', await GroupBasic.analyzeMethods());
     const { verificationKey: vk2 } = await GroupBasic.compile();
     verificationKey = vk2;
     if (proofsEnabled) {
@@ -112,12 +112,12 @@ describe('GroupBasic', () => {
     await localDeploy();
   });
 
-  async function extract(ticks: Field, set: string = ''): Promise<number> {
-    let ticksBool: Bool[] = Payments.unpack(ticks);
+  function extract(ticks: Field, set = '') {
+    let ticksBool = Payments.unpack(ticks);
 
-    let total: number = 0;
+    let total = 0;
     // Create a js array of bolls for logggign
-    let boolArr: boolean[] = ticksBool.map((item) => {
+    let boolArr = ticksBool.map((item) => {
       return item.toBoolean();
     });
 
@@ -131,27 +131,16 @@ describe('GroupBasic', () => {
     return total;
   }
 
-  async function fetchPaid(
-    user: PublicKey,
-    userName: string = ''
-  ): Promise<number> {
+  function fetchPaid(user: PublicKey, userName = '') {
     let ud = new GroupUserStorage(user, group.deriveTokenId());
-    let payments: Field = await ud.payments.get();
+    let payments: Field = ud.payments.get();
     return extract(payments, `Payments ${userName}`);
   }
 
-  async function fetchCompensation(
-    user: PublicKey,
-    userName: string = ''
-  ): Promise<number> {
+  function fetchCompensation(user: PublicKey, userName = '') {
     let ud = new GroupUserStorage(user, group.deriveTokenId());
-    let payments: Field = await ud.compensations.get();
+    let payments: Field = ud.compensations.get();
     return extract(payments, `Compensations ${userName}`);
-  }
-  async function fetchTotal(user: PublicKey) {
-    let paid = await fetchPaid(user);
-    let comp = await fetchCompensation(user);
-    return paid + comp;
   }
   async function setPaymentRound(roundIndex: UInt64) {
     const txn = await Mina.transaction(admin, async () => {
@@ -163,7 +152,7 @@ describe('GroupBasic', () => {
 
   async function incrementRound(roundIndex: UInt64): Promise<UInt64> {
     const paymentRound = group.paymentRound.get();
-    let currentRound: UInt64 = paymentRound.add(roundIndex);
+    let currentRound = paymentRound.add(roundIndex);
     await setPaymentRound(currentRound);
     return currentRound;
   }
@@ -294,16 +283,15 @@ describe('GroupBasic', () => {
   it('Fails without all members being added', async () => {
     await expect(
       Mina.transaction(alexa, async () => {
-        // AccountUpdate.fundNewAccount(alexa);
         await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), UInt32.one);
       })
     ).rejects.toThrow();
   });
 
   it('Adds remaining users to the group', async () => {
-    console.log('Adding remaining users to the group', userStart, userEnd);
+    // console.log('Adding remaining users to the group', userStart, userEnd);
     for (let i = userStart + 1; i <= userEnd; i++) {
-      const usersStart: number = parseInt(group.members.get().toString());
+      const usersStart = parseInt(group.members.get().toString());
       const txn1 = await Mina.transaction(testAccounts[i], async () => {
         AccountUpdate.fundNewAccount(testAccounts[i]);
         await group.addUserToGroup(
@@ -324,7 +312,7 @@ describe('GroupBasic', () => {
         derivedTokenId
       ).isParticipant.get();
       expect(isParticipant).toEqual(Bool(true));
-      const usersEnd: number = parseInt(group.members.get().toString());
+      const usersEnd = parseInt(group.members.get().toString());
       // Assert one more user added in contract
       expect(usersEnd).toEqual(usersStart + 1);
     }
@@ -354,8 +342,8 @@ describe('GroupBasic', () => {
 
   it('Correctly makes a payment, without bids', async () => {
     // Start payment count
-    let totalPaymentsStart = await fetchPaid(alexa, 'Alexa start');
-    let totalCompStart = await fetchCompensation(alexa, 'Alexa start');
+    let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
+    let totalCompStart = fetchCompensation(alexa, 'Alexa start');
 
     // Check that it has not been ticked off
     const paymentsBoolStart: Bool[] = Payments.unpack(
@@ -386,11 +374,11 @@ describe('GroupBasic', () => {
     );
 
     // Payment has been marked
-    let totalPaymentsEnd = await fetchPaid(alexa, 'Alexa end');
+    let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
     expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
 
     // No comp marked
-    let totalCompEnd = await fetchCompensation(alexa, 'Alexa end');
+    let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
     expect(totalCompEnd).toEqual(totalCompStart);
   });
 
@@ -471,8 +459,8 @@ describe('GroupBasic', () => {
 
     // TODO: payeSehment needs to fail until compensation is done
     // Start payment count
-    let totalPaymentsStart = await fetchPaid(alexa, 'Alexa start');
-    let totalCompStart = await fetchCompensation(alexa, 'Alexa start');
+    let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
+    let totalCompStart = fetchCompensation(alexa, 'Alexa start');
 
     // Compensate for missed payment, don't pay current payment
     const txn2 = await Mina.transaction(alexa, async () => {
@@ -483,8 +471,8 @@ describe('GroupBasic', () => {
     await txn2.sign([alexa.key]).send();
 
     // Start payment count
-    let totalPaymentsEnd = await fetchPaid(alexa, 'Alexa end');
-    let totalCompEnd = await fetchCompensation(alexa, 'Alexa end');
+    let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
+    let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
 
     expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
     expect(totalCompEnd).toEqual(totalCompStart + 1);
@@ -493,8 +481,8 @@ describe('GroupBasic', () => {
   it('Compensation tests two missed payment', async () => {
     // TODO: payeSehment needs to fail until compensation is done
 
-    let totalPaymentsStart = await fetchPaid(billy, 'Billy start');
-    let totalCompStart = await fetchCompensation(billy, 'Billy start');
+    let totalPaymentsStart = fetchPaid(billy, 'Billy start');
+    let totalCompStart = fetchCompensation(billy, 'Billy start');
 
     // Increment payment round by 1 from the current
     let currentRound = await incrementRound(UInt64.one);
@@ -512,8 +500,8 @@ describe('GroupBasic', () => {
     await txn2.prove();
     await txn2.sign([billy.key]).send();
 
-    let totalPaymentsEnd = await fetchPaid(billy, 'Billy end');
-    let totalCompEnd = await fetchCompensation(billy, 'Billy end');
+    let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
+    let totalCompEnd = fetchCompensation(billy, 'Billy end');
 
     // Assert compensation increased by 2
     expect(totalCompEnd).toEqual(totalCompStart + 2);
