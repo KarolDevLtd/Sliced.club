@@ -105,7 +105,7 @@ export default function Group() {
 						</div>
 					</div>
 
-					<GroupNavigation groupHash={groupId?.toString() ?? ''} />
+					<GroupNavigation groupHash={groupId?.toString() ?? ''} group={group} product={product} />
 				</div>
 
 				<div className="flex-1 mt-6 grid grid-cols-8 gap-4">
