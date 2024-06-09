@@ -27,8 +27,10 @@ type VerificationKey = {
 	hash: Field;
 };
 // ---------------------------------------------------------------------------------------
-
-import { FungibleToken, GroupBasic, GroupUserStorage, GroupSettings } from 'sliced-contracts';
+import { GroupBasic, GroupSettings } from '../../../contracts/build/src/GroupBasic';
+import { FungibleToken } from '../../../contracts/build/src/token/FungibleToken';
+import { GroupUserStorage } from '../../../contracts/build/src/GroupUserStorage';
+// import { FungibleToken, GroupBasic, GroupUserStorage, GroupSettings } from 'sliced-contracts';
 
 const state = {
 	FungibleToken: null as null | typeof FungibleToken,
