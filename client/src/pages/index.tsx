@@ -71,6 +71,7 @@ export default function Dashboard() {
 							]}
 							options={{
 								visibleSlides: 1,
+								height: 150,
 							}}
 						></Carousel>
 					</div>
@@ -86,6 +87,7 @@ export default function Dashboard() {
 							]}
 							options={{
 								visibleSlides: 1,
+								height: 150,
 							}}
 						></Carousel>
 					</div>

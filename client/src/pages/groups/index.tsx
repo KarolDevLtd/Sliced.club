@@ -62,48 +62,44 @@ export default function Groups() {
 	return (
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
-			<Carousel
-				slides={[
-					{
-						content: (
-							<div className="h-[200px]">
-								<p>Cars</p>
-							</div>
-						),
-					},
-					{
-						content: (
-							<div className="h-[200px]">
-								<p>Cars</p>
-							</div>
-						),
-					},
-					{
-						content: (
-							<div className="h-[200px]">
-								<p>Cars</p>
-							</div>
-						),
-					},
-					{
-						content: (
-							<div className="h-[200px]">
-								<p>Cars</p>
-							</div>
-						),
-					},
-					{
-						content: (
-							<div className="h-[200px]">
-								<p>Cars</p>
-							</div>
-						),
-					},
-				]}
-				options={{
-					visibleSlides: 3,
-				}}
-			/>
+			<div className="py-4">
+				<Carousel
+					slides={[
+						{
+							content: (
+								<div>
+									<p>Cars</p>
+								</div>
+							),
+						},
+						{
+							content: (
+								<div>
+									<p>Electric Cars</p>
+								</div>
+							),
+						},
+						{
+							content: (
+								<div>
+									<p>Electronics</p>
+								</div>
+							),
+						},
+						{
+							content: (
+								<div>
+									<p>Motorbikes</p>
+								</div>
+							),
+						},
+					]}
+					options={{
+						visibleSlides: 3,
+						height: 150,
+					}}
+				/>
+			</div>
 			<InlineLink href={`groups/${groupId}`}>Group 69</InlineLink>
 			<div className="p-1">
 				{/* @ts-ignore */}
