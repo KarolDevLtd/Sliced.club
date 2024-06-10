@@ -17,10 +17,11 @@ type GroupListProps = {
 	heading?: string;
 	searchValue?: string;
 	isHomeScreen: boolean;
+	creatorKey?: string;
 	// products: Product[];
 };
 
-const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
+const GroupList = ({ heading, isHomeScreen, creatorKey }: GroupListProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [groups, setGroups] = useState<IPFSSearchModel[]>([]);
 	const [groupCount, setGroupCount] = useState<number>(0);
@@ -33,7 +34,7 @@ const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 		error,
 		refetch,
 		isLoading,
-	} = api.PinataGroup.getGroups.useQuery({ creatorKey: walletAddress?.toString(), groupCount: displayGroupCount });
+	} = api.PinataGroup.getGroups.useQuery({ creatorKey: creatorKey, groupCount: displayGroupCount });
 
 	useEffect(() => {
 		if (groupData) {
