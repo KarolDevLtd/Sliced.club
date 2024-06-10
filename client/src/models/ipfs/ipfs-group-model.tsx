@@ -8,4 +8,5 @@ export interface IPFSGroupModel {
 	instalments: string;
 	country: string;
 	productHash: string;
+	creatorKey: string;
 }
