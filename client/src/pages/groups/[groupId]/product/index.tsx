@@ -24,7 +24,7 @@ export default function GroupProductDetails() {
 	const handleBackClick = () => {
 		router.back();
 	};
-	// const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupHash });
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
 	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: query.hash });
 	//Get data from Firebase
 	const fetchAndDisplayImages = useCallback(async () => {
@@ -48,13 +48,13 @@ export default function GroupProductDetails() {
 		void fetchAndDisplayImages();
 	}, [fetchAndDisplayImages, productData]);
 
-	console.log('Router Pathname:', pathname);
-	console.log('Router Query:', query);
-	console.log('Router AsPath:', asPath);
-
 	useEffect(() => {
 		console.log(productData);
 	}, [productData]);
+
+	useEffect(() => {
+		console.log(groupData);
+	}, [groupData]);
 
 	return (
 		<>
@@ -79,7 +79,7 @@ export default function GroupProductDetails() {
 					<div className="bg-accent">
 						{productData?.product.productAttributes.map((key, i) =>
 							key.propertyName != null && key.propertyName != '' ? (
-								<div key={i.propertyName} className="flex justify-between">
+								<div key={i} className="flex justify-between">
 									<div>{key.propertyName}</div>
 									<div>{key.propertyValue}</div>
 								</div>
@@ -87,7 +87,10 @@ export default function GroupProductDetails() {
 						)}
 					</div>
 				</div>
-				<div className="bg-accent">{productData?.product.name}</div>
+				<div className="bg-accent">
+					<div>{productData?.product.name}</div>
+					<div>{groupData?.group.description}</div>
+				</div>
 			</div>
 			{/* <GroupNavigation/> */}
 		</>
