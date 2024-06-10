@@ -4,4 +4,6 @@ export type Payment = {
 	amountDue: number;
 	nextPaymentDue: Date;
 	product: Product;
+	transactionId: string;
+	status: string;
 };

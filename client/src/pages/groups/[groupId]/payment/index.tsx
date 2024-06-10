@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import router from 'next/router';
+import PaymentList from '~/app/_components/payments/PaymentList';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
+import { productPayments } from '~/static-data';
 
 export default function GroupPayment() {
 	const handleBackClick = () => {
@@ -31,7 +33,9 @@ export default function GroupPayment() {
 					</div>
 					<div className="col-span-1 bg-accent ">Auction</div>
 				</div>
-				<div className="bg-accent col-span-3 row-span-2">Last Payment</div>
+				<div className="col-span-3 row-span-2 flex">
+					<PaymentList payments={productPayments} />
+				</div>
 			</div>
 		</>
 	);

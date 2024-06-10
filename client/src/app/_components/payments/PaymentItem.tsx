@@ -16,19 +16,22 @@ const PaymentItem = ({ payment }: PaymentItemProps) => {
 
 	return (
 		<div
-			className="flex gap-4 items-center p-4 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer"
-			onClick={handleClick}
+			className="grid grid-cols-10 gap-4 p-2 m-2 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer overflow-hidden flex justify-around"
+			onClick={(e) => handleClick(e)}
 		>
-			<div className="h-12 w-12 bg-medium-grey rounded-md"></div>
-			<div>
-				<p>
-					<span className="font-bold">{formatCurrency(payment.amountDue)}</span>{' '}
-					<span className="text-sm text-dark-grey">Due {formatDate(payment.nextPaymentDue)}</span>
-				</p>
-				<p>
-					<span className="font-bold">{payment.product.title}</span>{' '}
-					<span className="text-sm text-dark-grey">{payment.product.groupOrganiser}</span>
-				</p>
+			<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded">
+				{formatDate(payment.nextPaymentDue)}
+			</div>
+			<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded">
+				{formatCurrency(payment.amountDue)}
+			</div>
+			<div className="col-span-2 flex flex-col justify-center">
+				<p className="font-bold">{payment.transactionId}</p>
+				{/* <p className="text-sm text-dark-grey">{product?.groupOrganiser}</p> */}
+			</div>
+			<div className="col-span-2 flex items-center">
+				<p className="font-bold">{payment.status}</p>
+				{/* <InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink> */}
 			</div>
 		</div>
 	);
