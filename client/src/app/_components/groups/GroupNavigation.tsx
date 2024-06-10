@@ -19,6 +19,10 @@ const GroupNavigation = ({ groupHash, group, product }: GroupNavigationProps) =>
 				// console.log(group.productHash);
 				query = { hash: group.productHash };
 				break;
+			case 'organiser':
+				// console.log(group.productHash);
+				query = { creatorHash: group.creatorKey };
+				break;
 		}
 
 		void router.push({
