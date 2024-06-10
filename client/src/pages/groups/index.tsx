@@ -18,6 +18,7 @@ import TextInput from '~/app/_components/ui/TextInput';
 import BasicSlider from '~/app/_components/ui/BasicSlider';
 import SelectOption from '~/app/_components/ui/SelectOption';
 import { ProductCategoryOptions } from '~/models/product-category-options';
+import Carousel from '~/app/_components/ui/Carousel';
 
 export default function Groups() {
 	const groupId = '69';
@@ -61,6 +62,44 @@ export default function Groups() {
 	return (
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
+			<div className="py-4">
+				<Carousel
+					slides={[
+						{
+							content: (
+								<div>
+									<p>Cars</p>
+								</div>
+							),
+						},
+						{
+							content: (
+								<div>
+									<p>Electric Cars</p>
+								</div>
+							),
+						},
+						{
+							content: (
+								<div>
+									<p>Electronics</p>
+								</div>
+							),
+						},
+						{
+							content: (
+								<div>
+									<p>Motorbikes</p>
+								</div>
+							),
+						},
+					]}
+					options={{
+						visibleSlides: 3,
+						height: 150,
+					}}
+				/>
+			</div>
 			<InlineLink href={`groups/${groupId}`}>Group 69</InlineLink>
 			<div className="p-1">
 				{/* @ts-ignore */}
