@@ -13,7 +13,11 @@ export default {
 				body: ['Open Sans'],
 			},
 		},
-		colors: {},
+		colors: {
+			electricblue: '#3b72ff',
+			bigred: '#f6613c',
+			bellow: '#ffc83b',
+		},
 		container: {
 			center: true,
 			padding: {
@@ -39,6 +43,7 @@ export default {
 					success: '#22c55e',
 					warning: '#fde047',
 					error: '#ef4444',
+					'electric-blue': '#3b72ff',
 				},
 			},
 		],
