@@ -109,7 +109,7 @@ const functions = {
 			}
 		} catch (error) {
 			console.error('Error in fetchAccount:', error);
-			throw error;
+			// throw error;
 		}
 	},
 	proveTransaction: async (args: {}) => {

@@ -365,6 +365,7 @@ export class GroupBasic extends TokenContract {
       Payments.fromBoolsField(paymentsBools)
     );
     update.requireSignature();
+    // update.account.
   }
 
   /** Make up for prior missed payments */
