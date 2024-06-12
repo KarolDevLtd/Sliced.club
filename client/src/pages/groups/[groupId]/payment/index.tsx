@@ -9,6 +9,7 @@ import { productPayments } from '~/static-data';
 import { TbCalendarDollar } from 'react-icons/tb';
 import { useState } from 'react';
 import { MdBarChart } from 'react-icons/md';
+import BasicBarChart from '~/app/_components/ui/BarChart';
 
 export default function GroupPayment() {
 	const [number, setNumber] = useState(0);
@@ -94,13 +95,13 @@ export default function GroupPayment() {
 									<div className="text-xl">Your chance</div>
 									<div className="text-sm">Chances of winning next month</div>
 								</div>
-								<div>
+								<div className="flex items-end">
 									<div className="text-3xl flex items-center justify-center px-1">22</div>%
 								</div>
 							</div>
 						</div>
 						{/* Total amount */}
-						<div className="row-span-3 border border-accent rounded-xl p-6">
+						<div className="row-span-3 border border-accent rounded-xl p-6 h-full">
 							<div className="flex">
 								<div className="p-3 border border-accent rounded-xl bg-bellow">
 									<MdBarChart className="text-2xl text-primary" />
@@ -108,6 +109,9 @@ export default function GroupPayment() {
 								<div className="flex flex-col">
 									<div className="flex px-4 text-xl justify-center">Total amount</div>
 								</div>
+							</div>
+							<div className="flex mx-1 my-2 h-4/5">
+								<BasicBarChart />
 							</div>
 						</div>
 					</div>
