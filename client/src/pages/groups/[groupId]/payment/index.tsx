@@ -10,6 +10,7 @@ import { TbCalendarDollar } from 'react-icons/tb';
 import { useState } from 'react';
 import { MdBarChart } from 'react-icons/md';
 import BasicBarChart from '~/app/_components/ui/BarChart';
+import BasicButton from '~/app/_components/ui/BasicButton';
 
 export default function GroupPayment() {
 	const [number, setNumber] = useState(0);
@@ -115,7 +116,24 @@ export default function GroupPayment() {
 							</div>
 						</div>
 					</div>
-					<div className="col-span-1 bg-accent ">Auction</div>
+					<div className="col-span-1 border border-accent rounded-xl bg-auctionsfade flex flex-col grid grid-rows-3 ">
+						{/* <div className=""> */}
+						<div className="flex flex-col align-center row-span-2 justify-center">
+							<div className="flex justify-center text-3xl my-2">Auction</div>
+							<div className="flex justify-center ">Time left</div>
+							<strong className="flex justify-center ">2d 13h 43min</strong>
+						</div>
+
+						<div className="flex flex-col">
+							<div className="flex justify-center my-1">
+								<BasicButton type={'accent'}>Your Bid</BasicButton>
+							</div>
+							<div className="flex justify-center my-1">
+								<BasicButton type={'primary'}>Bid</BasicButton>
+							</div>
+							{/* </div> */}
+						</div>
+					</div>
 				</div>
 				<div className="col-span-3 row-span-2 flex">
 					<PaymentList payments={productPayments} />

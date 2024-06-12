@@ -28,6 +28,9 @@ export default {
 				'2xl': '6rem',
 			},
 		},
+		backgroundImage: {
+			auctionsfade: 'radial-gradient(circle at 50% 100%, #f54325, transparent)',
+		},
 	},
 	plugins: [daisyui],
 	daisyui: {
