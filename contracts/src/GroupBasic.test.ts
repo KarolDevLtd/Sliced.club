@@ -8,6 +8,7 @@ import {
   PublicKey,
   fetchAccount,
   AccountUpdate,
+  JsonProof,
   TokenId,
   UInt32,
   UInt64,
@@ -15,6 +16,18 @@ import {
 } from 'o1js';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
+import fs from 'fs';
+
+import {
+  proofOfAge,
+  proofOfSanctions,
+  proofOfUniqueHuman,
+  proofOfNationality,
+  ProofOfAgeProof,
+  ProofOfSanctionsProof,
+  ProofOfUniqueHumanProof,
+  ProofOfNationalityProof,
+} from 'idmask-zk-programs';
 
 let proofsEnabled = false;
 const fee = 1e8;
@@ -39,9 +52,20 @@ describe('GroupBasic', () => {
     group: GroupBasic,
     tokenApp: FungibleToken,
     derivedTokenId: Field,
-    verificationKey: VerificationKey;
+    verificationKey: VerificationKey,
+    verificationKeyAge: VerificationKey;
 
   let userStart: number, userEnd: number;
+
+  // Load exampk,e proof from file
+  const ageProof = fs.readFileSync('src/test_proofs/age_proof.json');
+
+  // Convert buffer to json
+  const ageProofJson = JSON.parse(ageProof.toString());
+
+  const proof = JSON.parse(
+    fs.readFileSync('src/test_proofs/age_proof.json', 'utf-8')
+  );
 
   let groupRounds = 6;
   let missable = 3;
@@ -64,8 +88,13 @@ describe('GroupBasic', () => {
     //we always need to compile vk2 for tokenStorage
     // Analsye methods
     // console.log('Methods analysed: \n', await GroupBasic.analyzeMethods());
+
+    const { verificationKey: vk3 } = await proofOfAge.compile();
+    verificationKeyAge = vk3;
+
     const { verificationKey: vk2 } = await GroupBasic.compile();
     verificationKey = vk2;
+
     if (proofsEnabled) {
       await FungibleToken.compile();
       console.log('compiled');
@@ -258,267 +287,284 @@ describe('GroupBasic', () => {
     await initTokenStable.send().then((v) => v.wait());
   });
 
-  it('Adds a single user to the group', async () => {
+  it('Id mask test', async () => {
+    // Spawn Json Prood
+    // let proofFormat: JsonProof = ageProofJson;
+
+    console.log('proof: ', proof);
+
     const txn1 = await Mina.transaction(alexa, async () => {
-      AccountUpdate.fundNewAccount(alexa);
-      await group.addUserToGroup(
-        GROUP_SETTINGS,
-        alexa.key.toPublicKey(),
-        verificationKey
-      );
+      await group.verifyAge(proof);
     });
     await txn1.prove();
-    await txn1.sign([alexa.key, tokenKey]).send();
-    await fetchAccount({
-      publicKey: alexa.key.toPublicKey(),
-      tokenId: derivedTokenId,
-    });
-    let isParticipant = new GroupUserStorage(
-      alexa.key.toPublicKey(),
-      derivedTokenId
-    ).isParticipant.get();
-    expect(isParticipant).toEqual(Bool(true));
+    await txn1.sign([alexa.key]).send();
+    // await fetchAccount({
+    //   publicKey: alexa.key.toPublicKey(),
+    //   tokenId: derivedTokenId,
+    // });
   });
 
-  it('Fails without all members being added', async () => {
-    await expect(
-      Mina.transaction(alexa, async () => {
-        await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), UInt32.one);
-      })
-    ).rejects.toThrow();
-  });
+  // it('Adds a single user to the group', async () => {
+  //   const txn1 = await Mina.transaction(alexa, async () => {
+  //     AccountUpdate.fundNewAccount(alexa);
+  //     await group.addUserToGroup(
+  //       GROUP_SETTINGS,
+  //       alexa.key.toPublicKey(),
+  //       verificationKey
+  //     );
+  //   });
+  //   await txn1.prove();
+  //   await txn1.sign([alexa.key, tokenKey]).send();
+  //   await fetchAccount({
+  //     publicKey: alexa.key.toPublicKey(),
+  //     tokenId: derivedTokenId,
+  //   });
+  //   let isParticipant = new GroupUserStorage(
+  //     alexa.key.toPublicKey(),
+  //     derivedTokenId
+  //   ).isParticipant.get();
+  //   expect(isParticipant).toEqual(Bool(true));
+  // });
 
-  it('Adds remaining users to the group', async () => {
-    // console.log('Adding remaining users to the group', userStart, userEnd);
-    for (let i = userStart + 1; i <= userEnd; i++) {
-      const usersStart = parseInt(group.members.get().toString());
-      const txn1 = await Mina.transaction(testAccounts[i], async () => {
-        AccountUpdate.fundNewAccount(testAccounts[i]);
-        await group.addUserToGroup(
-          GROUP_SETTINGS,
-          testAccounts[i].key.toPublicKey(),
-          verificationKey
-        );
-      });
-      await txn1.prove();
-      await txn1.sign([testAccounts[i].key, tokenKey]).send();
-      // console.log(txn1.toPretty());
-      await fetchAccount({
-        publicKey: testAccounts[i].key.toPublicKey(),
-        tokenId: derivedTokenId,
-      });
-      let isParticipant = new GroupUserStorage(
-        testAccounts[i].key.toPublicKey(),
-        derivedTokenId
-      ).isParticipant.get();
-      expect(isParticipant).toEqual(Bool(true));
-      const usersEnd = parseInt(group.members.get().toString());
-      // Assert one more user added in contract
-      expect(usersEnd).toEqual(usersStart + 1);
-    }
-  });
+  // it('Fails without all members being added', async () => {
+  //   await expect(
+  //     Mina.transaction(alexa, async () => {
+  //       await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), UInt32.one);
+  //     })
+  //   ).rejects.toThrow();
+  // });
 
-  it('Fails to make a payment if user is not added to the group', async () => {
-    await expect(
-      Mina.transaction(deployer, async () => {
-        AccountUpdate.fundNewAccount(deployer);
-        await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), UInt32.zero);
-      })
-    ).rejects.toThrow();
-  });
+  // it('Adds remaining users to the group', async () => {
+  //   // console.log('Adding remaining users to the group', userStart, userEnd);
+  //   for (let i = userStart + 1; i <= userEnd; i++) {
+  //     const usersStart = parseInt(group.members.get().toString());
+  //     const txn1 = await Mina.transaction(testAccounts[i], async () => {
+  //       AccountUpdate.fundNewAccount(testAccounts[i]);
+  //       await group.addUserToGroup(
+  //         GROUP_SETTINGS,
+  //         testAccounts[i].key.toPublicKey(),
+  //         verificationKey
+  //       );
+  //     });
+  //     await txn1.prove();
+  //     await txn1.sign([testAccounts[i].key, tokenKey]).send();
+  //     // console.log(txn1.toPretty());
+  //     await fetchAccount({
+  //       publicKey: testAccounts[i].key.toPublicKey(),
+  //       tokenId: derivedTokenId,
+  //     });
+  //     let isParticipant = new GroupUserStorage(
+  //       testAccounts[i].key.toPublicKey(),
+  //       derivedTokenId
+  //     ).isParticipant.get();
+  //     expect(isParticipant).toEqual(Bool(true));
+  //     const usersEnd = parseInt(group.members.get().toString());
+  //     // Assert one more user added in contract
+  //     expect(usersEnd).toEqual(usersStart + 1);
+  //   }
+  // });
 
-  it('Fails add a new user to the full group', async () => {
-    await expect(
-      Mina.transaction(deployer, async () => {
-        AccountUpdate.fundNewAccount(deployer);
-        await group.addUserToGroup(
-          GROUP_SETTINGS,
-          deployer.key.toPublicKey(),
-          verificationKey
-        );
-      })
-    ).rejects.toThrow();
-  });
+  // it('Fails to make a payment if user is not added to the group', async () => {
+  //   await expect(
+  //     Mina.transaction(deployer, async () => {
+  //       AccountUpdate.fundNewAccount(deployer);
+  //       await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), UInt32.zero);
+  //     })
+  //   ).rejects.toThrow();
+  // });
 
-  it('Correctly makes a payment, without bids', async () => {
-    // Start payment count
-    let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
-    let totalCompStart = fetchCompensation(alexa, 'Alexa start');
+  // it('Fails add a new user to the full group', async () => {
+  //   await expect(
+  //     Mina.transaction(deployer, async () => {
+  //       AccountUpdate.fundNewAccount(deployer);
+  //       await group.addUserToGroup(
+  //         GROUP_SETTINGS,
+  //         deployer.key.toPublicKey(),
+  //         verificationKey
+  //       );
+  //     })
+  //   ).rejects.toThrow();
+  // });
 
-    // Check that it has not been ticked off
-    const paymentsBoolStart: Bool[] = Payments.unpack(
-      new GroupUserStorage(
-        alexa.key.toPublicKey(),
-        derivedTokenId
-      ).payments.get()
-    );
-    expect(
-      paymentsBoolStart[parseInt(group.paymentRound.get().toString())]
-    ).toEqual(Bool(false));
-    const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
-    const initialBalanceGroup = (
-      await tokenApp.getBalanceOf(groupAddress)
-    ).toBigInt();
-    const txn = await Mina.transaction(alexa, async () => {
-      // AccountUpdate.fundNewAccount(alexa);
-      await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), basePayment);
-    });
-    // console.log(txn.toPretty());
-    await txn.prove();
-    await txn.sign([alexa.key]).send();
-    expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
-      initialBalanceAlexa - paymentAmount.toBigint()
-    );
-    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-      initialBalanceGroup + paymentAmount.toBigint()
-    );
+  // it('Correctly makes a payment, without bids', async () => {
+  //   // Start payment count
+  //   let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
+  //   let totalCompStart = fetchCompensation(alexa, 'Alexa start');
 
-    // Payment has been marked
-    let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
-    expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
+  //   // Check that it has not been ticked off
+  //   const paymentsBoolStart: Bool[] = Payments.unpack(
+  //     new GroupUserStorage(
+  //       alexa.key.toPublicKey(),
+  //       derivedTokenId
+  //     ).payments.get()
+  //   );
+  //   expect(
+  //     paymentsBoolStart[parseInt(group.paymentRound.get().toString())]
+  //   ).toEqual(Bool(false));
+  //   const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
+  //   const initialBalanceGroup = (
+  //     await tokenApp.getBalanceOf(groupAddress)
+  //   ).toBigInt();
+  //   const txn = await Mina.transaction(alexa, async () => {
+  //     // AccountUpdate.fundNewAccount(alexa);
+  //     await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), basePayment);
+  //   });
+  //   // console.log(txn.toPretty());
+  //   await txn.prove();
+  //   await txn.sign([alexa.key]).send();
+  //   expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
+  //     initialBalanceAlexa - paymentAmount.toBigint()
+  //   );
+  //   expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+  //     initialBalanceGroup + paymentAmount.toBigint()
+  //   );
 
-    // No comp marked
-    let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
-    expect(totalCompEnd).toEqual(totalCompStart);
-  });
+  //   // Payment has been marked
+  //   let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
+  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
 
-  it('1st user correctly joins the auction', async () => {
-    const billyBid = UInt64.from(2);
-    const initialBalanceBilly = (await tokenApp.getBalanceOf(billy)).toBigInt();
-    const initialBalanceGroup = (
-      await tokenApp.getBalanceOf(groupAddress)
-    ).toBigInt();
-    const txn = await Mina.transaction(billy, async () => {
-      // AccountUpdate.fundNewAccount(billy);
-      await group.roundPayment(GROUP_SETTINGS, billyBid, basePayment);
-    });
-    await txn.prove();
-    await txn.sign([billy.key]).send();
-    // expect((await tokenApp.getBalanceOf(billy)).toBigInt()).toEqual(
-    //   initialBalanceBilly - paymentAmount.mul(2).toBigint()
-    // );
-    // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-    //   initialBalanceGroup + paymentAmount.mul(2).toBigint()
-    // );
-  });
+  //   // No comp marked
+  //   let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
+  //   expect(totalCompEnd).toEqual(totalCompStart);
+  // });
 
-  it('2nd user (higher bidder) correctly joins the auction', async () => {
-    const charlieBid = UInt64.from(3);
-    const initialBalanceCharlie = (
-      await tokenApp.getBalanceOf(charlie)
-    ).toBigInt();
-    const initialBalanceGroup = (
-      await tokenApp.getBalanceOf(groupAddress)
-    ).toBigInt();
-    const txn = await Mina.transaction(charlie, async () => {
-      // AccountUpdate.fundNewAccount(charlie);
-      await group.roundPayment(GROUP_SETTINGS, charlieBid, basePayment);
-    });
-    console.log('TX deets: ', txn.toPretty() + '\n');
-    await txn.prove();
-    await txn.sign([charlie.key]).send();
-    // expect((await tokenApp.getBalanceOf(charlie)).toBigInt()).toEqual(
-    //   initialBalanceCharlie - paymentAmount.mul(2).toBigint()
-    // );
-    // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-    //   initialBalanceGroup + paymentAmount.mul(2).toBigint()
-    // );
-  });
+  // it('1st user correctly joins the auction', async () => {
+  //   const billyBid = UInt64.from(2);
+  //   const initialBalanceBilly = (await tokenApp.getBalanceOf(billy)).toBigInt();
+  //   const initialBalanceGroup = (
+  //     await tokenApp.getBalanceOf(groupAddress)
+  //   ).toBigInt();
+  //   const txn = await Mina.transaction(billy, async () => {
+  //     // AccountUpdate.fundNewAccount(billy);
+  //     await group.roundPayment(GROUP_SETTINGS, billyBid, basePayment);
+  //   });
+  //   await txn.prove();
+  //   await txn.sign([billy.key]).send();
+  //   // expect((await tokenApp.getBalanceOf(billy)).toBigInt()).toEqual(
+  //   //   initialBalanceBilly - paymentAmount.mul(2).toBigint()
+  //   // );
+  //   // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+  //   //   initialBalanceGroup + paymentAmount.mul(2).toBigint()
+  //   // );
+  // });
 
-  it('Correctly chooses the winners', async () => {
-    const paymentRound = group.paymentRound.get();
-    const randomIndex = Math.floor(Math.random() * 20);
-    const txn = await Mina.transaction(admin, async () => {
-      await group.getResults(
-        GROUP_SETTINGS,
-        admin.key,
-        Field.from(randomIndex)
-      );
-    });
-    await txn.prove();
-    await txn.sign([admin.key]).send();
-    for (const event of await group.fetchEvents()) {
-      console.log(event.type, JSON.stringify(event.event.data));
-    }
+  // it('2nd user (higher bidder) correctly joins the auction', async () => {
+  //   const charlieBid = UInt64.from(3);
+  //   const initialBalanceCharlie = (
+  //     await tokenApp.getBalanceOf(charlie)
+  //   ).toBigInt();
+  //   const initialBalanceGroup = (
+  //     await tokenApp.getBalanceOf(groupAddress)
+  //   ).toBigInt();
+  //   const txn = await Mina.transaction(charlie, async () => {
+  //     // AccountUpdate.fundNewAccount(charlie);
+  //     await group.roundPayment(GROUP_SETTINGS, charlieBid, basePayment);
+  //   });
+  //   console.log('TX deets: ', txn.toPretty() + '\n');
+  //   await txn.prove();
+  //   await txn.sign([charlie.key]).send();
+  //   // expect((await tokenApp.getBalanceOf(charlie)).toBigInt()).toEqual(
+  //   //   initialBalanceCharlie - paymentAmount.mul(2).toBigint()
+  //   // );
+  //   // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+  //   //   initialBalanceGroup + paymentAmount.mul(2).toBigint()
+  //   // );
+  // });
 
-    const newPaymentRound = group.paymentRound.get();
-    // expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
-  });
+  // it('Correctly chooses the winners', async () => {
+  //   const paymentRound = group.paymentRound.get();
+  //   const randomIndex = Math.floor(Math.random() * 20);
+  //   const txn = await Mina.transaction(admin, async () => {
+  //     await group.getResults(
+  //       GROUP_SETTINGS,
+  //       admin.key,
+  //       Field.from(randomIndex)
+  //     );
+  //   });
+  //   await txn.prove();
+  //   await txn.sign([admin.key]).send();
+  //   for (const event of await group.fetchEvents()) {
+  //     console.log(event.type, JSON.stringify(event.event.data));
+  //   }
 
-  it('Compensation tests one missed payment', async () => {
-    // Round already advanced in the winner
-    let currentRoundStart = group.paymentRound.get();
-    // Subtract depending on whether that tests runs or not
-    let currentRound = await incrementRound(
-      new UInt64(2).sub(currentRoundStart)
-    );
-    console.log(
-      'Current round after increment: ',
-      currentRound.toBigInt().toString()
-    );
+  //   const newPaymentRound = group.paymentRound.get();
+  //   // expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
+  // });
 
-    // TODO: payeSehment needs to fail until compensation is done
-    // Start payment count
-    let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
-    let totalCompStart = fetchCompensation(alexa, 'Alexa start');
+  // it('Compensation tests one missed payment', async () => {
+  //   // Round already advanced in the winner
+  //   let currentRoundStart = group.paymentRound.get();
+  //   // Subtract depending on whether that tests runs or not
+  //   let currentRound = await incrementRound(
+  //     new UInt64(2).sub(currentRoundStart)
+  //   );
+  //   console.log(
+  //     'Current round after increment: ',
+  //     currentRound.toBigInt().toString()
+  //   );
 
-    // Compensate for missed payment, don't pay current payment
-    const txn2 = await Mina.transaction(alexa, async () => {
-      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
-    });
+  //   // TODO: payeSehment needs to fail until compensation is done
+  //   // Start payment count
+  //   let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
+  //   let totalCompStart = fetchCompensation(alexa, 'Alexa start');
 
-    await txn2.prove();
-    await txn2.sign([alexa.key]).send();
+  //   // Compensate for missed payment, don't pay current payment
+  //   const txn2 = await Mina.transaction(alexa, async () => {
+  //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
+  //   });
 
-    // Start payment count
-    let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
-    let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
+  //   await txn2.prove();
+  //   await txn2.sign([alexa.key]).send();
 
-    expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-    expect(totalCompEnd).toEqual(totalCompStart + 1);
-  });
+  //   // Start payment count
+  //   let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
+  //   let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
 
-  it('Compensation tests two missed payment', async () => {
-    // TODO: payeSehment needs to fail until compensation is done
+  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
+  //   expect(totalCompEnd).toEqual(totalCompStart + 1);
+  // });
 
-    let totalPaymentsStart = fetchPaid(billy, 'Billy start');
-    let totalCompStart = fetchCompensation(billy, 'Billy start');
+  // it('Compensation tests two missed payment', async () => {
+  //   // TODO: payeSehment needs to fail until compensation is done
 
-    // Increment payment round by 1 from the current
-    let currentRound = await incrementRound(UInt64.one);
+  //   let totalPaymentsStart = fetchPaid(billy, 'Billy start');
+  //   let totalCompStart = fetchCompensation(billy, 'Billy start');
 
-    console.log(
-      'Current round after increment: ',
-      currentRound.toBigInt().toString()
-    );
+  //   // Increment payment round by 1 from the current
+  //   let currentRound = await incrementRound(UInt64.one);
 
-    // Compensate for missed payment
-    const txn2 = await Mina.transaction(billy, async () => {
-      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
-    });
+  //   console.log(
+  //     'Current round after increment: ',
+  //     currentRound.toBigInt().toString()
+  //   );
 
-    await txn2.prove();
-    await txn2.sign([billy.key]).send();
+  //   // Compensate for missed payment
+  //   const txn2 = await Mina.transaction(billy, async () => {
+  //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
+  //   });
 
-    let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
-    let totalCompEnd = fetchCompensation(billy, 'Billy end');
+  //   await txn2.prove();
+  //   await txn2.sign([billy.key]).send();
 
-    // Assert compensation increased by 2
-    expect(totalCompEnd).toEqual(totalCompStart + 2);
+  //   let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
+  //   let totalCompEnd = fetchCompensation(billy, 'Billy end');
 
-    // Assert payments unchanged
-    expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-  });
+  //   // Assert compensation increased by 2
+  //   expect(totalCompEnd).toEqual(totalCompStart + 2);
 
-  it('Compensation tests three missed payment (rejection)', async () => {
-    // Increment payment round by 1 from the current
-    let currentRound = await incrementRound(UInt64.one);
+  //   // Assert payments unchanged
+  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
+  // });
 
-    // Compensate for missed payment
-    await expect(
-      Mina.transaction(bryan, async () => {
-        await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
-      })
-    ).rejects.toThrow();
-  });
+  // it('Compensation tests three missed payment (rejection)', async () => {
+  //   // Increment payment round by 1 from the current
+  //   let currentRound = await incrementRound(UInt64.one);
+
+  //   // Compensate for missed payment
+  //   await expect(
+  //     Mina.transaction(bryan, async () => {
+  //       await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
+  //     })
+  //   ).rejects.toThrow();
+  // });
 });

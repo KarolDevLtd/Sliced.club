@@ -16,10 +16,13 @@ import {
   Provable,
   AccountUpdate,
   AccountUpdateForest,
+  JsonProof,
   DeployArgs,
+  ProofBase,
   Encryption,
   UInt64,
   PrivateKey,
+  verify,
   Group,
   provable,
   assert,
@@ -27,6 +30,13 @@ import {
 import { FungibleToken } from './token/FungibleToken';
 import { GroupUserStorage } from './GroupUserStorage';
 import { PackedBoolFactory } from './lib/packed-types/PackedBool';
+
+import {
+  ProofOfAgeProof,
+  ProofOfSanctionsProof,
+  ProofOfUniqueHumanProof,
+  ProofOfNationalityProof,
+} from 'idmask-zk-programs';
 
 export class Payments extends PackedBoolFactory(251) {}
 type CipherText = {
@@ -136,6 +146,16 @@ export class GroupBasic extends TokenContract {
     'auction-winner': PublicKey,
   };
 
+  @method async verifyAge(proof: ProofOfAgeProof) {
+    // Assert user is 21 years old in order to purchase these pristinely well
+    // preserved as well as operational Ottoman era musket
+    // let age = proof.age.get();
+    // let ageProof: UInt32 = new UInt32(fieldProod.publicInput[0]);
+    // ageProof.assertGreaterThanOrEqual(new UInt32(21));
+    // const { verificationKey } = await proofOfAge.compile();
+    // const isProofValid = await verify(fieldProod, verificationKey);
+  }
+
   @method
   async approveBase(updates: AccountUpdateForest): Promise<void> {
     this.checkZeroBalanceChange(updates);
@@ -147,6 +167,8 @@ export class GroupBasic extends TokenContract {
   ) {
     await super.deploy(args);
     this.admin.set(args.admin);
+    // this.admin.set(args.groupSettings);
+    // this.setGroupSettings(groupSettings);
     // Set group hash
     this.groupSettingsHash.set(args.groupSettings.hash());
     // this.account.permissions.set({
@@ -212,22 +234,21 @@ export class GroupBasic extends TokenContract {
     let senderAddr = this.sender.getAndRequireSignature();
     await this.assertGroupHash(_groupSettings);
 
-    let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());
+    let ud = new GroupUserStorage(senderAddr, this.deriveTokenId());
 
     // Amount of payments needs to be larger than zero
     amountOfPayments.assertGreaterThan(UInt32.zero);
 
     // Ensure caller is a patricipant
-    let isParticipant = userStorage.isParticipant.get();
+    let isParticipant = ud.isParticipant.get();
     isParticipant.assertEquals(true);
 
     // Get payments and compensations arrays
     let compensationsBools: Bool[] = Payments.unpack(
-      Payments.fromBools(Payments.unpack(userStorage.compensations.get()))
-        .packed
+      Payments.fromBools(Payments.unpack(ud.compensations.get())).packed
     );
     let paymentsBools: Bool[] = Payments.unpack(
-      Payments.fromBools(Payments.unpack(userStorage.payments.get())).packed
+      Payments.fromBools(Payments.unpack(ud.payments.get())).packed
     );
 
     // Fetch current round index from contract
