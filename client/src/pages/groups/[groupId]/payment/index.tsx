@@ -70,12 +70,12 @@ export default function GroupPayment() {
 									<TbCalendarDollar className="text-primary" />
 								</div>
 								<div className="flex flex-col">
-									<div className="items-center px-4 text-xl">Next payment</div>
+									<div className="items-center px-4 text-xl">Over payment</div>
 									<div className="items-center px-4 text-xs">12.04.2024</div>
 								</div>
 							</div>
 							<div className="h-full flex items-center justify-center justify-between">
-								<div className="flex">
+								{/* <div className="flex">
 									<div className="flex px-2 cursor-pointer" onClick={() => handleNumberChange(-1)}>
 										-
 									</div>
@@ -83,7 +83,7 @@ export default function GroupPayment() {
 									<div className="flex px-2 cursor-pointer" onClick={() => handleNumberChange(1)}>
 										+
 									</div>
-								</div>
+								</div> */}
 								<div className="text-3xl">$240</div>
 							</div>
 						</div>
@@ -119,19 +119,37 @@ export default function GroupPayment() {
 					<div className="col-span-1 border border-accent rounded-xl bg-auctionsfade flex flex-col grid grid-rows-3 m-1">
 						{/* <div className=""> */}
 						<div className="flex flex-col align-center row-span-2 justify-end mb-8">
-							<div className="flex justify-center text-3xl my-2">Auction</div>
+							<div className="flex justify-center text-3xl my-2">Payment</div>
 							<div className="flex justify-center ">Time left</div>
 							<strong className="flex justify-center ">2d 13h 43min</strong>
 						</div>
 
-						<div className="flex flex-col">
-							<div className="flex justify-center my-1">
-								<BasicButton type={'accent'}>Your Bid</BasicButton>
+						<div className="flex items-center justify-cente place-content-evenly">
+							{/* <div className="flex align-center">
+								<BasicButton type={'primary'}>Pay</BasicButton>
+							</div> */}
+							<div className="flex flex-col">
+								<div className="flex justify-center my-2 flex-col">
+									<div className="flex">
+										<div
+											className="flex px-2 cursor-pointer"
+											onClick={() => handleNumberChange(-1)}
+										>
+											-
+										</div>
+										<div className="flex px-2">{number}</div>
+										<div className="flex px-2 cursor-pointer" onClick={() => handleNumberChange(1)}>
+											+
+										</div>
+									</div>
+									<div className="flex justify-center my-2">
+										<BasicButton type={'primary'}>{number > 0 ? 'Bid' : 'Pay'}</BasicButton>
+									</div>
+								</div>
+								{/* <div className="border-left:1px solid #000;height:500px"></div> */}
+
+								{/* </div> */}
 							</div>
-							<div className="flex justify-center my-1">
-								<BasicButton type={'primary'}>Bid</BasicButton>
-							</div>
-							{/* </div> */}
 						</div>
 					</div>
 				</div>
