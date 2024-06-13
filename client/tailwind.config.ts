@@ -17,6 +17,7 @@ export default {
 			electricblue: '#3b72ff',
 			bigred: '#f6613c',
 			bellow: '#ffc83b',
+			verygreen: '#72c56d',
 		},
 		container: {
 			center: true,
@@ -30,6 +31,7 @@ export default {
 		},
 		backgroundImage: {
 			auctionsfade: 'radial-gradient(circle at 50% 100%, #f54325, transparent)',
+			itemfade: 'linear-gradient(to left, #1f3745, transparent)',
 		},
 	},
 	plugins: [daisyui],
