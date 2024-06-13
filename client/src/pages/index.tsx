@@ -69,7 +69,10 @@ export default function Dashboard() {
 									content: <p>Bye</p>,
 								},
 							]}
-							options={{}}
+							options={{
+								visibleSlides: 1,
+								height: 150,
+							}}
 						></Carousel>
 					</div>
 					<div className="col-span-1">
@@ -82,7 +85,10 @@ export default function Dashboard() {
 									content: <p>Bye</p>,
 								},
 							]}
-							options={{}}
+							options={{
+								visibleSlides: 1,
+								height: 150,
+							}}
 						></Carousel>
 					</div>
 				</div>
