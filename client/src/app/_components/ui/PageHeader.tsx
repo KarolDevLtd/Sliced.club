@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { FaBell } from 'react-icons/fa';
 import { FaCaretDown } from 'react-icons/fa';
 import BasicButton from './BasicButton';
+import UserAvatar from './UserAvatar';
 
 type PageHeaderProps = {
 	text: string;
@@ -38,17 +39,7 @@ const PageHeader = ({ text, subtext, hideQuickLinks = false, buttonText, onClick
 					</div>
 					<div className="dropdown dropdown-hover dropdown-end">
 						<div tabIndex={0} role="button" className="p-0 flex items-center">
-							<div className="avatar">
-								<div className="rounded h-[2.25rem] w-[2.25rem]">
-									{/* <Image
-									src={'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg'}
-									alt="Placeholder Avatar"
-									width={25}
-									height={25}
-								/> */}
-									<img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-								</div>
-							</div>
+							<UserAvatar />
 							<FaCaretDown className="h-[12px] w-[12px] text-white" />
 						</div>
 						<ul

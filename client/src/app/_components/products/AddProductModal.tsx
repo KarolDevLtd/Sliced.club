@@ -18,7 +18,7 @@ import SelectOption from '../ui/SelectOption';
 import { ProductCategoryOptions } from '~/models/product-category-options';
 import BasicButton from '../ui/BasicButton';
 import Spinner from '../ui/Spinner';
-import DragDrop from '../ui/DragDrop';
+import ImageUpload from '../ui/ImageUpload';
 import { defaultImageHash, saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
 import { useWallet } from '~/providers/WalletProvider';
@@ -190,7 +190,7 @@ const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 						/>
 					) : null}
 					<div>
-						<DragDrop images={images} setImages={setImages} includeButton={true} />
+						<ImageUpload images={images} setImages={setImages} includeButton={true} />
 					</div>
 					<div className="w-100 flex justify-end items-center gap-2">
 						<BasicButton

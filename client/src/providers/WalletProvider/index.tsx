@@ -7,6 +7,7 @@
 'use client';
 import { ChainInfoArgs, ProviderError } from '@aurowallet/mina-provider';
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { sliceWalletAddress } from '~/helpers/user-helper';
 
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 
@@ -52,6 +53,8 @@ interface WalletProviderProps {
 
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const LOCAL_STORAGE_KEY = 'MINA';
+
+	const { setUserWalletAddress } = useUserStore((state) => state);
 
 	const [isConnected, setIsConnected] = useState(false);
 	const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -143,7 +146,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 	const updateWalletUI = (account: string | null) => {
 		if (account?.[0]) {
 			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(account));
-			setWalletDisplayAddress(`${account[0].slice(0, 6)}...${account[0].slice(-4)}`);
+			setWalletDisplayAddress(sliceWalletAddress(account[0]));
 			setIsConnected(true);
 			connectUserWallet();
 		} else {
@@ -154,6 +157,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 			disconnectUserWallet();
 		}
 		setWalletAddress(account);
+		setUserWalletAddress(account ?? '');
 	};
 
 	//Function to get wallet address from local storage

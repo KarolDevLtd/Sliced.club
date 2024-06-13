@@ -4,61 +4,63 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React, { useEffect, useState } from 'react';
-import { api } from '~/trpc/react';
 import { type FirebaseCommentModel } from '~/models/firebase/firebase-comment-model';
 import PostCommentItem from './PostCommentItem';
+import Spinner from '~/app/_components/ui/Spinner';
+import { defaultPageLimit } from '~/helpers/search-helper';
+import { api } from '~/trpc/react';
+import { useInView } from 'react-intersection-observer';
+import { DateTime } from 'luxon';
 
 type PostCommentListProps = {
-	postId: string;
-	refreshComments: boolean;
-	onRefresh: () => void;
+	parentMessageId: string;
+	totalCommentCountNumber: number;
 };
 
-const PostCommentList = ({ postId, refreshComments, onRefresh }: PostCommentListProps) => {
-	const { data: commentsData, error, refetch } = api.FirebasePost.getComments.useQuery({ parentMessageId: postId });
+const PostCommentList = ({ parentMessageId, totalCommentCountNumber }: PostCommentListProps) => {
 	const [comments, setComments] = useState<FirebaseCommentModel[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
+	const [totalCommentCount, setTotalCommentCount] = useState<number>(totalCommentCountNumber);
+	const [displayCommentCount, setDisplayCommentCount] = useState(defaultPageLimit);
+	const {
+		data: commentData,
+		error,
+		refetch,
+		isLoading,
+	} = api.FirebasePost.getComments.useQuery({ parentMessageId: parentMessageId, commentCount: displayCommentCount });
+
+	const { ref, inView } = useInView();
 
 	useEffect(() => {
-		// If refreshPosts is true, trigger a manual refetch of posts
-		if (refreshComments) {
-			void refetch();
-			onRefresh();
+		if (commentData) {
+			setComments(commentData.comments);
 		}
-	}, [onRefresh, refetch, refreshComments]);
+	}, [commentData]);
 
 	useEffect(() => {
-		setIsLoading(true);
-
-		if (commentsData) {
-			setComments(commentsData.comments);
-			setIsLoading(false);
-		}
-	}, [commentsData]);
+		void refetch();
+	}, [refetch, totalCommentCount, totalCommentCountNumber]);
 
 	useEffect(() => {
-		if (error) {
-			console.error('Error fetching comments:', error);
-			setIsLoading(false);
+		if (inView) {
+			setDisplayCommentCount((prevCount) => prevCount + defaultPageLimit);
 		}
-	}, [error]);
+	}, [inView]);
 
 	return (
 		<div className="flex-1 flex w-full overflow-hidden">
-			{isLoading ? (
-				<div>Loading...</div>
-			) : (
-				<ul className="overflow-auto flex-1 flex flex-col min-w-full">
-					{comments.map((comment, index) => (
-						<PostCommentItem
-							id={index.toString()}
-							key={comment.hash}
-							hash={comment.hash}
-							posterKey={comment.posterKey}
-						/>
-					))}
-				</ul>
-			)}
+			<ul className="flex flex-col min-w-full h-40 overflow-hidden overflow-y-auto">
+				{comments.map((comment, index) => (
+					<PostCommentItem
+						id={index.toString()}
+						key={`${comment.hash}${comment.dateTime}`}
+						hash={comment.hash}
+						posterKey={comment.posterKey}
+						dateTime={comment.dateTime}
+					/>
+				))}
+				{totalCommentCount > displayCommentCount ? <div ref={ref} /> : 'No more posts to display...'}
+				{isLoading ? <Spinner /> : null}
+			</ul>
 		</div>
 	);
 };

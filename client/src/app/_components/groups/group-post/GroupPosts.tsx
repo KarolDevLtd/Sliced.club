@@ -64,7 +64,12 @@ const GroupPosts = ({ groupId, refetchPosts }: GroupPostProps) => {
 				}}
 			/>
 
-			<AddGroupPostModal groupId={groupId} />
+			<AddGroupPostModal
+				groupId={groupId}
+				refetchPosts={() => {
+					setRefreshPosts(true);
+				}}
+			/>
 		</div>
 	);
 };

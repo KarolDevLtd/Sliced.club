@@ -22,4 +22,8 @@ const preventActionWalletNotConnected = (walletConnected: boolean | undefined, c
 	return false;
 };
 
-export { preventActionNotLoggedIn, preventActionWalletNotConnected };
+const sliceWalletAddress = (walletAddress: string | null | undefined) => {
+	return `${walletAddress?.slice(0, 6)}...${walletAddress?.slice(-4)}`;
+};
+
+export { preventActionNotLoggedIn, preventActionWalletNotConnected, sliceWalletAddress };

@@ -88,6 +88,7 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 					<div className="flex flex-col col-span-3 items-center justify-center">
 						<strong>{group?.name}</strong>
 						<strong>{product?.name}</strong>
+						<strong>{product?.price}</strong>
 					</div>
 					<div className="flex flex-col col-span-2 items-center justify-center">
 						<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
