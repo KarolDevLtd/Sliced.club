@@ -9,7 +9,7 @@ import { productPayments } from '~/static-data';
 import { TbCalendarDollar } from 'react-icons/tb';
 import { useState } from 'react';
 import { MdBarChart } from 'react-icons/md';
-import BasicBarChart from '~/app/_components/ui/BarChart';
+import BasicBarChart from '~/app/_components/ui/BasicBarChart';
 import BasicButton from '~/app/_components/ui/BasicButton';
 
 export default function GroupPayment() {
@@ -33,8 +33,8 @@ export default function GroupPayment() {
 					onClick={handleBackClick}
 				/>
 			</div>
-			<div className="grid grid-rows-5 grid-flow-col gap-4 h-full">
-				<div className="col-span-3 row-span-3 grid grid-cols-3 gap-4">
+			<div className="grid grid-rows-8 grid-flow-col gap-4 h-full">
+				<div className="col-span-3 row-span-5 grid grid-cols-3 gap-2">
 					<div className="col-span-1 grid grid-rows-9 gap-4">
 						{/* //Payment Details */}
 						<div className="row-span-5 m-2 p-6 border border-accent rounded-xl">
@@ -64,7 +64,7 @@ export default function GroupPayment() {
 							</div>
 						</div>
 						{/* Next payment */}
-						<div className="row-span-4 m-2 p-6 border border-accent rounded-xl">
+						<div className="row-span-4 m-1 p-6 border border-accent rounded-xl">
 							<div className="flex">
 								<div className="p-4 border border-accent rounded-xl bg-bigred">
 									<TbCalendarDollar className="text-primary" />
@@ -76,19 +76,19 @@ export default function GroupPayment() {
 							</div>
 							<div className="h-full flex items-center justify-center justify-between">
 								<div className="flex">
-									<div className="flex px-2" onClick={() => handleNumberChange(1)}>
-										+
+									<div className="flex px-2 cursor-pointer" onClick={() => handleNumberChange(-1)}>
+										-
 									</div>
 									<div className="flex px-2">{number}</div>
-									<div className="flex px-2" onClick={() => handleNumberChange(-1)}>
-										-
+									<div className="flex px-2 cursor-pointer" onClick={() => handleNumberChange(1)}>
+										+
 									</div>
 								</div>
 								<div className="text-3xl">$240</div>
 							</div>
 						</div>
 					</div>
-					<div className="col-span-1 grid grid-rows-4 gap-4">
+					<div className="col-span-1 grid grid-rows-4 gap-4 p-1">
 						{/* Your chance */}
 						<div className="row-span-1 border border-accent rounded-xl">
 							<div className="p-5 flex justify-center items-center align-center h-full">
@@ -102,7 +102,7 @@ export default function GroupPayment() {
 							</div>
 						</div>
 						{/* Total amount */}
-						<div className="row-span-3 border border-accent rounded-xl p-6 h-full">
+						<div className="row-span-3 border p-1 border-accent rounded-xl p-3 h-full">
 							<div className="flex">
 								<div className="p-3 border border-accent rounded-xl bg-bellow">
 									<MdBarChart className="text-2xl text-primary" />
@@ -116,9 +116,9 @@ export default function GroupPayment() {
 							</div>
 						</div>
 					</div>
-					<div className="col-span-1 border border-accent rounded-xl bg-auctionsfade flex flex-col grid grid-rows-3 ">
+					<div className="col-span-1 border border-accent rounded-xl bg-auctionsfade flex flex-col grid grid-rows-3 m-1">
 						{/* <div className=""> */}
-						<div className="flex flex-col align-center row-span-2 justify-center">
+						<div className="flex flex-col align-center row-span-2 justify-end mb-8">
 							<div className="flex justify-center text-3xl my-2">Auction</div>
 							<div className="flex justify-center ">Time left</div>
 							<strong className="flex justify-center ">2d 13h 43min</strong>
@@ -135,8 +135,8 @@ export default function GroupPayment() {
 						</div>
 					</div>
 				</div>
-				<div className="col-span-3 row-span-2 flex">
-					<PaymentList payments={productPayments} />
+				<div className="col-span-3 row-span-3 flex">
+					<PaymentList heading={'Latest Payments'} payments={productPayments} />
 				</div>
 			</div>
 		</>
