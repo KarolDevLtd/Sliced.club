@@ -146,14 +146,8 @@ export class GroupBasic extends TokenContract {
     'auction-winner': PublicKey,
   };
 
-  @method async verifyAge(proof: ProofOfAgeProof) {
-    // Assert user is 21 years old in order to purchase these pristinely well
-    // preserved as well as operational Ottoman era musket
-    // let age = proof.age.get();
-    // let ageProof: UInt32 = new UInt32(fieldProod.publicInput[0]);
-    // ageProof.assertGreaterThanOrEqual(new UInt32(21));
-    // const { verificationKey } = await proofOfAge.compile();
-    // const isProofValid = await verify(fieldProod, verificationKey);
+  @method async verifyNationality(proof: ProofOfNationalityProof) {
+    proof.verify();
   }
 
   @method
@@ -183,6 +177,8 @@ export class GroupBasic extends TokenContract {
     // });
     this.paymentRound.set(UInt64.zero);
   }
+
+  //
 
   /** Called once at the start. User relinquishes ability to modify token account bu signing */
   @method async addUserToGroup(
@@ -484,6 +480,13 @@ export class GroupBasic extends TokenContract {
 
     // Is this needed here?
     this.paymentRound.set(currentPaymentRound.add(advanceRound));
+    // this.winnerIndex.set(currentPaymentRound.add(advanceRound));
+
+    // Ensure different winenrs, if same second bidder wins.
+
+    // Update group storage of auction winner
+
+    // Update group storage of lotttery winner
   }
 
   private getPaymentAmount(groupSettings: GroupSettings): UInt64 {

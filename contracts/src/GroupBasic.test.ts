@@ -29,7 +29,7 @@ import {
   ProofOfNationalityProof,
 } from 'idmask-zk-programs';
 
-let proofsEnabled = false;
+let proofsEnabled = true;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -57,14 +57,8 @@ describe('GroupBasic', () => {
 
   let userStart: number, userEnd: number;
 
-  // Load exampk,e proof from file
-  const ageProof = fs.readFileSync('src/test_proofs/age_proof.json');
-
-  // Convert buffer to json
-  const ageProofJson = JSON.parse(ageProof.toString());
-
   const proof = JSON.parse(
-    fs.readFileSync('src/test_proofs/age_proof.json', 'utf-8')
+    fs.readFileSync('src/test_proofs/proofOfNationality.json', 'utf-8')
   );
 
   let groupRounds = 6;
@@ -89,7 +83,7 @@ describe('GroupBasic', () => {
     // Analsye methods
     // console.log('Methods analysed: \n', await GroupBasic.analyzeMethods());
 
-    const { verificationKey: vk3 } = await proofOfAge.compile();
+    const { verificationKey: vk3 } = await proofOfNationality.compile();
     verificationKeyAge = vk3;
 
     const { verificationKey: vk2 } = await GroupBasic.compile();
@@ -292,10 +286,16 @@ describe('GroupBasic', () => {
     // let proofFormat: JsonProof = ageProofJson;
 
     console.log('proof: ', proof);
-
+    let correctProof = await ProofOfNationalityProof.fromJSON(proof);
     const txn1 = await Mina.transaction(alexa, async () => {
-      await group.verifyAge(proof);
+      await group.verifyNationality(correctProof);
     });
+
+    console.log('proof: ', proof);
+
+    // const txn1 = await Mina.transaction(alexa, async () => {
+    //   await group.verifyNationality(proof);
+    // });
     await txn1.prove();
     await txn1.sign([alexa.key]).send();
     // await fetchAccount({
