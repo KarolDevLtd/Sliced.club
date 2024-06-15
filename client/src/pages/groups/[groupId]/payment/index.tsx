@@ -5,7 +5,7 @@ import { FaCreditCard } from 'react-icons/fa';
 import PaymentList from '~/app/_components/payments/PaymentList';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
-import { productPayments } from '~/static-data';
+import { PaymentBarChartData, productPayments } from '~/static-data';
 import { TbCalendarDollar } from 'react-icons/tb';
 import { useState } from 'react';
 import { MdBarChart } from 'react-icons/md';
@@ -107,12 +107,12 @@ export default function GroupPayment() {
 								<div className="p-3 border border-accent rounded-xl bg-bellow">
 									<MdBarChart className="text-2xl text-primary" />
 								</div>
-								<div className="flex flex-col">
+								<div className="flex flex-col justify-center">
 									<div className="flex px-4 text-xl justify-center">Total amount</div>
 								</div>
 							</div>
 							<div className="flex mx-1 my-2 h-4/5">
-								<BasicBarChart />
+								<BasicBarChart chartData={PaymentBarChartData} />
 							</div>
 						</div>
 					</div>
