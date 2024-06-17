@@ -6,12 +6,19 @@ type CarouselProps = {
 		content: any;
 	}[];
 	options: {
-		visibleSlides: number;
-		height: number;
+		visibleSlides: 1 | 2 | 3 | 4 | 5;
 	};
 };
 
-const Carousel = ({ slides, options = { visibleSlides: 1, height: 150 } }: CarouselProps) => {
+const Carousel = ({ slides, options = { visibleSlides: 3 } }: CarouselProps) => {
+	const visibleSlidesMapping = {
+		1: 'w-full',
+		2: 'w-1/2',
+		3: 'w-1/3',
+		4: 'w-1/4',
+		5: 'w-1/5',
+	};
+
 	return (
 		<div className="carousel carousel-center min-w-full space-x-4">
 			{slides.map((slide, index) => {
@@ -19,7 +26,7 @@ const Carousel = ({ slides, options = { visibleSlides: 1, height: 150 } }: Carou
 					<div
 						id={`item${index + 1}`}
 						key={`item${index + 1}`}
-						className={`carousel-item ${options.visibleSlides === 1 ? 'w-full' : `w-1/${options.visibleSlides}`} h-[${options.height}px] rounded border border-neutral`}
+						className={`carousel-item ${visibleSlidesMapping[options.visibleSlides]} rounded border border-neutral`}
 					>
 						{slide.content}
 					</div>
