@@ -27,10 +27,10 @@ type VerificationKey = {
 	hash: Field;
 };
 // ---------------------------------------------------------------------------------------
-import { GroupBasic, GroupSettings } from '../../../contracts/build/src/GroupBasic';
-import { FungibleToken } from '../../../contracts/build/src/token/FungibleToken';
-import { GroupUserStorage } from '../../../contracts/build/src/GroupUserStorage';
-// import { FungibleToken, GroupBasic, GroupUserStorage, GroupSettings } from 'sliced-contracts';
+// import { GroupBasic, GroupSettings } from '../../../contracts/src/GroupBasic';
+// import { FungibleToken } from '../../../contracts/src/token/FungibleToken';
+// import { GroupUserStorage } from '../../../contracts/src/GroupUserStorage';
+import { FungibleToken, GroupBasic, GroupUserStorage, GroupSettings } from 'sliced-contracts';
 
 const state = {
 	FungibleToken: null as null | typeof FungibleToken,
@@ -92,13 +92,13 @@ const functions = {
 		}
 
 		const publicKey = PublicKey.fromBase58(args.publicKey);
-		console.log('Received args:', args);
-		console.log('Converted publicKey:', publicKey.toBase58());
-		console.log(await fetchLastBlock());
+		// console.log('Received args:', args);
+		// console.log('Converted publicKey:', publicKey.toBase58());
+		// console.log(await fetchLastBlock());
 		try {
 			if (args.tokenId === undefined) {
 				const result = await fetchAccount({ publicKey: args.publicKey });
-				console.log('fetchAccount result:', result);
+				// console.log('fetchAccount result:', result);
 				return result;
 			} else {
 				const tokenId = new Field(args.tokenId);
@@ -193,42 +193,69 @@ const functions = {
 	/** 
 	Group transactions
 	*/
-	deployGroup: async (args: { adminPublicKey: string; groupPrivKey: string; deployer?: PublicKey }) => {
+	deployGroup: async (args: {
+		adminPublicKey: string;
+		groupPrivKey: string;
+		maxMembers: number;
+		itemPrice: number;
+		groupDuration: number;
+		missable: number; // number of payment that can be missed
+		payemntDuration?: number;
+		deployer?: PublicKey;
+	}) => {
 		const admin = PublicKey.fromBase58(args.adminPublicKey);
 		const groupPrivKey = PrivateKey.fromBase58(args.groupPrivKey);
 		const deployer = args.deployer ? args.deployer : admin;
 		const instance = new GroupBasic(groupPrivKey.toPublicKey());
+		const maxMembers = UInt32.from(args.maxMembers);
+		const itemPrice = UInt32.from(args.itemPrice);
+		const groupDuration = UInt32.from(args.groupDuration);
+		const tokenAddress = state.tokenZkapp!.address;
+		const missable = UInt32.from(args.missable);
+		const payemntDuration = args.payemntDuration ? UInt64.from(args.payemntDuration) : UInt64.from(0);
+		const groupSettings = new GroupSettings(
+			maxMembers,
+			itemPrice,
+			groupDuration,
+			tokenAddress,
+			missable,
+			payemntDuration
+		);
 		const transaction = await Mina.transaction(deployer, async () => {
 			AccountUpdate.fundNewAccount(deployer);
-			await instance.deploy({ admin: admin });
+			await instance.deploy({ admin, groupSettings });
 		});
 		transaction.sign([groupPrivKey]);
 		state.groupZkapp = instance;
 		state.transaction = transaction;
 	},
-	setGroupSettings: async (args: {
+	addUserToGroup: async (args: {
+		userKey: PublicKey;
 		maxMembers: number;
 		itemPrice: number;
 		groupDuration: number;
-		signature: string;
+		missable: number;
+		payemntDuration?: number;
 	}) => {
+		const userKey = args.userKey;
+		const vk = state.groupVerificationKey!;
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
 		const groupDuration = UInt32.from(args.groupDuration);
 		const tokenAddress = state.tokenZkapp!.address;
-		const groupSettings = new GroupSettings(maxMembers, itemPrice, groupDuration, tokenAddress);
-		const signature = Signature.fromJSON(args.signature);
-		const transaction = await Mina.transaction(async () => {
-			await state.groupZkapp!.setGroupSettings(groupSettings, signature);
-		});
-		state.transaction = transaction;
-	},
-	addUserToGroup: async (args: { userKey: PublicKey }) => {
-		const userKey = args.userKey;
-		const vk = state.groupVerificationKey!;
+		const missable = UInt32.from(args.missable);
+		const payemntDuration = args.payemntDuration ? UInt64.from(args.payemntDuration) : UInt64.from(0);
+		const groupSettings = new GroupSettings(
+			maxMembers,
+			itemPrice,
+			groupDuration,
+			tokenAddress,
+			missable,
+			payemntDuration
+		);
 		const transaction = await Mina.transaction(async () => {
 			AccountUpdate.fundNewAccount(userKey);
-			await state.groupZkapp!.addUserToGroup(userKey, vk);
+			await state.groupZkapp!.addUserToGroup(groupSettings, userKey, vk);
 		});
 		state.transaction = transaction;
 	},
@@ -236,17 +263,28 @@ const functions = {
 		maxMembers: number;
 		itemPrice: number;
 		groupDuration: number;
+		missable: number;
+		payemntDuration?: number;
 		amountOfBids: number;
 	}) => {
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
 		const groupDuration = UInt32.from(args.groupDuration);
 		const tokenAddress = state.tokenZkapp!.address;
-		const groupSettings = new GroupSettings(maxMembers, itemPrice, groupDuration, tokenAddress);
+		const missable = UInt32.from(args.missable);
+		const payemntDuration = args.payemntDuration ? UInt64.from(args.payemntDuration) : UInt64.from(0);
+		const groupSettings = new GroupSettings(
+			maxMembers,
+			itemPrice,
+			groupDuration,
+			tokenAddress,
+			missable,
+			payemntDuration
+		);
 		const amountOfBids = UInt64.from(args.amountOfBids);
 		const transaction = await Mina.transaction(async () => {
 			//gonna have to fund group with token first
-			await state.groupZkapp!.roundPayment(groupSettings, amountOfBids);
+			await state.groupZkapp!.roundPayment(groupSettings, amountOfBids, UInt32.from(1));
 		});
 		state.transaction = transaction;
 	},
@@ -286,12 +324,20 @@ const functions = {
 
 	deployToken: async (args: { adminPublicKey: string; zkAppPrivateKey: string }) => {
 		// console.log('args', args);
+		// const Network = Mina.Network({
+		// 	networkId: 'testnet',
+		// 	mina: 'http://localhost:8080/graphql',
+		// 	archive: 'http://localhost:8282',
+		// 	lightnetAccountManager: 'http://localhost:8181',
+		// });
+		// console.log('Lightnet network instance configured.');
+		// Mina.setActiveInstance(Network);
 		// const admin = PublicKey.fromBase58('B62qmGtQ7kn6zbw4tAYomBJJri1gZSThfQZJaMG6eR3tyNP3RiCcEQZ');
 		const admin = PublicKey.fromBase58(args.adminPublicKey);
 		const zkAppPrivateKey = PrivateKey.fromBase58(args.zkAppPrivateKey);
 		// const zkAppPrivateKey = PrivateKey.random();
 		const instance = new FungibleToken(zkAppPrivateKey.toPublicKey());
-		console.log('acutal token key', zkAppPrivateKey.toPublicKey());
+		console.log('acutal token key', zkAppPrivateKey.toPublicKey().toBase58());
 		const deployTokenTx = await Mina.transaction(admin, async () => {
 			AccountUpdate.fundNewAccount(admin); //todo ?!?!
 			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });

@@ -20,9 +20,14 @@ export default class ZkappWorkerClient {
 		return this._call('setActiveInstanceToBerkeley', {});
 	}
 
-	async fetchAccount({ publicKey, tokenId }: { publicKey: string; tokenId?: string }) {
-		// :ReturnType<typeof fetchAccount>
-		return await this._call('fetchAccount', {
+	async fetchAccount({
+		publicKey,
+		tokenId,
+	}: {
+		publicKey: string;
+		tokenId?: string;
+	}): ReturnType<typeof fetchAccount> {
+		return await this._callFetchAccount('fetchAccount', {
 			publicKey,
 			tokenId,
 		});
@@ -86,31 +91,58 @@ export default class ZkappWorkerClient {
 			publicKey58: publicKey,
 		});
 	}
-	async deployGroup(adminPublicKey: string, groupPrivKey: string, deployer?: PublicKey) {
+	async deployGroup(
+		adminPublicKey: string,
+		groupPrivKey: string,
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number,
+		payemntDuration?: number,
+		deployer?: PublicKey
+	) {
 		return await this._call('deployGroup', {
 			adminPublicKey,
 			groupPrivKey,
-			deployer,
-		});
-	}
-	async setGroupSettings(maxMembers: number, itemPrice: number, groupDuration: number, signature: string) {
-		return await this._call('setGroupSettings', {
 			maxMembers,
 			itemPrice,
 			groupDuration,
-			signature,
+			missable,
+			payemntDuration,
+			deployer,
 		});
 	}
-	async addUserToGroup(userKey: PublicKey) {
+	async addUserToGroup(
+		userKey: PublicKey,
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number,
+		payemntDuration?: number
+	) {
 		return await this._call('addUserToGroup', {
 			userKey,
+			maxMembers,
+			itemPrice,
+			groupDuration,
+			missable,
+			payemntDuration,
 		});
 	}
-	async roundPayment(maxMembers: number, itemPrice: number, groupDuration: number, amountOfBids: number) {
+	async roundPayment(
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number,
+		paymentDuration: number,
+		amountOfBids: number
+	) {
 		return await this._call('roundPayment', {
 			maxMembers,
 			itemPrice,
 			groupDuration,
+			missable,
+			paymentDuration,
 			amountOfBids,
 		});
 	}

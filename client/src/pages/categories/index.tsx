@@ -88,8 +88,8 @@ export default function Categories() {
 				setDisplayText('Done loading web worker');
 				console.log('Done loading web worker');
 
-				// await zkappWorkerClient.setActiveInstanceToLightnet();
-				await zkappWorkerClient.setActiveInstanceToDevnet();
+				await zkappWorkerClient.setActiveInstanceToLightnet();
+				// await zkappWorkerClient.setActiveInstanceToDevnet();
 
 				const mina = (window as any).mina;
 
@@ -110,7 +110,7 @@ export default function Categories() {
 					publicKey: userPubKey58,
 				});
 				const accountExists = res.error == null;
-
+				console.log('index fetchAcc log ', res);
 				await zkappWorkerClient.loadContracts();
 
 				console.log('Compiling token contract...');
@@ -127,7 +127,7 @@ export default function Categories() {
 
 				console.log('Getting zkApp state...');
 				setDisplayText('Getting zkApp state...');
-				await zkappWorkerClient.fetchAccount({ publicKey: tokenPubKey.toBase58() });
+				// await zkappWorkerClient.fetchAccount({ publicKey: tokenPubKey.toBase58() });
 
 				// await zkappWorkerClient.createTransferTransaction(
 				// 	publicKeyBase58,
@@ -197,15 +197,23 @@ export default function Categories() {
 				return;
 			}
 
-			await zkappWorkerClient.fetchAccount({ publicKey: state.userPublicKey!.toBase58() });
-
+			const res = await zkappWorkerClient.fetchAccount({ publicKey: state.userPublicKey!.toBase58() });
+			console.log('index fetchAcc log in groupDeploy ', res);
 			const groupPrivKey = PrivateKey.random();
 			const groupPubKey = groupPrivKey.toPublicKey();
 			console.log('Group public key:', groupPubKey.toBase58());
 			console.log('compiling group contract...');
 			await zkappWorkerClient.compileGroupContract();
 			console.log('deploying group contract...');
-			await zkappWorkerClient.deployGroup(state.userPublicKey!.toBase58(), groupPrivKey.toBase58());
+			await zkappWorkerClient.deployGroup(
+				state.userPublicKey!.toBase58(),
+				groupPrivKey.toBase58(),
+				48,
+				24000,
+				24,
+				3,
+				0
+			);
 			await zkappWorkerClient.proveTransaction();
 			const txn = await zkappWorkerClient.getTransactionJSON();
 			const { hash } = await window.mina.sendTransaction({
@@ -245,7 +253,7 @@ export default function Categories() {
 			console.log('here 0');
 			//only deployer of initial token can mint
 			// await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 96);
-			await zkappWorkerClient.mintToken(admin, admin, 96);
+			await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 96);
 			await zkappWorkerClient.proveTransaction();
 			const txn = await zkappWorkerClient.getTransactionJSON();
 			const { hash } = await window.mina.sendTransaction({
@@ -274,11 +282,14 @@ export default function Categories() {
 
 		await zkappWorkerClient.fetchAccount({ publicKey: state.tokenPubKey!.toBase58() });
 		const reciverPubKey = PublicKey.fromBase58('B62qpwAGs3Gy8vDWga4sCWwis5Yiv9s6puSvwZ4J6528hccPHyU3nEY');
-		await zkappWorkerClient.fetchAccount({ publicKey: reciverPubKey.toBase58() });
-		await zkappWorkerClient.fetchAccount({
-			publicKey: reciverPubKey.toBase58(),
-			tokenId: TokenId.derive(state.tokenPubKey!).toString(),
-		});
+		console.log(await zkappWorkerClient.fetchAccount({ publicKey: reciverPubKey.toBase58() }));
+		console.log(
+			'token',
+			await zkappWorkerClient.fetchAccount({
+				publicKey: reciverPubKey.toBase58(),
+				tokenId: TokenId.derive(state.tokenPubKey!).toString(),
+			})
+		);
 
 		// console.log(
 		// 	'admin acc',
@@ -293,12 +304,12 @@ export default function Categories() {
 		// 		})
 		// 	).account
 		// );
-		await zkappWorkerClient.fetchAccount({ publicKey: state.tokenPubKey!.toBase58() });
-		await zkappWorkerClient.fetchAccount({
-			publicKey: state.tokenPubKey!.toBase58(),
-			tokenId: TokenId.derive(state.tokenPubKey!).toString(),
-		});
-		console.log('balance', await zkappWorkerClient.getBalanceOf(state.userPublicKey!));
+		// await zkappWorkerClient.fetchAccount({ publicKey: state.tokenPubKey!.toBase58() });
+		// await zkappWorkerClient.fetchAccount({
+		// 	publicKey: state.tokenPubKey!.toBase58(),
+		// 	tokenId: TokenId.derive(state.tokenPubKey!).toString(),
+		// });
+		console.log('balance', await zkappWorkerClient.getBalanceOf(reciverPubKey));
 	};
 	// -------------------------------------------------------
 	// Create UI elements
