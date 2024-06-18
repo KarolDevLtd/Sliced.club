@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { firestore } from 'src/firebaseConfig';
+import { firestore } from '~/firebaseConfig';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import {
 	addDoc,

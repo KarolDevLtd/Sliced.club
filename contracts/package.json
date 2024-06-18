@@ -13,6 +13,7 @@
   "type": "module",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
+  "browser": "build/src/index.client.js",
   "scripts": {
     "build": "tsc",
     "buildw": "tsc --watch",
@@ -22,7 +23,7 @@
     "testw": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "npx eslint src/* --fix",
     "basic": "npm run build && npm run test GroupBasic",
-    "data": "npm run build && npm run test UserData"
+    "deployToken": "npm run build && npm run test TokenLightnet"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
