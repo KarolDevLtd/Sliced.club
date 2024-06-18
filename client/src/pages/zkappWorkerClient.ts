@@ -42,11 +42,15 @@ export default class ZkappWorkerClient {
 		return result;
 	}
 
-	async loopUntilAccountExists(account: PublicKey, isZkAppAccount: boolean) {
+	async loopUntilAccountExists(account: string, tokenId?: string) {
 		return await this._call('loopUntilAccountExists', {
 			account,
-			// eachTimeNotExist,
-			isZkAppAccount,
+			tokenId,
+		});
+	}
+	async loopUntilConfirmed(txId: string) {
+		return await this._call('loopUntilConfirmed', {
+			txId,
 		});
 	}
 
