@@ -4,12 +4,10 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import GroupNavigation from '~/app/_components/groups/GroupNavigation';
 import GroupPosts from '~/app/_components/groups/group-post/GroupPosts';
-// import GroupPostInput from '~/app/_components/groups/group-post-input';
-import GroupPostsList from '~/app/_components/groups/group-post/GroupPostsList';
 import Breadcrumbs from '~/app/_components/ui/Breadcrumbs';
 import PageHeader from '~/app/_components/ui/PageHeader';
-import ZoomableImage from '~/app/_components/ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
 import PlatformLayout from '~/layouts/platform';
 import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
@@ -107,32 +105,7 @@ export default function Group() {
 						</div>
 					</div>
 
-					<div className="col-span-4 grid gap-4 grid-cols-4">
-						<div className="card h-44 bg-accent">
-							<figure></figure>
-							<div className="card-body justify-end">
-								<h2 className="card-title">Payment</h2>
-							</div>
-						</div>
-						<div className="card h-44 bg-accent">
-							<figure></figure>
-							<div className="card-body justify-end">
-								<h2 className="card-title">Offer Details</h2>
-							</div>
-						</div>
-						<div className="card h-44 bg-accent">
-							<figure></figure>
-							<div className="card-body justify-end">
-								<h2 className="card-title">Product Details</h2>
-							</div>
-						</div>
-						<div className="card h-44 bg-accent">
-							<figure></figure>
-							<div className="card-body justify-end">
-								<h2 className="card-title">About GO</h2>
-							</div>
-						</div>
-					</div>
+					<GroupNavigation groupHash={groupId?.toString() ?? ''} group={group} product={product} />
 				</div>
 
 				<div className="flex-1 mt-6 grid grid-cols-8 gap-4">

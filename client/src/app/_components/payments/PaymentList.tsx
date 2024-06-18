@@ -9,7 +9,7 @@ type PaymentListProps = {
 
 const PaymentList = ({ heading, payments }: PaymentListProps) => {
 	return (
-		<div className="flex flex-col gap-2 mb-4">
+		<div className="flex flex-col gap-2 mb-4 overflow-y-scroll w-full">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{payments ? (
 				payments.map((payment: Payment, index) => {

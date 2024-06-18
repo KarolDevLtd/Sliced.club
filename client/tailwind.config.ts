@@ -13,7 +13,12 @@ export default {
 				body: ['Open Sans'],
 			},
 		},
-		colors: {},
+		colors: {
+			electricblue: '#3b72ff',
+			bigred: '#f6613c',
+			bellow: '#ffc83b',
+			verygreen: '#72c56d',
+		},
 		container: {
 			center: true,
 			padding: {
@@ -23,6 +28,10 @@ export default {
 				xl: '5rem',
 				'2xl': '6rem',
 			},
+		},
+		backgroundImage: {
+			auctionsfade: 'radial-gradient(circle at 50% 100%, #f54325, transparent)',
+			itemfade: 'linear-gradient(to left, #1f3745, transparent)',
 		},
 	},
 	plugins: [daisyui],
@@ -39,6 +48,7 @@ export default {
 					success: '#22c55e',
 					warning: '#fde047',
 					error: '#ef4444',
+					'electric-blue': '#3b72ff',
 				},
 			},
 		],

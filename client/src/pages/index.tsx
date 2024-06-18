@@ -15,6 +15,7 @@ import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import GroupList from '~/app/_components/groups/GroupList';
+import { myPayments } from '~/static-data';
 
 export default function Dashboard() {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
@@ -26,33 +27,6 @@ export default function Dashboard() {
 		if (router.query.register === 'success') toast.success('Registered successfully');
 		if (router.query.login === 'wallet') toast.success('Logged in with wallet successfully');
 	}, [router.query.login, router.query.register]);
-
-	const myPayments = [
-		{
-			amountDue: 18.27,
-			nextPaymentDue: new Date('2024-04-30'),
-			product: {
-				title: 'Xbox Series X|S',
-				groupOrganiser: 'Microsoft',
-				price: 475,
-				category: 'Gaming Consoles',
-				groupMembers: 26,
-				itemsReceived: 14,
-			},
-		},
-		{
-			amountDue: 10.48,
-			nextPaymentDue: new Date('2024-04-30'),
-			product: {
-				title: 'HERO 12 Black',
-				groupOrganiser: 'GoPro',
-				price: 429.99,
-				category: 'Cameras',
-				groupMembers: 41,
-				itemsReceived: 36,
-			},
-		},
-	] as Payment[];
 
 	return (
 		<>
@@ -106,7 +80,7 @@ export default function Dashboard() {
 						)}
 						{/* <ProductList heading="Available Groups" products={availableGroups} /> */}
 					</div>
-					<div className="col-span-1 mb-4">
+					<div className="col-span-1 mb-4 overflow-scroll">
 						<PaymentList heading="Next Payments" payments={myPayments} />
 					</div>
 				</div>
