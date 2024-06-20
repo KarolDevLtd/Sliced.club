@@ -90,6 +90,11 @@ export default class ZkappWorkerClient {
 	compileGroupContract() {
 		return this._call('compileGroupContract', {});
 	}
+
+	areContractsCompiled() {
+		return this._call('areContractsCompiled', {});
+	}
+
 	initGroupInstance(publicKey: PublicKey) {
 		return this._call('initGroupInstance', {
 			publicKey58: publicKey,

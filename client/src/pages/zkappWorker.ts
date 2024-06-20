@@ -39,6 +39,7 @@ const state = {
 	tokenZkapp: null as null | FungibleToken,
 	groupZkapp: null as null | GroupBasic,
 	groupVerificationKey: null as null | VerificationKey,
+	tokenVerificationKey: null as null | VerificationKey,
 	transaction: null as null | Transaction,
 };
 
@@ -165,9 +166,10 @@ const functions = {
 		state.GroupUserStorage = GroupUserStorage;
 	},
 	compileContracts: async (args: {}) => {
-		await state.FungibleToken!.compile();
-		const { verificationKey: vk } = await state.GroupBasic!.compile();
-		state.groupVerificationKey = vk;
+		const { verificationKey: vkToken } = await state.FungibleToken!.compile();
+		const { verificationKey: vkGroup } = await state.GroupBasic!.compile();
+		state.tokenVerificationKey = vkToken;
+		state.groupVerificationKey = vkGroup;
 	},
 	initContractsInstance: async (args: { groupAddress: PublicKey; tokenAddress: PublicKey }) => {
 		// const groupAddress = PublicKey.fromBase58(args.groupAddress);
@@ -183,7 +185,8 @@ const functions = {
 		state.FungibleToken = FungibleToken;
 	},
 	compileTokenContract: async (args: {}) => {
-		await state.FungibleToken!.compile();
+		const { verificationKey: vkToken } = await state.FungibleToken!.compile();
+		state.tokenVerificationKey = vkToken;
 	},
 	initTokenInstance: async (args: { publicKey: PublicKey }) => {
 		// const publicKey = PublicKey.fromBase58(args.publicKey58);
@@ -205,6 +208,13 @@ const functions = {
 	initGroupInstance: async (args: { publicKey: PublicKey }) => {
 		// const publicKey = PublicKey.fromBase58(args.publicKey58);
 		state.groupZkapp = new state.GroupBasic!(args.publicKey);
+	},
+
+	areContractsCompiled: async (args: {}) => {
+		return JSON.stringify({
+			token: state.tokenVerificationKey !== null,
+			group: state.groupVerificationKey !== null,
+		});
 	},
 
 	/** 
