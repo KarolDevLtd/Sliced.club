@@ -159,6 +159,23 @@ export class GroupBasic extends TokenContract {
   }
 
   @method
+  async organiserWithdraw(_groupSettings: GroupSettings, withdraw: UInt32) {
+    let senderAddr = this.sender.getAndRequireSignature();
+    // Assert organsier is calling
+    this.admin.getAndRequireEquals().assertEquals(senderAddr);
+
+    // Validate group settings
+    await this.assertGroupHash(_groupSettings);
+
+    // Ensure withdraw is a multiple of the item price
+    withdraw.mod(_groupSettings.itemPrice).assertEquals(UInt32.zero);
+
+    // Transfer token to the caller
+    const token = new FungibleToken(_groupSettings.tokenAddress);
+    await token.transfer(this.address, senderAddr, UInt64.from(withdraw));
+  }
+
+  @method
   async userClaim() {
     let senderAddr = this.sender.getAndRequireSignature();
     let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());
@@ -478,7 +495,7 @@ export class GroupBasic extends TokenContract {
           .and(currentDistance.lessThan(distanceFromRandom))
           .and(action.lotteryElligible); // User is not behind on payments
 
-        Provable.log('Lottery condition: ', lotteryCondition);
+        // Provable.log('Lottery condition: ', lotteryCondition);
 
         secondAuctionWinner = Provable.if(
           lotteryCondition,
@@ -492,7 +509,7 @@ export class GroupBasic extends TokenContract {
           lotteryWinner
         );
 
-        Provable.log('Lottery winner: ', lotteryWinner);
+        // Provable.log('Lottery winner: ', lotteryWinner);
         // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
         distanceFromRandom = Provable.if(
           lotteryCondition,
