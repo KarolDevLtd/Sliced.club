@@ -120,6 +120,7 @@ export default function Categories() {
 				setDisplayText('zkApp token contract compiled');
 
 				const tokenPrivKey = PrivateKey.random();
+				console.log('Token private key:', tokenPrivKey.toBase58());
 				const tokenPubKey = tokenPrivKey.toPublicKey();
 				console.log('Token public key:', tokenPubKey.toBase58());
 
@@ -152,6 +153,9 @@ export default function Categories() {
 				// console.log(`Current supply in zkApp: ${currentSupply.toString()}`);
 				setDisplayText('');
 
+				console.log('wait for account to exist');
+				console.log(await zkappWorkerClient.loopUntilAccountExists(tokenPubKey.toBase58()));
+				console.log('account exists');
 				setState({
 					...state,
 					zkappWorkerClient,
@@ -264,8 +268,11 @@ export default function Categories() {
 				},
 			});
 			console.log('hash', hash);
-			//todo how to wait for tx to be approved ?
-			await zkappWorkerClient.fetchAccount({ publicKey: reciverPubKey.toBase58() });
+			console.log(await zkappWorkerClient.loopUntilConfirmed(hash)); //todo doesnt work...
+			await zkappWorkerClient.fetchAccount({
+				publicKey: reciverPubKey.toBase58(),
+				tokenId: TokenId.derive(state.tokenPubKey!).toString(),
+			});
 			console.log('balance', await zkappWorkerClient.getBalanceOf(reciverPubKey));
 		} catch (err) {
 			// You may want to show the error message in your UI to the user if the transaction fails.
