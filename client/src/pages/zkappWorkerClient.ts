@@ -122,7 +122,8 @@ export default class ZkappWorkerClient {
 		});
 	}
 	async addUserToGroup(
-		userKey: PublicKey,
+		admin: string,
+		userKey: string,
 		maxMembers: number,
 		itemPrice: number,
 		groupDuration: number,
@@ -130,6 +131,7 @@ export default class ZkappWorkerClient {
 		payemntDuration?: number
 	) {
 		return await this._call('addUserToGroup', {
+			admin,
 			userKey,
 			maxMembers,
 			itemPrice,
@@ -139,6 +141,7 @@ export default class ZkappWorkerClient {
 		});
 	}
 	async roundPayment(
+		userKey: string,
 		maxMembers: number,
 		itemPrice: number,
 		groupDuration: number,
@@ -147,6 +150,7 @@ export default class ZkappWorkerClient {
 		amountOfBids: number
 	) {
 		return await this._call('roundPayment', {
+			userKey,
 			maxMembers,
 			itemPrice,
 			groupDuration,
@@ -182,13 +186,13 @@ export default class ZkappWorkerClient {
 		});
 	}
 
-	async createTransferTransaction(fromKey: PublicKey, toKey: PublicKey, amount: number) {
-		return await this._call('createTransferTransaction', {
-			fromKey,
-			toKey,
-			amount,
-		});
-	}
+	// async createTransferTransaction(fromKey: PublicKey, toKey: PublicKey, amount: number) {
+	// 	return await this._call('createTransferTransaction', {
+	// 		fromKey,
+	// 		toKey,
+	// 		amount,
+	// 	});
+	// }
 	async getTokenSupply() {
 		return await this._call('getTokenSupply', {});
 		// return UInt64.fromJSON(JSON.parse(result as string));

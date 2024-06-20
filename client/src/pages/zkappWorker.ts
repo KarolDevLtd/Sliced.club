@@ -248,7 +248,7 @@ const functions = {
 			missable,
 			payemntDuration
 		);
-		const transaction = await Mina.transaction(deployer, async () => {
+		const transaction = await Mina.transaction({ sender: deployer, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(deployer);
 			await instance.deploy({ admin, groupSettings });
 		});
@@ -257,14 +257,16 @@ const functions = {
 		state.transaction = transaction;
 	},
 	addUserToGroup: async (args: {
-		userKey: PublicKey;
+		admin: string;
+		userKey: string;
 		maxMembers: number;
 		itemPrice: number;
 		groupDuration: number;
 		missable: number;
 		payemntDuration?: number;
 	}) => {
-		const userKey = args.userKey;
+		const admin = PublicKey.fromBase58(args.admin);
+		const userKey = PublicKey.fromBase58(args.userKey);
 		const vk = state.groupVerificationKey!;
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
@@ -280,13 +282,14 @@ const functions = {
 			missable,
 			payemntDuration
 		);
-		const transaction = await Mina.transaction(async () => {
-			AccountUpdate.fundNewAccount(userKey);
+		const transaction = await Mina.transaction({ sender: admin, fee: 0.01 * 1e9 }, async () => {
+			AccountUpdate.fundNewAccount(admin);
 			await state.groupZkapp!.addUserToGroup(groupSettings, userKey, vk);
 		});
 		state.transaction = transaction;
 	},
 	roundPayment: async (args: {
+		userKey: string;
 		maxMembers: number;
 		itemPrice: number;
 		groupDuration: number;
@@ -294,6 +297,7 @@ const functions = {
 		payemntDuration?: number;
 		amountOfBids: number;
 	}) => {
+		const userKey = PublicKey.fromBase58(args.userKey);
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
 		const groupDuration = UInt32.from(args.groupDuration);
@@ -309,7 +313,7 @@ const functions = {
 			payemntDuration
 		);
 		const amountOfBids = UInt64.from(args.amountOfBids);
-		const transaction = await Mina.transaction(async () => {
+		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
 			//gonna have to fund group with token first
 			await state.groupZkapp!.roundPayment(groupSettings, amountOfBids, UInt32.from(1));
 		});
@@ -365,7 +369,7 @@ const functions = {
 		// const zkAppPrivateKey = PrivateKey.random();
 		const instance = new FungibleToken(zkAppPrivateKey.toPublicKey());
 		console.log('acutal token key', zkAppPrivateKey.toPublicKey().toBase58());
-		const deployTokenTx = await Mina.transaction(admin, async () => {
+		const deployTokenTx = await Mina.transaction({ sender: admin, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(admin); //todo ?!?!
 			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });
 			await instance.deploy({
@@ -384,12 +388,7 @@ const functions = {
 		const toKey = PublicKey.fromBase58(args.toKey);
 		const admin = PublicKey.fromBase58(args.admin);
 		const amount = UInt64.from(args.amount);
-		console.log('is correct token?', state.tokenZkapp!.address.toBase58());
-		console.log('admin', admin.toBase58());
-		const instance = new FungibleToken(state.tokenZkapp!.address);
-		// console.log('is correct admin?', state.tokenZkapp!.owner.get().toBase58()
-		// const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
-		const transaction = await Mina.transaction(admin, async () => {
+		const transaction = await Mina.transaction({ sender: admin, fee: 0.01 * 1e9 }, async () => {
 			// if (!target.account) {
 			AccountUpdate.fundNewAccount(admin);
 			// }
@@ -399,19 +398,19 @@ const functions = {
 		state.transaction = transaction;
 	},
 
-	createTransferTransaction: async (args: { fromKey: PublicKey; toKey: PublicKey; amount: number }) => {
-		const fromKey = args.fromKey;
-		const toKey = args.toKey;
-		const amount = UInt64.from(args.amount);
-		const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
-		const transaction = await Mina.transaction(async () => {
-			if (!target.account) {
-				AccountUpdate.fundNewAccount(fromKey);
-			}
-			await state.tokenZkapp!.transfer(fromKey, toKey, amount);
-		});
-		state.transaction = transaction;
-	},
+	// createTransferTransaction: async (args: { fromKey: PublicKey; toKey: PublicKey; amount: number }) => {
+	// 	const fromKey = args.fromKey;
+	// 	const toKey = args.toKey;
+	// 	const amount = UInt64.from(args.amount);
+	// 	const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
+	// 	const transaction = await Mina.transaction(async () => {
+	// 		if (!target.account) {
+	// 			AccountUpdate.fundNewAccount(fromKey);
+	// 		}
+	// 		await state.tokenZkapp!.transfer(fromKey, toKey, amount);
+	// 	});
+	// 	state.transaction = transaction;
+	// },
 
 	/** 
 	Token get functions
