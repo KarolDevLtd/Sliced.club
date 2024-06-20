@@ -19,6 +19,8 @@ interface MinaContextType {
 	triggerDeployGroup: () => void;
 	logFetchAccount: (key: string) => void;
 	compileContracts: (type: string) => Promise<void>;
+	deployToken: () => Promise<void>;
+	mintTokenTo: (pubkey: string) => Promise<void>;
 }
 
 const MinaProviderContext = createContext<MinaContextType | undefined>(undefined);
@@ -278,11 +280,43 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		}
 	}, [deployingGroup, handleDeployGroup]);
 
+	const deployToken = async () => {
+		const tokenPrivKey = PrivateKey.random();
+		// const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
+		console.log('priv key', tokenPrivKey.toBase58());
+		const tokenPubKey = tokenPrivKey.toPublicKey();
+		console.log('Token public key:', tokenPubKey.toBase58());
+		if (userPublicKey && zkappWorkerClient) {
+			await zkappWorkerClient.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
+		}
+	};
+
+	const mintTokenTo = async (key: string) => {
+		// const tokenPrivKey = PrivateKey.random();
+		// // const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
+		// console.log('priv key', tokenPrivKey.toBase58());
+		// const tokenPubKey = tokenPrivKey.toPublicKey();
+		// console.log('Token public key:', tokenPubKey.toBase58());
+		// if (userPublicKey && zkappWorkerClient) {
+		// 	await zkappWorkerClient.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
+		// }
+		if (userPublicKey && zkappWorkerClient && key) {
+			const reciverPubKey = PublicKey.fromBase58(key);
+			const admin = userPublicKey!.toBase58();
+			console.log('here 0');
+			//only deployer of initial token can mint
+			// await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 96);
+			await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 96);
+		}
+	};
+
 	const value: MinaContextType = {
 		spinUp,
 		triggerDeployGroup,
 		logFetchAccount,
 		compileContracts,
+		deployToken,
+		mintTokenTo,
 	};
 
 	return <MinaProviderContext.Provider value={value}>{children}</MinaProviderContext.Provider>;
