@@ -42,11 +42,15 @@ export default class ZkappWorkerClient {
 		return result;
 	}
 
-	async loopUntilAccountExists(account: PublicKey, isZkAppAccount: boolean) {
+	async loopUntilAccountExists(account: string, tokenId?: string) {
 		return await this._call('loopUntilAccountExists', {
 			account,
-			// eachTimeNotExist,
-			isZkAppAccount,
+			tokenId,
+		});
+	}
+	async loopUntilConfirmed(txId: string) {
+		return await this._call('loopUntilConfirmed', {
+			txId,
 		});
 	}
 
@@ -86,6 +90,11 @@ export default class ZkappWorkerClient {
 	compileGroupContract() {
 		return this._call('compileGroupContract', {});
 	}
+
+	areContractsCompiled() {
+		return this._call('areContractsCompiled', {});
+	}
+
 	initGroupInstance(publicKey: PublicKey) {
 		return this._call('initGroupInstance', {
 			publicKey58: publicKey,

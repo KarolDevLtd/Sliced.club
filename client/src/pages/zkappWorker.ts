@@ -17,7 +17,7 @@ import {
 	Field,
 	TokenId,
 	PrivateKey,
-	fetchLastBlock,
+	checkZkappTransaction,
 } from 'o1js';
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
@@ -39,6 +39,7 @@ const state = {
 	tokenZkapp: null as null | FungibleToken,
 	groupZkapp: null as null | GroupBasic,
 	groupVerificationKey: null as null | VerificationKey,
+	tokenVerificationKey: null as null | VerificationKey,
 	transaction: null as null | Transaction,
 };
 
@@ -104,7 +105,6 @@ const functions = {
 				const tokenId = new Field(args.tokenId);
 				console.log('fetching account with token id', args.tokenId);
 				const result = await fetchAccount({ publicKey, tokenId: tokenId });
-				console.log('fetchAccount result:', result);
 				return result;
 			}
 		} catch (error) {
@@ -118,27 +118,45 @@ const functions = {
 	getTransactionJSON: async (args: {}) => {
 		return state.transaction!.toJSON();
 	},
-	loopUntilAccountExists: async (args: {
-		account: PublicKey;
-		// eachTimeNotExist: () => void;
-		isZkAppAccount: boolean;
-	}) => {
+	loopUntilAccountExists: async (args: { account: string; tokenId?: string }) => {
+		const account = PublicKey.fromBase58(args.account);
 		for (;;) {
-			const response = await fetchAccount({ publicKey: args.account });
-			let accountExists = response.account !== undefined;
-			if (args.isZkAppAccount) {
-				accountExists = response.account?.zkapp?.appState !== undefined;
-			}
-			if (!accountExists) {
-				// args.eachTimeNotExist();
-				console.log('no existo on chaino');
-				await new Promise((resolve) => setTimeout(resolve, 5000));
-			} else {
-				console.log('existo');
-				return response.account!;
+			try {
+				const response =
+					args.tokenId === undefined
+						? await fetchAccount({ publicKey: account })
+						: await fetchAccount({ publicKey: account, tokenId: new Field(args.tokenId) });
+				if (response.account === undefined) {
+					console.log('no existo on chaino');
+					await new Promise((resolve) => setTimeout(resolve, 5000));
+				} else {
+					console.log('existo');
+					return response.account;
+				}
+			} catch (error: any) {
+				if (error.toString().includes('TypeError: Cannot destructure property ')) {
+					console.log('not exists yet');
+					await new Promise((resolve) => setTimeout(resolve, 5000));
+				} else {
+					throw error;
+				}
 			}
 		}
 	},
+	loopUntilConfirmed: async (args: { txId: string }) => {
+		for (;;) {
+			const result = await checkZkappTransaction(args.txId);
+			if (!result.success) {
+				console.log('not included yet');
+				await new Promise((resolve) => setTimeout(resolve, 5000));
+				//todo limit amount of retries
+			} else {
+				return result;
+			}
+		}
+	},
+	//doesAccountExists
+
 	/**
 	General contract setup
 	*/
@@ -148,9 +166,10 @@ const functions = {
 		state.GroupUserStorage = GroupUserStorage;
 	},
 	compileContracts: async (args: {}) => {
-		await state.FungibleToken!.compile();
-		const { verificationKey: vk } = await state.GroupBasic!.compile();
-		state.groupVerificationKey = vk;
+		const { verificationKey: vkToken } = await state.FungibleToken!.compile();
+		const { verificationKey: vkGroup } = await state.GroupBasic!.compile();
+		state.tokenVerificationKey = vkToken;
+		state.groupVerificationKey = vkGroup;
 	},
 	initContractsInstance: async (args: { groupAddress: PublicKey; tokenAddress: PublicKey }) => {
 		// const groupAddress = PublicKey.fromBase58(args.groupAddress);
@@ -166,7 +185,8 @@ const functions = {
 		state.FungibleToken = FungibleToken;
 	},
 	compileTokenContract: async (args: {}) => {
-		await state.FungibleToken!.compile();
+		const { verificationKey: vkToken } = await state.FungibleToken!.compile();
+		state.tokenVerificationKey = vkToken;
 	},
 	initTokenInstance: async (args: { publicKey: PublicKey }) => {
 		// const publicKey = PublicKey.fromBase58(args.publicKey58);
@@ -188,6 +208,13 @@ const functions = {
 	initGroupInstance: async (args: { publicKey: PublicKey }) => {
 		// const publicKey = PublicKey.fromBase58(args.publicKey58);
 		state.groupZkapp = new state.GroupBasic!(args.publicKey);
+	},
+
+	areContractsCompiled: async (args: {}) => {
+		return JSON.stringify({
+			token: state.tokenVerificationKey !== null,
+			group: state.groupVerificationKey !== null,
+		});
 	},
 
 	/** 
