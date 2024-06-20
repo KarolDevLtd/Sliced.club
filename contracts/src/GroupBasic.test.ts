@@ -503,123 +503,144 @@ describe('GroupBasic', () => {
     console.log('Actions sizze: ', actions.length);
   });
 
+  it('Claim as auction winner', async () => {
+    let udStart = new GroupUserStorage(charlie, group.deriveTokenId());
+    let claimed = udStart.claimed.get().toBoolean();
+
+    // Assert it is unclaimed at the start
+    expect(claimed).toEqual(false);
+
+    const txn = await Mina.transaction(charlie, async () => {
+      await group.userClaim();
+    });
+    console.log('Proven');
+    await txn.prove();
+    await txn.sign([charlie.key]).send();
+
+    let udEnd = new GroupUserStorage(charlie, group.deriveTokenId());
+    claimed = udEnd.claimed.get().toBoolean();
+
+    // Assert it is claimed at the end
+    expect(claimed).toEqual(true);
+  });
+
   // // // Below need to ensure that it does not emit lotetry readiness, if dues are unpaid.
 
   // // // it('Winners clain prize', async () => {});
 
-  // // it('Compensation tests one missed payment, but no current', async () => {
-  // //   console.log('Round at the start: ', group.paymentRound.get().toString());
+  it('Compensation tests one missed payment, but no current', async () => {
+    console.log('Round at the start: ', group.paymentRound.get().toString());
 
-  // //   // Round already advanced in the winner
-  // //   let currentRoundStart = group.paymentRound.get();
-  // //   // Subtract depending on whether that tests runs or not
-  // //   let currentRound = await incrementRound(new UInt64(1));
-  // //   console.log(
-  // //     'Current round after increment: ',
-  // //     currentRound.toBigInt().toString()
-  // //   );
+    // Round already advanced in the winner
+    let currentRoundStart = group.paymentRound.get();
+    // Subtract depending on whether that tests runs or not
+    let currentRound = await incrementRound(new UInt64(1));
+    console.log(
+      'Current round after increment: ',
+      currentRound.toBigInt().toString()
+    );
 
-  // //   console.log('Round at the end: ', group.paymentRound.get().toString());
+    console.log('Round at the end: ', group.paymentRound.get().toString());
 
-  // //   // TODO: payeSehment needs to fail until compensation is done
-  // //   // Start payment count
-  // //   let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
-  // //   let totalCompStart = fetchCompensation(alexa, 'Alexa start');
+    // TODO: payeSehment needs to fail until compensation is done
+    // Start payment count
+    let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
+    let totalCompStart = fetchCompensation(alexa, 'Alexa start');
 
-  // //   // Compensate for missed payment, don't pay current payment
-  // //   const txn2 = await Mina.transaction(alexa, async () => {
-  // //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
-  // //   });
+    // Compensate for missed payment, don't pay current payment
+    const txn2 = await Mina.transaction(alexa, async () => {
+      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
+    });
 
-  // //   await txn2.prove();
-  // //   await txn2.sign([alexa.key]).send();
+    await txn2.prove();
+    await txn2.sign([alexa.key]).send();
 
-  // //   // Start payment count
-  // //   let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
-  // //   let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
+    // Start payment count
+    let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
+    let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
 
-  // //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-  // //   expect(totalCompEnd).toEqual(totalCompStart + 1);
+    expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
+    expect(totalCompEnd).toEqual(totalCompStart + 1);
 
-  // //   // User did not pay current month, hence inellgible for the lottery
-  // //   let actions: Entry[][] = await group.reducer.fetchActions();
-  // //   let latestAction: Entry = actions[actions.length - 1][1];
-  // //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
-  // // });
+    // User did not pay current month, hence inellgible for the lottery
+    let actions: Entry[][] = await group.reducer.fetchActions();
+    let latestAction: Entry = actions[actions.length - 1][1];
+    expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
+  });
 
-  // // it('Compensation tests two missed payment, plus current month', async () => {
-  // //   console.log('Round at the start: ', group.paymentRound.get().toString());
+  it('Compensation tests two missed payment, plus current month', async () => {
+    console.log('Round at the start: ', group.paymentRound.get().toString());
 
-  // //   let totalPaymentsStart = fetchPaid(timmy, 'Alexa start');
-  // //   let totalCompStart = fetchCompensation(timmy, 'Alexa start');
+    let totalPaymentsStart = fetchPaid(timmy, 'Alexa start');
+    let totalCompStart = fetchCompensation(timmy, 'Alexa start');
 
-  // //   // Compensate for two missed payments, pay current payment
-  // //   const txn2 = await Mina.transaction(timmy, async () => {
-  // //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
-  // //   });
+    // Compensate for two missed payments, pay current payment
+    const txn2 = await Mina.transaction(timmy, async () => {
+      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
+    });
 
-  // //   await txn2.prove();
-  // //   await txn2.sign([timmy.key]).send();
+    await txn2.prove();
+    await txn2.sign([timmy.key]).send();
 
-  // //   // Start payment count
-  // //   let totalPaymentsEnd = fetchPaid(timmy, 'timmy end');
-  // //   let totalCompEnd = fetchCompensation(timmy, 'timmy end');
+    // Start payment count
+    let totalPaymentsEnd = fetchPaid(timmy, 'timmy end');
+    let totalCompEnd = fetchCompensation(timmy, 'timmy end');
 
-  // //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
-  // //   expect(totalCompEnd).toEqual(totalCompStart + 2);
+    expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
+    expect(totalCompEnd).toEqual(totalCompStart + 2);
 
-  // //   // User did not pay current month, hence inellgible for the lottery
-  // //   let actions: Entry[][] = await group.reducer.fetchActions();
-  // //   let latestAction: Entry = actions[actions.length - 1][1];
-  // //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(true);
-  // // });
+    // User did not pay current month, hence inellgible for the lottery
+    let actions: Entry[][] = await group.reducer.fetchActions();
+    let latestAction: Entry = actions[actions.length - 1][1];
+    expect(latestAction.lotteryElligible.toBoolean()).toEqual(true);
+  });
 
-  // // it('Compensation tests two missed payment, no current', async () => {
-  // //   // TODO: payeSehment needs to fail until compensation is done
+  it('Compensation tests two missed payment, no current', async () => {
+    // TODO: payeSehment needs to fail until compensation is done
 
-  // //   let totalPaymentsStart = fetchPaid(billy, 'Billy start');
-  // //   let totalCompStart = fetchCompensation(billy, 'Billy start');
+    let totalPaymentsStart = fetchPaid(billy, 'Billy start');
+    let totalCompStart = fetchCompensation(billy, 'Billy start');
 
-  // //   // Increment payment round by 1 from the current
-  // //   let currentRound = await incrementRound(UInt64.one);
+    // Increment payment round by 1 from the current
+    let currentRound = await incrementRound(UInt64.one);
 
-  // //   console.log(
-  // //     'Current round after increment: ',
-  // //     currentRound.toBigInt().toString()
-  // //   );
+    console.log(
+      'Current round after increment: ',
+      currentRound.toBigInt().toString()
+    );
 
-  // //   // Compensate for missed payment
-  // //   const txn2 = await Mina.transaction(billy, async () => {
-  // //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
-  // //   });
+    // Compensate for missed payment
+    const txn2 = await Mina.transaction(billy, async () => {
+      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
+    });
 
-  // //   await txn2.prove();
-  // //   await txn2.sign([billy.key]).send();
+    await txn2.prove();
+    await txn2.sign([billy.key]).send();
 
-  // //   let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
-  // //   let totalCompEnd = fetchCompensation(billy, 'Billy end');
+    let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
+    let totalCompEnd = fetchCompensation(billy, 'Billy end');
 
-  // //   // Assert compensation increased by 2
-  // //   expect(totalCompEnd).toEqual(totalCompStart + 2);
+    // Assert compensation increased by 2
+    expect(totalCompEnd).toEqual(totalCompStart + 2);
 
-  // //   // Assert payments unchanged
-  // //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
+    // Assert payments unchanged
+    expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
 
-  // //   // User did not pay current month, hence inellgible for the lottery
-  // //   let actions: Entry[][] = await group.reducer.fetchActions();
-  // //   let latestAction: Entry = actions[actions.length - 1][1];
-  // //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
-  // // });
+    // User did not pay current month, hence inellgible for the lottery
+    let actions: Entry[][] = await group.reducer.fetchActions();
+    let latestAction: Entry = actions[actions.length - 1][1];
+    expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
+  });
 
-  // // it('Compensation tests three missed payment (rejection)', async () => {
-  // //   // Increment payment round by 1 from the current
-  // //   let currentRound = await incrementRound(UInt64.one);
+  it('Compensation tests three missed payment (rejection)', async () => {
+    // Increment payment round by 1 from the current
+    let currentRound = await incrementRound(UInt64.one);
 
-  // //   // Compensate for missed payment
-  // //   await expect(
-  // //     Mina.transaction(bryan, async () => {
-  // //       await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
-  // //     })
-  // //   ).rejects.toThrow();
-  // // });
+    // Compensate for missed payment
+    await expect(
+      Mina.transaction(bryan, async () => {
+        await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
+      })
+    ).rejects.toThrow();
+  });
 });

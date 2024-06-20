@@ -67,13 +67,6 @@ export class Entry extends Struct({
   toFields(): Field[] {
     return Entry.toFields(this);
   }
-  // static empty<T extends new (...args: any) => any>(): InstanceType<T> {
-  //   return new Entry(PublicKey.empty(), UInt64.zero, UInt64.zero) as any;
-  // }
-
-  // static from(publicKey: PublicKey, bid: UInt64, paymentRound: UInt64) {
-  //   return new Entry(publicKey, bid, paymentRound);
-  // }
 }
 export class GroupSettings extends Struct({
   members: UInt32,
@@ -154,17 +147,7 @@ export class GroupBasic extends TokenContract {
     this.admin.set(args.admin);
     // Set group hash
     this.groupSettingsHash.set(args.groupSettings.hash());
-    // this.account.permissions.set({
-    //   ...Permissions.default(),
-    //   editState: Permissions.none(),
-    //   setTokenSymbol: Permissions.none(),
-    //   //   editActionsState: Permissions.none(),
-    //   send: Permissions.none(),
-    //   receive: Permissions.none(),
-    //   setPermissions: Permissions.none(),
-    incrementNonce: Permissions.proofOrSignature(),
-      // });
-      this.paymentRound.set(UInt64.zero);
+    this.paymentRound.set(UInt64.zero);
 
     // It does do something
     this.account.permissions.set({
@@ -173,6 +156,24 @@ export class GroupBasic extends TokenContract {
       // send: Permissions.none(),
       incrementNonce: Permissions.proofOrSignature(),
     });
+  }
+
+  @method
+  async userClaim() {
+    let senderAddr = this.sender.getAndRequireSignature();
+    let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());
+
+    // Assert they can claim
+    let compensationsBools: Bool = userStorage.canClaim.get();
+    compensationsBools.assertEquals(true);
+
+    // Set claimed to true
+    const claimUpdate = AccountUpdate.create(senderAddr, this.deriveTokenId());
+
+    AccountUpdate.setValue(
+      claimUpdate.body.update.appState[5],
+      Bool(true).toField()
+    );
   }
 
   /** Called once at the start. User relinquishes ability to modify token account bu signing */
@@ -204,27 +205,10 @@ export class GroupBasic extends TokenContract {
         ...Permissions.default(),
         // TODO test acc update for this with sig only
         editState: Permissions.none(),
-        // access: Permissions.none(),
-        // editState: Permissions.proof(),
-        // incrementNonce: Permissions.proofOrSignature(),
-        // incrementNonce: Permissions.proof(),
-        // editState: Permissions.proof(),
         send: Permissions.none(), // we don't want to allow sending - soulbound
-        // setVerificationKey: Permissions.proof(),
       },
     };
 
-    // groupUserStorageUpdate.body.update.verificationKey = {
-    //   isSome: Bool(true),
-    //   value: data.verificationKey,
-    // };
-    // groupUserStorageUpdate.body.update.permissions = {
-    //   isSome: Bool(true),
-    //   value: {
-    //     ...Permissions.default(),
-    //     editState: Permissions.proof(),
-    //   },
-    // };
     AccountUpdate.setValue(
       groupUserStorageUpdate.body.update.appState[3], // isParticipant
       Bool(true).toField()
@@ -382,10 +366,9 @@ export class GroupBasic extends TokenContract {
       )
     );
 
-    //encrypt bidding info
+    // Encrypt bidding info
     // let adminPubKey = this.admin.getAndRequireEquals();
     // let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
-
     // Provable.log('Sender address: ', senderAddr);
 
     // Auction action
@@ -399,10 +382,6 @@ export class GroupBasic extends TokenContract {
       )
     );
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
-    // adminPubKey;
-
-    // Not needed for it to work
-    // update.requireSignature();
   }
   //TODO are we saving last action's hash and using it everyy
   // mitigate the 'latest' most likley to win in underpaid group (eg 15/20 paid, rnd = 18 (15th has 5/20 chance))
@@ -494,7 +473,6 @@ export class GroupBasic extends TokenContract {
         );
 
         // Provable.log('Key from action: ', action.publicKey);
-
         let lotteryCondition = action.isLottery
           .and(action.paymentRound.equals(currentPaymentRound))
           .and(currentDistance.lessThan(distanceFromRandom))
@@ -525,17 +503,8 @@ export class GroupBasic extends TokenContract {
       innerIter.assertAtEnd();
     }
     iter.assertAtEnd();
-    // Provable.log('auctionWinner', auctionWinner);
-    // Provable.log('lotteryWinner', lotteryWinner);
-    // Provable.log('empty key: ', PublicKey.empty());
-    // Provable.log('distanceFromRandom', distanceFromRandom);
 
-    // If no bidder or no auction winner (everyone is inelligible)
-    // need to change some random account to itself
-
-    // Provable.log('firstAddress', firstAddress);
-
-    // // State to be kept as is in case of missing auction or lottery winner
+    // State to be kept as is in case of missing auction or lottery winner
     let dudStorage = new GroupUserStorage(firstAddress, this.deriveTokenId());
     let dudValue = dudStorage.canClaim.get();
 
@@ -560,12 +529,8 @@ export class GroupBasic extends TokenContract {
       Bool(true)
     );
 
-    Provable.log('lotteryWinner prior', lotteryWinner);
     lotteryWinner = Provable.if(lotteryFound, lotteryWinner, firstAddress);
     auctionWinner = Provable.if(auctionFound, auctionWinner, firstAddress);
-
-    Provable.log('lotteryFound', lotteryFound);
-    // Provable.log('lotteryWinner', lotteryWinner);
 
     const lotteryWinnerUpdate = AccountUpdate.create(
       lotteryWinner,
@@ -585,9 +550,7 @@ export class GroupBasic extends TokenContract {
       Provable.if(lotteryFound, Bool(true), dudValue).toField()
     );
 
-    Provable.log('Emmiting auctionWinner', auctionWinner);
-    Provable.log('Emmiting lotteryWinner', lotteryWinner);
-
+    // Emit
     this.emitEvent('lottery-winner', lotteryWinner);
     this.emitEvent('auction-winner', auctionWinner);
 
@@ -596,8 +559,6 @@ export class GroupBasic extends TokenContract {
       UInt64.zero,
       UInt64.one
     );
-
-    //if auction winner == lottery winner, take 2nd closest to lottery winner ? TODO
 
     // Is this needed here?
     this.paymentRound.set(currentPaymentRound.add(advanceRound));
