@@ -16,8 +16,9 @@ import { stat } from 'fs';
 
 interface MinaContextType {
 	spinUp: () => Promise<void>;
-	triggerDeploy: () => void;
+	triggerDeployGroup: () => void;
 	logFetchAccount: (key: string) => void;
+	compileContracts: (type: string) => Promise<void>;
 }
 
 const MinaProviderContext = createContext<MinaContextType | undefined>(undefined);
@@ -115,8 +116,6 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		// console.log(`Current supply in zkApp: ${currentSupply.toString()}`);
 		// setDisplayText('');
 
-		setZkappWorkerClient(zkappWorkerClient);
-
 		console.log('Getting zkApp state Complete');
 
 		setState({
@@ -130,44 +129,64 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			currentSupply,
 		});
 		// }
+		setZkappWorkerClient(zkappWorkerClient);
 	};
 
-	const setTokenNoDeploy = async (onStartUp: boolean, zkappWorkerClientProp?: ZkappWorkerClient) => {
-		try {
-			const zkappWorker = (zkappWorkerClientProp ?? zkappWorkerClient) as ZkappWorkerClient;
-			await zkappWorker.loadContracts();
+	useEffect(() => {
+		const setTokenNoDeploy = async () => {
+			try {
+				if (zkappWorkerClient) {
+					const zkappWorker = zkappWorkerClient;
+					await compileContracts('token');
 
-			console.log('Compiling token contract...');
-			// setDisplayText('Compiling token contract...');
-			await zkappWorker.compileTokenContract();
-			console.log('zkApp token contract compiled');
-			// setDisplayText('zkApp token contract compiled');
+					const tokenPrivKey = PrivateKey.random();
+					// const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
+					console.log('priv key', tokenPrivKey.toBase58());
+					const tokenPubKey = tokenPrivKey.toPublicKey();
+					console.log('Token public key:', tokenPubKey.toBase58());
 
-			// const tokenPrivKey = PrivateKey.random();
-			const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
-			console.log('priv key', tokenPrivKey.toBase58());
-			const tokenPubKey = tokenPrivKey.toPublicKey();
-			console.log('Token public key:', tokenPubKey.toBase58());
+					await zkappWorker.initTokenInstance(tokenPubKey);
 
-			await zkappWorker.initTokenInstance(tokenPubKey);
+					if (userPublicKey) {
+						await zkappWorker.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
 
-			if (onStartUp && userPublicKey) {
-				await zkappWorker.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
-
-				await zkappWorker.proveTransaction();
-				console.log('Transaction proved');
-				const tx = await zkappWorker.getTransactionJSON();
-				const { hash } = await (window as any).mina.sendTransaction({
-					transaction: tx,
-					feePayer: {
-						fee: 0.01 * 1e9,
-						memo: 'abc',
-					},
-				});
-				console.log('hash', hash);
+						await zkappWorker.proveTransaction();
+						console.log('Transaction proved');
+						const tx = await zkappWorker.getTransactionJSON();
+						const { hash } = await (window as any).mina.sendTransaction({
+							transaction: tx,
+							feePayer: {
+								fee: 0.01 * 1e9,
+								memo: 'abc',
+							},
+						});
+						console.log('hash', hash);
+					}
+				} else {
+					console.log('zkappWorkerClient null in setTokenNoDeploy');
+				}
+			} catch (err) {
+				console.log(err);
 			}
-		} catch (err) {
-			console.log(err);
+		};
+
+		setTokenNoDeploy();
+	}, [zkappWorkerClient]);
+
+	const compileContracts = async (type: string) => {
+		if (zkappWorkerClient) {
+			if (type == 'token') {
+				await zkappWorkerClient.loadTokenContract();
+				console.log('Compiling token contract...');
+				// setDisplayText('Compiling token contract...');
+				await zkappWorkerClient.compileTokenContract();
+				console.log('zkApp token contract compiled');
+				// setDisplayText('zkApp token contract compiled');
+			} else if (type == 'group') {
+				console.log('Compiling group contract...');
+				await zkappWorkerClient.loadGroupContract();
+				await zkappWorkerClient.compileGroupContract();
+			}
 		}
 	};
 
@@ -191,7 +210,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		});
 	}
 
-	const triggerDeploy = () => {
+	const triggerDeployGroup = () => {
 		setDeployingGroup(true);
 	};
 
@@ -208,8 +227,8 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			const groupPrivKey = PrivateKey.random();
 			const groupPubKey = groupPrivKey.toPublicKey();
 			console.log('Group public key:', groupPubKey.toBase58());
-			console.log('compiling group contract...');
-			await zkappWorkerClient.compileGroupContract();
+			// console.log('compiling group contract...');
+			// await zkappWorkerClient.compileGroupContract();
 			console.log('deploying group contract...');
 			await zkappWorkerClient.deployGroup(
 				userPublicKey!.toBase58(),
@@ -247,7 +266,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		} finally {
 			setDeployingGroup(false);
 		}
-	}, [zkappWorkerClient]);
+	}, [deployingGroup]);
 
 	useEffect(() => {
 		if (deployingGroup) {
@@ -261,8 +280,9 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 
 	const value: MinaContextType = {
 		spinUp,
-		triggerDeploy,
+		triggerDeployGroup,
 		logFetchAccount,
+		compileContracts,
 	};
 
 	return <MinaProviderContext.Provider value={value}>{children}</MinaProviderContext.Provider>;

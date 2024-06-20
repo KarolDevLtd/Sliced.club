@@ -27,6 +27,7 @@ import { closeModal } from '~/helpers/modal-helper';
 import { FaUserGroup } from 'react-icons/fa6';
 import TextArea from '../ui/TextArea';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
+import { useMinaProvider } from '@/providers/minaprovider';
 
 type AddGroupModalProps = {
 	onGroupSubmitted: () => void;
@@ -36,6 +37,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
 	const [displayProductCount, setDisplayProductCount] = useState(20);
+
+	const { triggerDeployGroup } = useMinaProvider();
 
 	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
@@ -108,16 +111,20 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
-			await saveGroup(
-				data['group-name'] as string,
-				data['group-description'] as string,
-				currentSelectedProduct?.metadata.keyvalues.price!,
-				duration.toString(),
-				participants.toString()
-			);
-			reset();
-			closeModal('add-group');
-			// refetchPosts();
+			// await saveGroup(
+			// 	data['group-name'] as string,
+			// 	data['group-description'] as string,
+			// 	currentSelectedProduct?.metadata.keyvalues.price!,
+			// 	duration.toString(),
+			// 	participants.toString()
+			// );
+			// reset();
+			// closeModal('add-group');
+
+			// await spinUp();
+			// await triggerDeploy();
+			// await setTokenNoDeploy();
+			await triggerDeployGroup();
 			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
@@ -271,6 +278,14 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 							}}
 						>
 							Cancel
+						</BasicButton>
+						<BasicButton
+							type={'primary'}
+							onClick={() => {
+								logFetchAccount('B62qrTRFNhkcCmHwosTJsJYEKQtdzKCdu3hvgtbWnQujDX3cvDBGN6P');
+							}}
+						>
+							Fetch Group Info
 						</BasicButton>
 					</div>
 				</form>
