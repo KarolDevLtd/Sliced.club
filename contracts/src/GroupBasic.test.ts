@@ -492,7 +492,8 @@ describe('GroupBasic', () => {
     // as there is a bidder
     expect(auctionWinnerKey).not.toEqual(PublicKey.empty().toBase58());
 
-    // Need to check user field for being set as claimable
+    // Lottery and auction winners are different
+    expect(lotteryWinnerKey).not.toEqual(auctionWinnerKey);
 
     const newPaymentRound = group.paymentRound.get();
     // expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());

@@ -429,6 +429,7 @@ export class GroupBasic extends TokenContract {
     this.account.actionState.requireEquals(actions.hash);
     let currentHighestBid = UInt64.zero;
     let auctionWinner: PublicKey = PublicKey.empty();
+    let secondAuctionWinner: PublicKey = PublicKey.empty();
     let lotteryWinner: PublicKey = PublicKey.empty();
     let iter = actions.startIterating();
     let distanceFromRandom = Field.from(999);
@@ -501,11 +502,18 @@ export class GroupBasic extends TokenContract {
 
         Provable.log('Lottery condition: ', lotteryCondition);
 
+        secondAuctionWinner = Provable.if(
+          lotteryCondition,
+          lotteryWinner,
+          secondAuctionWinner
+        );
+
         lotteryWinner = Provable.if(
           lotteryCondition,
           action.publicKey,
           lotteryWinner
         );
+
         Provable.log('Lottery winner: ', lotteryWinner);
         // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
         distanceFromRandom = Provable.if(
@@ -531,12 +539,12 @@ export class GroupBasic extends TokenContract {
     let dudStorage = new GroupUserStorage(firstAddress, this.deriveTokenId());
     let dudValue = dudStorage.canClaim.get();
 
-    // // If no winner found, set first address for a ghost update for auction
-    // let auctionFound: Bool = auctionWinner.Not .equals(PublicKey.empty()).not();
-    // auctionWinner = Provable.if(auctionFound, auctionWinner, firstAddress);
-
-    // Provable.log('auctionFound', auctionFound);
-    // Provable.log('auctionWinner', auctionWinner);
+    // If auction and lottery winners are the same, set auction winner to the second highest bidder
+    auctionWinner = Provable.if(
+      auctionWinner.equals(lotteryWinner),
+      secondAuctionWinner,
+      auctionWinner
+    );
 
     // If no winner found, set first address for a ghost update for lottery
     let lotteryFound: Bool = Provable.if(
@@ -544,8 +552,17 @@ export class GroupBasic extends TokenContract {
       Bool(false),
       Bool(true)
     );
+
+    // If no winner found, set first address for a ghost update for auction
+    let auctionFound: Bool = Provable.if(
+      auctionWinner.equals(PublicKey.empty()),
+      Bool(false),
+      Bool(true)
+    );
+
     Provable.log('lotteryWinner prior', lotteryWinner);
     lotteryWinner = Provable.if(lotteryFound, lotteryWinner, firstAddress);
+    auctionWinner = Provable.if(auctionFound, auctionWinner, firstAddress);
 
     Provable.log('lotteryFound', lotteryFound);
     // Provable.log('lotteryWinner', lotteryWinner);
@@ -559,18 +576,14 @@ export class GroupBasic extends TokenContract {
       Provable.if(lotteryFound, Bool(true), dudValue).toField()
     );
 
-    // // lotteryWinnerUpdate.requireSignature();
-
-    // lotteryWinnerUpdate.update;
-
-    // const auctionWinnerUpdate = AccountUpdate.createSigned(
-    //   auctionWinner,
-    //   this.deriveTokenId()
-    // );
-    // AccountUpdate.setValue(
-    //   auctionWinnerUpdate.body.update.appState[4],
-    //   Provable.if(lotteryFound, Bool(true), dudValue).toField()
-    // );
+    const auctionWinnerUpdate = AccountUpdate.create(
+      auctionWinner,
+      this.deriveTokenId()
+    );
+    AccountUpdate.setValue(
+      auctionWinnerUpdate.body.update.appState[4],
+      Provable.if(lotteryFound, Bool(true), dudValue).toField()
+    );
 
     Provable.log('Emmiting auctionWinner', auctionWinner);
     Provable.log('Emmiting lotteryWinner', lotteryWinner);
