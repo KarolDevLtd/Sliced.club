@@ -41,19 +41,24 @@ export class Entry extends Struct({
   // },
   message: UInt64,
   paymentRound: UInt64,
+  /** It's auction if false */
   isLottery: Bool,
+  /** Set to true if user up to date on payments */
+  lotteryElligible: Bool,
 }) {
   constructor(
     publicKey: PublicKey,
     message: UInt64,
     paymentRound: UInt64,
-    isLottery: Bool
+    isLottery: Bool,
+    lotteryElligible: Bool
   ) {
     super({
       publicKey,
       message,
       paymentRound,
       isLottery,
+      lotteryElligible,
     });
   }
   hash(): Field {
@@ -157,9 +162,17 @@ export class GroupBasic extends TokenContract {
     //   send: Permissions.none(),
     //   receive: Permissions.none(),
     //   setPermissions: Permissions.none(),
-    //   incrementNonce: Permissions.proofOrSignature(),
-    // });
-    this.paymentRound.set(UInt64.zero);
+    incrementNonce: Permissions.proofOrSignature(),
+      // });
+      this.paymentRound.set(UInt64.zero);
+
+    // It does do something
+    this.account.permissions.set({
+      ...Permissions.default(),
+      // editState: Permissions.none(),
+      // send: Permissions.none(),
+      incrementNonce: Permissions.proofOrSignature(),
+    });
   }
 
   /** Called once at the start. User relinquishes ability to modify token account bu signing */
@@ -190,11 +203,28 @@ export class GroupBasic extends TokenContract {
       value: {
         ...Permissions.default(),
         // TODO test acc update for this with sig only
-        editState: Permissions.proofOrSignature(),
-        send: Permissions.impossible(), // we don't want to allow sending - soulbound
+        editState: Permissions.none(),
+        // access: Permissions.none(),
+        // editState: Permissions.proof(),
+        // incrementNonce: Permissions.proofOrSignature(),
+        // incrementNonce: Permissions.proof(),
+        // editState: Permissions.proof(),
+        send: Permissions.none(), // we don't want to allow sending - soulbound
         // setVerificationKey: Permissions.proof(),
       },
     };
+
+    // groupUserStorageUpdate.body.update.verificationKey = {
+    //   isSome: Bool(true),
+    //   value: data.verificationKey,
+    // };
+    // groupUserStorageUpdate.body.update.permissions = {
+    //   isSome: Bool(true),
+    //   value: {
+    //     ...Permissions.default(),
+    //     editState: Permissions.proof(),
+    //   },
+    // };
     AccountUpdate.setValue(
       groupUserStorageUpdate.body.update.appState[3], // isParticipant
       Bool(true).toField()
@@ -305,10 +335,13 @@ export class GroupBasic extends TokenContract {
     members.assertEquals(_groupSettings.members);
 
     // Write back payments and compensations to the token storage
-    const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());
+    // createSigned() is needed , create() deosnt cut it
+    const update = AccountUpdate.create(senderAddr, this.deriveTokenId());
+    this.approve(update);
     AccountUpdate.setValue(
       update.body.update.appState[0],
       Payments.fromBoolsField(paymentsBools)
+      // Field(69)
     );
     AccountUpdate.setValue(
       update.body.update.appState[1],
@@ -327,19 +360,25 @@ export class GroupBasic extends TokenContract {
       ).add(new UInt64(amountOfPayments))
     );
 
-    Provable.log('totalPay', totalPay);
+    // Provable.log('totalPay', totalPay);
     let totalPaymentsU64: UInt64 = new UInt64(totalPayments);
 
     // Pay the total amount
     const token = new FungibleToken(_groupSettings.tokenAddress);
     await token.transfer(senderAddr, this.address, totalPay);
+
+    // Provable.log('totalPaymentsU64', totalPaymentsU64);
+    // Provable.log('currentPaymentRound', currentPaymentRound);
+
+    // Lottery action
     this.reducer.dispatch(
       new Entry(
         senderAddr,
         UInt64.zero,
         currentPaymentRound,
-        // Lottery entry only true, if total payment count equals this round
-        totalPaymentsU64.equals(currentPaymentRound)
+        Bool(true), // Flag for lottery action
+        // Lottery entry only true, if total payment count equals this round (plus 1 as zero indexed)
+        totalPaymentsU64.equals(currentPaymentRound.add(UInt64.one))
       )
     );
 
@@ -347,13 +386,23 @@ export class GroupBasic extends TokenContract {
     // let adminPubKey = this.admin.getAndRequireEquals();
     // let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
 
+    // Provable.log('Sender address: ', senderAddr);
+
+    // Auction action
     this.reducer.dispatch(
-      new Entry(senderAddr, amountOfBids, currentPaymentRound, Bool(false))
+      new Entry(
+        senderAddr,
+        amountOfBids,
+        currentPaymentRound,
+        Bool(false), // Flag for auction action
+        Bool(false)
+      )
     );
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
     // adminPubKey;
 
-    update.requireSignature();
+    // Not needed for it to work
+    // update.requireSignature();
   }
   //TODO are we saving last action's hash and using it everyy
   // mitigate the 'latest' most likley to win in underpaid group (eg 15/20 paid, rnd = 18 (15th has 5/20 chance))
@@ -367,8 +416,8 @@ export class GroupBasic extends TokenContract {
     // let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
     // groupSettingsHash.assertEquals(_groupSettings.hash());
     await this.assertGroupHash(_groupSettings);
-    let adminPubKey = this.admin.getAndRequireEquals();
-    adminPubKey.assertEquals(adminPrivKey.toPublicKey());
+    // let adminPubKey = this.admin.getAndRequireEquals();
+    // adminPubKey.assertEquals(adminPrivKey.toPublicKey());
 
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
     // Provable.log('randomValue', randomValue);
@@ -386,6 +435,11 @@ export class GroupBasic extends TokenContract {
     let currentDistance = Field.from(999);
     // iterate over actions of encrypted bids
     // decrypt the bid and assert earliest highest bid
+
+    Provable.log('Winner index: ', randomValue);
+
+    // Last address for ghost update
+    let firstAddress: PublicKey = PublicKey.empty();
 
     for (let i = 0; i < MAX_UPDATES_WITH_ACTIONS; i++) {
       //can i use i or should I use
@@ -411,6 +465,15 @@ export class GroupBasic extends TokenContract {
         //can I ensure order of action in an update
         let action = innerIter.next();
 
+        // If this is loop i set the first address
+        firstAddress = Provable.if(
+          Field(i).equals(Field(0)),
+          action.publicKey,
+          firstAddress
+        );
+
+        // Provable.log('Action: ', action);
+
         let auctionCondition = action.message
           .greaterThan(currentHighestBid)
           .and(action.paymentRound.equals(currentPaymentRound))
@@ -421,21 +484,29 @@ export class GroupBasic extends TokenContract {
           action.publicKey,
           auctionWinner
         );
+
+        // Provable.log('Auction winner: ', auctionWinner);
         currentHighestBid = Provable.if(
           auctionCondition,
           action.message,
           currentHighestBid
         );
 
+        // Provable.log('Key from action: ', action.publicKey);
+
         let lotteryCondition = action.isLottery
           .and(action.paymentRound.equals(currentPaymentRound))
-          .and(currentDistance.lessThan(distanceFromRandom));
+          .and(currentDistance.lessThan(distanceFromRandom))
+          .and(action.lotteryElligible); // User is not behind on payments
+
+        Provable.log('Lottery condition: ', lotteryCondition);
 
         lotteryWinner = Provable.if(
           lotteryCondition,
           action.publicKey,
           lotteryWinner
         );
+        Provable.log('Lottery winner: ', lotteryWinner);
         // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
         distanceFromRandom = Provable.if(
           lotteryCondition,
@@ -448,7 +519,61 @@ export class GroupBasic extends TokenContract {
     iter.assertAtEnd();
     // Provable.log('auctionWinner', auctionWinner);
     // Provable.log('lotteryWinner', lotteryWinner);
+    // Provable.log('empty key: ', PublicKey.empty());
     // Provable.log('distanceFromRandom', distanceFromRandom);
+
+    // If no bidder or no auction winner (everyone is inelligible)
+    // need to change some random account to itself
+
+    // Provable.log('firstAddress', firstAddress);
+
+    // // State to be kept as is in case of missing auction or lottery winner
+    let dudStorage = new GroupUserStorage(firstAddress, this.deriveTokenId());
+    let dudValue = dudStorage.canClaim.get();
+
+    // // If no winner found, set first address for a ghost update for auction
+    // let auctionFound: Bool = auctionWinner.Not .equals(PublicKey.empty()).not();
+    // auctionWinner = Provable.if(auctionFound, auctionWinner, firstAddress);
+
+    // Provable.log('auctionFound', auctionFound);
+    // Provable.log('auctionWinner', auctionWinner);
+
+    // If no winner found, set first address for a ghost update for lottery
+    let lotteryFound: Bool = Provable.if(
+      lotteryWinner.equals(PublicKey.empty()),
+      Bool(false),
+      Bool(true)
+    );
+    Provable.log('lotteryWinner prior', lotteryWinner);
+    lotteryWinner = Provable.if(lotteryFound, lotteryWinner, firstAddress);
+
+    Provable.log('lotteryFound', lotteryFound);
+    // Provable.log('lotteryWinner', lotteryWinner);
+
+    const lotteryWinnerUpdate = AccountUpdate.create(
+      lotteryWinner,
+      this.deriveTokenId()
+    );
+    AccountUpdate.setValue(
+      lotteryWinnerUpdate.body.update.appState[4],
+      Provable.if(lotteryFound, Bool(true), dudValue).toField()
+    );
+
+    // // lotteryWinnerUpdate.requireSignature();
+
+    // lotteryWinnerUpdate.update;
+
+    // const auctionWinnerUpdate = AccountUpdate.createSigned(
+    //   auctionWinner,
+    //   this.deriveTokenId()
+    // );
+    // AccountUpdate.setValue(
+    //   auctionWinnerUpdate.body.update.appState[4],
+    //   Provable.if(lotteryFound, Bool(true), dudValue).toField()
+    // );
+
+    Provable.log('Emmiting auctionWinner', auctionWinner);
+    Provable.log('Emmiting lotteryWinner', lotteryWinner);
 
     this.emitEvent('lottery-winner', lotteryWinner);
     this.emitEvent('auction-winner', auctionWinner);

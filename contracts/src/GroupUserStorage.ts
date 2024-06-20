@@ -6,4 +6,6 @@ export class GroupUserStorage extends SmartContract {
   @state(Field) compensations = State<Field>();
   @state(UInt32) overpayments = State<UInt32>();
   @state(Bool) isParticipant = State<Bool>();
+  @state(Bool) canClaim = State<Bool>();
+  @state(Bool) claimed = State<Bool>();
 }
