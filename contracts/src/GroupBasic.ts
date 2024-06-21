@@ -153,9 +153,13 @@ export class GroupBasic extends TokenContract {
     this.account.permissions.set({
       ...Permissions.default(),
       // editState: Permissions.none(),
-      // send: Permissions.none(),
+      send: Permissions.none(),
       incrementNonce: Permissions.proofOrSignature(),
     });
+
+    // Call token to set proof send permission for this contract
+    const token = new FungibleToken(args.groupSettings.tokenAddress);
+    await token.setProofTransfer();
   }
 
   @method
@@ -202,6 +206,59 @@ export class GroupBasic extends TokenContract {
     const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
     this.approve(groupUserStorageUpdate); // TODO: check if this is needed
 
+    // Check if caller is the admin
+    let adminCaller: Bool = this.admin
+      .getAndRequireEquals()
+      .equals(this.sender.getAndRequireSignature());
+
+    // Check for correct settings given
+    await this.assertGroupHash(_groupSettings);
+
+    // Ensure new addition doesn't exceed max allowed
+    let members = this.members.getAndRequireEquals();
+    members.assertLessThan(_groupSettings.members);
+
+    // Increment members
+    this.members.set(members.add(UInt32.one));
+
+    groupUserStorageUpdate.body.update.verificationKey = {
+      isSome: Bool(true),
+      value: vk,
+    };
+    groupUserStorageUpdate.body.update.permissions = {
+      isSome: Bool(true),
+      value: {
+        ...Permissions.default(),
+        // TODO test acc update for this with sig only
+        editState: Permissions.none(),
+        send: Permissions.none(), // we don't want to allow sending - soulbound
+      },
+    };
+
+    // Set for paritcipant
+    AccountUpdate.setValue(
+      groupUserStorageUpdate.body.update.appState[3], // isParticipant
+      Provable.if(adminCaller, Bool(false), Bool(true)).toField()
+    );
+
+    // Set for admin
+    AccountUpdate.setValue(
+      groupUserStorageUpdate.body.update.appState[6], // isAdmin
+      Provable.if(adminCaller, Bool(true), Bool(false)).toField()
+    );
+
+    groupUserStorageUpdate.requireSignature();
+  }
+
+  /** Called once at the start. User relinquishes ability to modify token account bu signing */
+  @method async addAdminTokenAccount(
+    _groupSettings: GroupSettings,
+    address: PublicKey,
+    vk: VerificationKey
+  ) {
+    const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
+    this.approve(groupUserStorageUpdate); // TODO: check if this is needed
+
     // Check for correct settings given
     await this.assertGroupHash(_groupSettings);
 
@@ -227,7 +284,7 @@ export class GroupBasic extends TokenContract {
     };
 
     AccountUpdate.setValue(
-      groupUserStorageUpdate.body.update.appState[3], // isParticipant
+      groupUserStorageUpdate.body.update.appState[6], // isAdmin
       Bool(true).toField()
     );
 
@@ -366,7 +423,16 @@ export class GroupBasic extends TokenContract {
 
     // Pay the total amount
     const token = new FungibleToken(_groupSettings.tokenAddress);
-    await token.transfer(senderAddr, this.address, totalPay);
+
+    // Old payment
+    // await token.transfer(senderAddr, this.address, totalPay);
+
+    // Instead pay to the token account of the admin address
+    let adminTokenAccount = new GroupUserStorage(
+      this.admin.getAndRequireEquals(),
+      this.deriveTokenId()
+    );
+    // await token.transfer(senderAddr, adminTokenAccount, totalPay);
 
     // Provable.log('totalPaymentsU64', totalPaymentsU64);
     // Provable.log('currentPaymentRound', currentPaymentRound);

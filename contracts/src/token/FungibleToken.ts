@@ -8,6 +8,7 @@ import {
   state,
   Struct,
   TokenContract,
+  Permissions,
   UInt64,
 } from 'o1js';
 import type { FungibleTokenLike } from './FungibleTokenLike.js';
@@ -51,6 +52,11 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
 
     this.account.tokenSymbol.set(props.symbol);
     this.account.zkappUri.set(props.src);
+
+    this.account.permissions.set({
+      ...Permissions.default(),
+      send: Permissions.none(),
+    });
   }
 
   private ensureOwnerSignature() {
@@ -108,6 +114,21 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
   async approveBase(updates: AccountUpdateForest): Promise<void> {
     this.checkZeroBalanceChange(updates);
     // TODO: event emission here
+  }
+
+  @method
+  async setProofTransfer() {
+    let update = AccountUpdate.createSigned(
+      this.sender.getAndRequireSignature()
+    );
+
+    // Set send permission to proof
+    update.account.permissions.set({
+      ...Permissions.default(),
+      send: Permissions.none(),
+    });
+
+    update.requireSignature();
   }
 
   @method.returns(UInt64)
