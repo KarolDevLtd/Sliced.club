@@ -28,6 +28,7 @@ import { FaUserGroup } from 'react-icons/fa6';
 import TextArea from '../ui/TextArea';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { useMinaProvider } from '@/providers/minaprovider';
+import Game from '../game/game';
 
 type AddGroupModalProps = {
 	onGroupSubmitted: () => void;
@@ -38,7 +39,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [displayProductCount, setDisplayProductCount] = useState(20);
 
-	const { triggerDeployGroup } = useMinaProvider();
+	const { triggerDeployGroup, logFetchAccount, isMinaLoading } = useMinaProvider();
 
 	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
@@ -260,33 +261,48 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 					>
 						I agree to be contacted regarding my registration/eligibility and await to be contacted 
 					</CheckBox>
-					<div className="w-100 flex justify-end items-center gap-2">
-						<BasicButton
-							type="primary"
-							icon={isLoading ? <Spinner size="sm" /> : null}
-							disabled={isLoading}
-							submitForm={true}
-						>
-							Save
-						</BasicButton>
-						<BasicButton
-							type="secondary"
-							disabled={isLoading}
-							onClick={() => {
-								clearForm();
-								closeModal('add-group');
-							}}
-						>
-							Cancel
-						</BasicButton>
-						<BasicButton
-							type={'primary'}
-							onClick={() => {
-								logFetchAccount('B62qrTRFNhkcCmHwosTJsJYEKQtdzKCdu3hvgtbWnQujDX3cvDBGN6P');
-							}}
-						>
-							Fetch Group Info
-						</BasicButton>
+					<div className="flex flex-col">
+						<div className="w-100 flex justify-end items-center gap-2">
+							{isMinaLoading ? (
+								<div className="flex w-full flex-col">
+									<div>
+										Preparing <Spinner />
+									</div>
+									<Game />
+								</div>
+							) : (
+								<div>
+									<BasicButton
+										type="primary"
+										icon={isLoading ? <Spinner size="sm" /> : null}
+										disabled={isLoading}
+										submitForm={true}
+									>
+										Save
+									</BasicButton>
+									<BasicButton
+										type="secondary"
+										disabled={isLoading}
+										onClick={() => {
+											clearForm();
+											closeModal('add-group');
+										}}
+									>
+										Cancel
+									</BasicButton>
+									<BasicButton
+										type={'primary'}
+										onClick={async () => {
+											await logFetchAccount(
+												'B62qpBMb8ULboXZxojPtHbdkRwRxJhtbnb9sbAhUetw2ietJLV5Qgkw'
+											);
+										}}
+									>
+										Fetch Group Info
+									</BasicButton>
+								</div>
+							)}
+						</div>
 					</div>
 				</form>
 			}

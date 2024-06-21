@@ -21,6 +21,7 @@ interface MinaContextType {
 	compileContracts: (type: string) => Promise<void>;
 	deployToken: () => Promise<void>;
 	mintTokenTo: (pubkey: string) => Promise<void>;
+	isMinaLoading: boolean;
 }
 
 const MinaProviderContext = createContext<MinaContextType | undefined>(undefined);
@@ -61,83 +62,91 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 	const [zkappWorkerClient, setZkappWorkerClient] = useState<null | ZkappWorkerClient>();
 	const [userPublicKey, setUserPublicKey] = useState<null | PublicKey>();
 	const [deployingGroup, setDeployingGroup] = useState<boolean>(false);
+	const [isMinaLoading, setIsMinaLoading] = useState<boolean>(false);
 
 	const spinUp = async () => {
-		// if (!state.hasBeenSetup) {
-		// setDisplayText('Loading web worker...');
-		console.log('Loading web worker...');
-		const zkappWorkerClient = new ZkappWorkerClient();
-		await timeout(5);
+		try {
+			setIsMinaLoading(true);
+			// if (!state.hasBeenSetup) {
+			// setDisplayText('Loading web worker...');
+			console.log('Loading web worker...');
+			const zkappWorkerClient = new ZkappWorkerClient();
+			await timeout(5);
 
-		// setDisplayText('Done loading web worker');
-		console.log('Done loading web worker');
+			// setDisplayText('Done loading web worker');
+			console.log('Done loading web worker');
 
-		await zkappWorkerClient.setActiveInstanceToLightnet();
-		// await zkappWorkerClient.setActiveInstanceToDevnet();
+			await zkappWorkerClient.setActiveInstanceToLightnet();
+			// await zkappWorkerClient.setActiveInstanceToDevnet();
 
-		const mina = (window as any).mina;
+			const mina = (window as any).mina;
 
-		if (mina == null) {
-			setState({ ...state, hasWallet: false });
-			return;
+			if (mina == null) {
+				setState({ ...state, hasWallet: false });
+				return;
+			}
+
+			const userPubKey58: string = (await mina.requestAccounts())[0];
+			const userPublicKey = PublicKey.fromBase58(userPubKey58);
+			setUserPublicKey(PublicKey.fromBase58(userPubKey58));
+
+			// console.log(`Using key:${userPublicKey.toBase58()}`);
+			// setDisplayText(`Using key:${userPublicKey.toBase58()}`);
+
+			// setDisplayText('Checking if fee payer account exists...');
+			console.log('Checking if fee payer account exists...');
+
+			// const res = await zkappWorkerClient.fetchAccount({
+			// 	publicKey: userPubKey58,
+			// });
+			// console.log('res', res);
+			const res = await logFetchAccount(userPubKey58, zkappWorkerClient);
+
+			console.log('userPubKey58', userPubKey58);
+			console.log('userPublicKey', userPublicKey);
+			const accountExists = res?.error == null;
+			console.log('index fetchAcc log ', res);
+
+			console.log('Getting zkApp state...');
+			// setDisplayText('Getting zkApp state...');
+			// await zkappWorkerClient.fetchAccount({ publicKey: tokenPubKey.toBase58() });
+
+			// await zkappWorkerClient.createTransferTransaction(
+			// 	publicKeyBase58,
+			// 	'B62qq6LVZ2E3RgJoDMaCzQepYShJ339B6BW6myUrra9vgXMZbN2sGtE',
+			// 	6
+			// );
+			const currentSupply = new UInt64(2);
+
+			// const currentSupply = await zkappWorkerClient.getSupply();
+			// console.log(`Current supply in zkApp: ${currentSupply.toString()}`);
+			// setDisplayText('');
+
+			console.log('Getting zkApp state Complete');
+
+			setState({
+				...state,
+				// zkappWorkerClient,
+				hasWallet: true,
+				hasBeenSetup: true,
+				// userPublicKey,
+				// tokenPubKey,
+				accountExists,
+				currentSupply,
+			});
+			// }
+			setZkappWorkerClient(zkappWorkerClient);
+		} catch (err) {
+		} finally {
+			setIsMinaLoading(false);
 		}
-
-		const userPubKey58: string = (await mina.requestAccounts())[0];
-		const userPublicKey = PublicKey.fromBase58(userPubKey58);
-		setUserPublicKey(PublicKey.fromBase58(userPubKey58));
-
-		// console.log(`Using key:${userPublicKey.toBase58()}`);
-		// setDisplayText(`Using key:${userPublicKey.toBase58()}`);
-
-		// setDisplayText('Checking if fee payer account exists...');
-		console.log('Checking if fee payer account exists...');
-
-		// const res = await zkappWorkerClient.fetchAccount({
-		// 	publicKey: userPubKey58,
-		// });
-		// console.log('res', res);
-		const res = await logFetchAccount(userPubKey58, zkappWorkerClient);
-
-		console.log('userPubKey58', userPubKey58);
-		console.log('userPublicKey', userPublicKey);
-		const accountExists = res?.error == null;
-		console.log('index fetchAcc log ', res);
-
-		console.log('Getting zkApp state...');
-		// setDisplayText('Getting zkApp state...');
-		// await zkappWorkerClient.fetchAccount({ publicKey: tokenPubKey.toBase58() });
-
-		// await zkappWorkerClient.createTransferTransaction(
-		// 	publicKeyBase58,
-		// 	'B62qq6LVZ2E3RgJoDMaCzQepYShJ339B6BW6myUrra9vgXMZbN2sGtE',
-		// 	6
-		// );
-		const currentSupply = new UInt64(2);
-
-		// const currentSupply = await zkappWorkerClient.getSupply();
-		// console.log(`Current supply in zkApp: ${currentSupply.toString()}`);
-		// setDisplayText('');
-
-		console.log('Getting zkApp state Complete');
-
-		setState({
-			...state,
-			// zkappWorkerClient,
-			hasWallet: true,
-			hasBeenSetup: true,
-			// userPublicKey,
-			// tokenPubKey,
-			accountExists,
-			currentSupply,
-		});
-		// }
-		setZkappWorkerClient(zkappWorkerClient);
 	};
 
 	useEffect(() => {
 		const setTokenNoDeploy = async () => {
 			try {
 				if (zkappWorkerClient) {
+					setIsMinaLoading(true);
 					const zkappWorker = zkappWorkerClient;
 					await compileContracts('token');
 
@@ -169,6 +178,8 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				}
 			} catch (err) {
 				console.log(err);
+			} finally {
+				setIsMinaLoading(false);
 			}
 		};
 
@@ -176,6 +187,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 	}, [zkappWorkerClient]);
 
 	const compileContracts = async (type: string) => {
+		setIsMinaLoading(true);
 		if (zkappWorkerClient) {
 			if (type == 'token') {
 				await zkappWorkerClient.loadTokenContract();
@@ -189,7 +201,9 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				await zkappWorkerClient.loadGroupContract();
 				await zkappWorkerClient.compileGroupContract();
 			}
+			console.log('Finished compiling...');
 		}
+		setIsMinaLoading(false);
 	};
 
 	const logFetchAccount = async (key: string, zkappWorkerClientt?: ZkappWorkerClient) => {
@@ -223,7 +237,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				console.log('zkappWorkerClient is null');
 				return;
 			}
-
+			setIsMinaLoading(true);
 			const res = await zkappWorkerClient.fetchAccount({ publicKey: userPublicKey!.toBase58() });
 			console.log('index fetchAcc log in groupDeploy ', res);
 			const groupPrivKey = PrivateKey.random();
@@ -267,6 +281,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			console.log(err);
 		} finally {
 			setDeployingGroup(false);
+			setIsMinaLoading(false);
 		}
 	}, [deployingGroup]);
 
@@ -317,6 +332,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		compileContracts,
 		deployToken,
 		mintTokenTo,
+		isMinaLoading,
 	};
 
 	return <MinaProviderContext.Provider value={value}>{children}</MinaProviderContext.Provider>;
