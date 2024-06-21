@@ -191,7 +191,10 @@ const functions = {
 	initTokenInstance: async (args: { publicKey: PublicKey }) => {
 		// const publicKey = PublicKey.fromBase58(args.publicKey58);
 		// console.log('initTokenInstance', publicKey.toBase58());
-		state.tokenZkapp = new state.FungibleToken!(args.publicKey);
+
+		const publicKey = PublicKey.fromBase58('B62qict1jWXuU1BhTSwbhyrtTa2yxNB27aZ4PuyShepnQzzp3HoFGuT');
+		state.tokenZkapp = new state.FungibleToken!(publicKey);
+		// state.tokenZkapp = new state.FungibleToken!(args.publicKey);
 	},
 
 	/** 
@@ -344,8 +347,8 @@ const functions = {
 		return JSON.stringify({
 			payments: userStorage.payments.get(),
 			overpayments: userStorage.overpayments.get(),
-			compensations: userStorage.compensations.get(),
-			isParticipant: userStorage.isParticipant.get(),
+			compensations: userStorage.compensations.get().toString(),
+			isParticipant: userStorage.isParticipant.get().toBoolean(),
 		});
 	},
 

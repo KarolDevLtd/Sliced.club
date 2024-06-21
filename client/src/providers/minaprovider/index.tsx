@@ -66,7 +66,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 	// const [userPrivatecKey, setUserPublicKey] = useState<null | PublicKey>();
 	const [deployingGroup, setDeployingGroup] = useState<boolean>(false);
 	const [isMinaLoading, setIsMinaLoading] = useState<boolean>(false);
-	const tokenPrivKey = 'EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn';
+	const tokenPrivKeyBase58 = 'EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn';
 
 	const spinUp = async () => {
 		try {
@@ -205,7 +205,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 					// setDisplayText('Compiling token contract...');
 					await zkappWorkerClient.compileTokenContract();
 					console.log('zkApp token contract compiled');
-					const tokenPubKey = PrivateKey.fromBase58(tokenPrivKey).toPublicKey();
+					const tokenPubKey = PrivateKey.fromBase58(tokenPrivKeyBase58).toPublicKey();
 					await zkappWorkerClient.initTokenInstance(tokenPubKey);
 					// setDisplayText('zkApp token contract compiled');
 				} else if (type == 'group' && !areCompiled.group) {
@@ -215,7 +215,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 					// 	return;
 					// }
 					await zkappWorkerClient.compileGroupContract();
-					const tokenPubKey = PrivateKey.fromBase58(tokenPrivKey).toPublicKey();
+					const tokenPubKey = PrivateKey.fromBase58(tokenPrivKeyBase58).toPublicKey();
 					await zkappWorkerClient.initTokenInstance(tokenPubKey);
 				}
 				console.log('Finished compiling...');
@@ -317,7 +317,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				transaction: txn,
 				feePayer: {
 					fee: 0.01 * 1e9,
-					memo: 'zk',
+					memo: 'deploy group',
 				},
 			});
 
@@ -348,13 +348,14 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 
 	const deployToken = async () => {
 		// const tokenPrivKey = PrivateKey.random();
-		const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
-		console.log('priv key', tokenPrivKey.toBase58());
+		const tokenPrivKey = PrivateKey.fromBase58(tokenPrivKeyBase58);
+		// console.log('priv key', tokenPrivKey.toBase58());
 		const tokenPubKey = tokenPrivKey.toPublicKey();
 		console.log('Token public key:', tokenPubKey.toBase58());
 		if (userPublicKey && zkappWorkerClient) {
 			try {
 				const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
+				console.log('here 0', result);
 				const x = await zkappWorkerClient.fetchAccount({ publicKey: tokenPubKey.toBase58() });
 				if (x == undefined || x == null) {
 					setIsMinaLoading(true);
@@ -371,7 +372,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 						transaction: txn,
 						feePayer: {
 							fee: 0.1 * 1e9,
-							memo: 'zk',
+							memo: 'deploy token',
 						},
 					});
 					console.log('hash', hash);
@@ -399,14 +400,14 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		if (userPublicKey && zkappWorkerClient && key) {
 			try {
 				// const reciverPubKey = PublicKey.fromBase58(key);
-				const admin = userPublicKey!.toBase58();
+				const admin = userPublicKey.toBase58();
 				console.log('admin', admin);
 				console.log('reciver', key);
 				const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
-				console.log('here 0');
+				console.log('here 1', result);
 				if (!result.token) {
 					setIsMinaLoading(true);
-					const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
+					const tokenPrivKey = PrivateKey.fromBase58(tokenPrivKeyBase58);
 					console.log('priv key', tokenPrivKey.toBase58());
 					const tokenPubKey = tokenPrivKey.toPublicKey();
 					await zkappWorkerClient.initTokenInstance(tokenPubKey);
@@ -424,11 +425,12 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 					transaction: txn,
 					feePayer: {
 						fee: 0.1 * 1e9,
-						memo: 'zk',
+						memo: 'mint token',
 					},
 				});
 				console.log('hash', hash);
 				await zkappWorkerClient.loopUntilConfirmed(hash);
+				console.log('Token minted');
 			} catch (error) {
 				console.log(error);
 			} finally {
