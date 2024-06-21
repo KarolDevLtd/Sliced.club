@@ -31,7 +31,6 @@ describe('GroupBasic', () => {
     timmy: TestPublicKey,
     jimmy: TestPublicKey,
     theodore: TestPublicKey,
-    tokenKey: PrivateKey,
     groupPrivateKey = PrivateKey.random(),
     groupAddress = groupPrivateKey.toPublicKey(),
     tokenPrivateKey = PrivateKey.random(),
@@ -94,7 +93,6 @@ describe('GroupBasic', () => {
     ] = testAccounts = Local.testAccounts;
 
     group = new GroupBasic(groupAddress);
-    tokenKey = PrivateKey.random();
 
     derivedTokenId = TokenId.derive(groupAddress);
 
@@ -275,7 +273,7 @@ describe('GroupBasic', () => {
       );
     });
     await txn1.prove();
-    await txn1.sign([alexa.key, tokenKey]).send();
+    await txn1.sign([alexa.key]).send();
     await fetchAccount({
       publicKey: alexa.key.toPublicKey(),
       tokenId: derivedTokenId,
@@ -308,7 +306,7 @@ describe('GroupBasic', () => {
         );
       });
       await txn1.prove();
-      await txn1.sign([testAccounts[i].key, tokenKey]).send();
+      await txn1.sign([testAccounts[i].key]).send();
       // console.log(txn1.toPretty());
       await fetchAccount({
         publicKey: testAccounts[i].key.toPublicKey(),
@@ -470,15 +468,9 @@ describe('GroupBasic', () => {
       console.log(event.type, JSON.stringify(event.event.data));
     }
 
-    let lotteryWinnerKey: String = JSON.stringify(events[1].event.data).slice(
-      1,
-      -1
-    );
+    let lotteryWinnerKey = JSON.stringify(events[1].event.data).slice(1, -1);
 
-    let auctionWinnerKey: String = JSON.stringify(events[0].event.data).slice(
-      1,
-      -1
-    );
+    let auctionWinnerKey = JSON.stringify(events[0].event.data).slice(1, -1);
     // For now, there must always be a lottery winner
 
     // Need to assert that the emmited winner is not base publickey
@@ -538,7 +530,7 @@ describe('GroupBasic', () => {
     });
 
     await txn.prove();
-    await txn.sign([admin.key]).send();
+    await txn.sign([admin.key, groupPrivateKey]).send();
 
     const endlBalanceGroup = (
       await tokenApp.getBalanceOf(groupAddress)
