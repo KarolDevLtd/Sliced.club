@@ -22,6 +22,7 @@ interface MinaContextType {
 	deployToken: () => Promise<void>;
 	mintTokenTo: (pubkey: string) => Promise<void>;
 	isMinaLoading: boolean;
+	prepareForGroupDeploy: () => Promise<void>;
 }
 
 const MinaProviderContext = createContext<MinaContextType | undefined>(undefined);
@@ -61,8 +62,11 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 
 	const [zkappWorkerClient, setZkappWorkerClient] = useState<null | ZkappWorkerClient>();
 	const [userPublicKey, setUserPublicKey] = useState<null | PublicKey>();
+	const [groupPrivateKey, setGroupPrivateKey] = useState<null | PublicKey>();
+	// const [userPrivatecKey, setUserPublicKey] = useState<null | PublicKey>();
 	const [deployingGroup, setDeployingGroup] = useState<boolean>(false);
 	const [isMinaLoading, setIsMinaLoading] = useState<boolean>(false);
+	const tokenPrivKey = 'EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn';
 
 	const spinUp = async () => {
 		try {
@@ -117,6 +121,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			// 	6
 			// );
 			const currentSupply = new UInt64(2);
+			await zkappWorkerClient.loadContracts();
 
 			// const currentSupply = await zkappWorkerClient.getSupply();
 			// console.log(`Current supply in zkApp: ${currentSupply.toString()}`);
@@ -142,68 +147,84 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		}
 	};
 
-	useEffect(() => {
-		const setTokenNoDeploy = async () => {
-			try {
-				if (zkappWorkerClient) {
-					setIsMinaLoading(true);
-					const zkappWorker = zkappWorkerClient;
-					await compileContracts('token');
+	// useEffect(() => {
+	// 	const setTokenNoDeploy = async () => {
+	// 		try {
+	// 			if (zkappWorkerClient) {
+	// 				setIsMinaLoading(true);
+	// 				const zkappWorker = zkappWorkerClient;
+	// 				await compileContracts('token', true);
 
-					const tokenPrivKey = PrivateKey.random();
-					// const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
-					console.log('priv key', tokenPrivKey.toBase58());
-					const tokenPubKey = tokenPrivKey.toPublicKey();
-					console.log('Token public key:', tokenPubKey.toBase58());
+	// 				const tokenPrivKey = PrivateKey.random();
+	// 				// const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
+	// 				console.log('priv key', tokenPrivKey.toBase58());
+	// 				const tokenPubKey = tokenPrivKey.toPublicKey();
+	// 				console.log('Token public key:', tokenPubKey.toBase58());
 
-					await zkappWorker.initTokenInstance(tokenPubKey);
+	// 				await zkappWorker.initTokenInstance(tokenPubKey);
 
-					if (userPublicKey) {
-						await zkappWorker.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
+	// 				if (userPublicKey) {
+	// 					await zkappWorker.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
 
-						await zkappWorker.proveTransaction();
-						console.log('Transaction proved');
-						const tx = await zkappWorker.getTransactionJSON();
-						const { hash } = await (window as any).mina.sendTransaction({
-							transaction: tx,
-							feePayer: {
-								fee: 0.01 * 1e9,
-								memo: 'abc',
-							},
-						});
-						console.log('hash', hash);
-					}
-				} else {
-					console.log('zkappWorkerClient null in setTokenNoDeploy');
-				}
-			} catch (err) {
-				console.log(err);
-			} finally {
-				setIsMinaLoading(false);
-			}
-		};
+	// 					await zkappWorker.proveTransaction();
+	// 					console.log('Transaction proved');
+	// 					const tx = await zkappWorker.getTransactionJSON();
+	// 					const { hash } = await (window as any).mina.sendTransaction({
+	// 						transaction: tx,
+	// 						feePayer: {
+	// 							fee: 0.01 * 1e9,
+	// 							memo: 'abc',
+	// 						},
+	// 					});
+	// 					console.log('hash', hash);
+	// 				}
+	// 			} else {
+	// 				console.log('zkappWorkerClient null in setTokenNoDeploy');
+	// 			}
+	// 		} catch (err) {
+	// 			console.log(err);
+	// 		} finally {
+	// 			setIsMinaLoading(false);
+	// 		}
+	// 	};
 
-		setTokenNoDeploy();
-	}, [zkappWorkerClient]);
+	// 	setTokenNoDeploy();
+	// }, [zkappWorkerClient]);
 
-	const compileContracts = async (type: string) => {
+	const compileContracts = async (type: string, loadOnly?: boolean) => {
 		setIsMinaLoading(true);
-		if (zkappWorkerClient) {
-			if (type == 'token') {
-				await zkappWorkerClient.loadTokenContract();
-				console.log('Compiling token contract...');
-				// setDisplayText('Compiling token contract...');
-				await zkappWorkerClient.compileTokenContract();
-				console.log('zkApp token contract compiled');
-				// setDisplayText('zkApp token contract compiled');
-			} else if (type == 'group') {
-				console.log('Compiling group contract...');
-				await zkappWorkerClient.loadGroupContract();
-				await zkappWorkerClient.compileGroupContract();
+		try {
+			if (zkappWorkerClient) {
+				const areCompiled = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
+				if (type == 'token' && !areCompiled.token) {
+					// if (loadOnly) {
+					// 	await zkappWorkerClient.loadTokenContract();
+					// 	return;
+					// }
+					console.log('Compiling token contract...');
+					// setDisplayText('Compiling token contract...');
+					await zkappWorkerClient.compileTokenContract();
+					console.log('zkApp token contract compiled');
+					const tokenPubKey = PrivateKey.fromBase58(tokenPrivKey).toPublicKey();
+					await zkappWorkerClient.initTokenInstance(tokenPubKey);
+					// setDisplayText('zkApp token contract compiled');
+				} else if (type == 'group' && !areCompiled.group) {
+					console.log('Compiling group contract...');
+					// if (loadOnly) {
+					// 	await zkappWorkerClient.loadGroupContract();
+					// 	return;
+					// }
+					await zkappWorkerClient.compileGroupContract();
+					const tokenPubKey = PrivateKey.fromBase58(tokenPrivKey).toPublicKey();
+					await zkappWorkerClient.initTokenInstance(tokenPubKey);
+				}
+				console.log('Finished compiling...');
 			}
-			console.log('Finished compiling...');
+		} catch (err) {
+			console.log(err);
+		} finally {
+			setIsMinaLoading(false);
 		}
-		setIsMinaLoading(false);
 	};
 
 	const logFetchAccount = async (key: string, zkappWorkerClientt?: ZkappWorkerClient) => {
@@ -230,31 +251,66 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		setDeployingGroup(true);
 	};
 
-	const handleDeployGroup = useCallback(async () => {
+	const prepareForGroupDeploy = async () => {
 		try {
-			console.log('INTO DEPLOY');
 			if (zkappWorkerClient == null) {
 				console.log('zkappWorkerClient is null');
 				return;
 			}
-			setIsMinaLoading(true);
-			const res = await zkappWorkerClient.fetchAccount({ publicKey: userPublicKey!.toBase58() });
-			console.log('index fetchAcc log in groupDeploy ', res);
+			// const res = await zkappWorkerClient.fetchAccount({ publicKey: userPublicKey!.toBase58() });
+			// console.log('index fetchAcc log in groupDeploy ', res);
+			// const groupPrivKey = PrivateKey.random();
+			// const groupPubKey = groupPrivKey.toPublicKey();
+			// console.log('Group public key:', groupPubKey.toBase58());
+
+			// // console.log('compiling group contract...');
+			// // await zkappWorkerClient.compileGroupContract();
+			// const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
+			// // const x = await zkappWorkerClient.fetchAccount({ publicKey: tokenPubKey.toBase58() });
+
+			// if (!result.group) {
+			// 	setIsMinaLoading(true);
+			// 	console.log('Compiling token contract...');
+			// 	await zkappWorkerClient.compileGroupContract();
+			// }
+
+			// await zkappWorkerClient.initGroupInstance(groupPubKey);
+		} catch (error) {
+			console.log(error);
+		} finally {
+			setIsMinaLoading(false);
+		}
+	};
+
+	const handleDeployGroup = useCallback(async () => {
+		try {
+			if (zkappWorkerClient == null) {
+				console.log('zkappWorkerClient is null');
+				return;
+			}
 			const groupPrivKey = PrivateKey.random();
 			const groupPubKey = groupPrivKey.toPublicKey();
 			console.log('Group public key:', groupPubKey.toBase58());
-			// console.log('compiling group contract...');
-			// await zkappWorkerClient.compileGroupContract();
+
+			console.log('INTO DEPLOY');
+
 			console.log('deploying group contract...');
+
+			const res = await zkappWorkerClient.fetchAccount({ publicKey: userPublicKey!.toBase58() });
+			console.log('index fetchAcc log in groupDeploy ', res);
+
+			await zkappWorkerClient.initGroupInstance(groupPubKey);
 			await zkappWorkerClient.deployGroup(
 				userPublicKey!.toBase58(),
 				groupPrivKey.toBase58(),
-				48,
+				48, //PASS THOSE VALUES
 				24000,
 				24,
 				3,
 				0
 			);
+
+			setIsMinaLoading(true);
 			await zkappWorkerClient.proveTransaction();
 			const txn = await zkappWorkerClient.getTransactionJSON();
 			const { hash } = await window.mina.sendTransaction({
@@ -266,16 +322,11 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			});
 
 			console.log('hash', hash);
+			await zkappWorkerClient.loopUntilConfirmed(hash);
 
+			console.log('Group created');
 			//check if worked...
 			await logFetchAccount(groupPubKey.toBase58(), zkappWorkerClient);
-			// await zkappWorkerClient.loopUntilAccountExists(
-			// 	groupPubKey,
-			// 	// () => {
-			// 	// 	console.log('no existo on chaino');
-			// 	// },
-			// 	true
-			// );
 		} catch (err) {
 			// You may want to show the error message in your UI to the user if the transaction fails.
 			console.log(err);
@@ -296,13 +347,42 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 	}, [deployingGroup, handleDeployGroup]);
 
 	const deployToken = async () => {
-		const tokenPrivKey = PrivateKey.random();
-		// const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
+		// const tokenPrivKey = PrivateKey.random();
+		const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
 		console.log('priv key', tokenPrivKey.toBase58());
 		const tokenPubKey = tokenPrivKey.toPublicKey();
 		console.log('Token public key:', tokenPubKey.toBase58());
 		if (userPublicKey && zkappWorkerClient) {
-			await zkappWorkerClient.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
+			try {
+				const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
+				const x = await zkappWorkerClient.fetchAccount({ publicKey: tokenPubKey.toBase58() });
+				if (x == undefined || x == null) {
+					setIsMinaLoading(true);
+					if (!result.token) {
+						console.log('Compiling token contract...');
+						await zkappWorkerClient.compileTokenContract();
+					}
+					await zkappWorkerClient.initTokenInstance(tokenPubKey);
+					await zkappWorkerClient.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
+					await zkappWorkerClient.proveTransaction();
+					console.log('Transaction proved');
+					const txn = await zkappWorkerClient.getTransactionJSON();
+					const { hash } = await window.mina.sendTransaction({
+						transaction: txn,
+						feePayer: {
+							fee: 0.1 * 1e9,
+							memo: 'zk',
+						},
+					});
+					console.log('hash', hash);
+					await zkappWorkerClient.loopUntilConfirmed(hash);
+				}
+				console.log('Token already exists');
+			} catch (err) {
+				console.log(err);
+			} finally {
+				setIsMinaLoading(false);
+			}
 		}
 	};
 
@@ -315,13 +395,44 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		// if (userPublicKey && zkappWorkerClient) {
 		// 	await zkappWorkerClient.deployToken(userPublicKey.toBase58(), tokenPrivKey.toBase58());
 		// }
+
 		if (userPublicKey && zkappWorkerClient && key) {
-			const reciverPubKey = PublicKey.fromBase58(key);
-			const admin = userPublicKey!.toBase58();
-			console.log('here 0');
-			//only deployer of initial token can mint
-			// await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 96);
-			await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 96);
+			try {
+				// const reciverPubKey = PublicKey.fromBase58(key);
+				const admin = userPublicKey!.toBase58();
+				console.log('admin', admin);
+				console.log('reciver', key);
+				const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
+				console.log('here 0');
+				if (!result.token) {
+					setIsMinaLoading(true);
+					const tokenPrivKey = PrivateKey.fromBase58('EKEBKqSxCj8FNSjCCuFUmzygBKsTUE1zM7wZXSTf9DjYyUgvekDn');
+					console.log('priv key', tokenPrivKey.toBase58());
+					const tokenPubKey = tokenPrivKey.toPublicKey();
+					await zkappWorkerClient.initTokenInstance(tokenPubKey);
+					console.log('Compiling token contract...');
+					await zkappWorkerClient.compileTokenContract();
+				}
+				//only deployer of initial token can mint
+				// await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 96);
+				setIsMinaLoading(true);
+				await zkappWorkerClient.mintToken(admin, key, 50000);
+				await zkappWorkerClient.proveTransaction();
+				console.log('Transaction proved');
+				const txn = await zkappWorkerClient.getTransactionJSON();
+				const { hash } = await window.mina.sendTransaction({
+					transaction: txn,
+					feePayer: {
+						fee: 0.1 * 1e9,
+						memo: 'zk',
+					},
+				});
+				console.log('hash', hash);
+				await zkappWorkerClient.loopUntilConfirmed(hash);
+			} catch (error) {
+				console.log(error);
+			} finally {
+			}
 		}
 	};
 
