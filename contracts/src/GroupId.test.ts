@@ -103,9 +103,6 @@ describe('GroupId', () => {
 
     const Local = await Mina.LocalBlockchain({ proofsEnabled });
     identityProof = await ProofOfNationalityProof.fromJSON(proof);
-    corruptedIdentityProof = await ProofOfNationalityProof.fromJSON(
-      corruptedProof
-    );
 
     Mina.setActiveInstance(Local);
     // users at indexes: 2 - 9
@@ -345,7 +342,7 @@ describe('GroupId', () => {
           GROUP_SETTINGS,
           deployer.key.toPublicKey(),
           verificationKey,
-          corruptedIdentityProof
+          await ProofOfNationalityProof.fromJSON(corruptedProof)
         );
       })
     ).rejects.toThrow();
