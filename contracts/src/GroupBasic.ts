@@ -115,7 +115,7 @@ export class GroupSettings extends Struct({
   }
 }
 
-// TODO add validation for group settings
+// Max payments capped by the proof size
 const MAX_PAYMENTS = 200;
 const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
@@ -128,8 +128,7 @@ export class GroupBasic extends TokenContract {
   @state(UInt64) paymentRound = State<UInt64>();
   /** Exact number of members needed for this group . */
   @state(UInt32) members = State<UInt32>();
-  /** Token account of the admin. */
-  @state(PublicKey) adminTokenAddress = State<PublicKey>();
+
   reducer = Reducer({ actionType: Entry });
   events = {
     'lottery-winner': PublicKey,
@@ -163,15 +162,13 @@ export class GroupBasic extends TokenContract {
       args.admin,
       this.deriveTokenId()
     );
-
-    this.adminTokenAddress.set(adminTokenAccount.address);
   }
 
   @method
   async organiserWithdraw(_groupSettings: GroupSettings, withdraw: UInt32) {
-    let senderAddr = this.sender.getAndRequireSignature();
+    let organiser = this.sender.getAndRequireSignature();
     // Assert organsier is calling
-    this.admin.getAndRequireEquals().assertEquals(senderAddr);
+    this.admin.getAndRequireEquals().assertEquals(organiser);
 
     // Validate group settings
     await this.assertGroupHash(_groupSettings);
@@ -179,21 +176,9 @@ export class GroupBasic extends TokenContract {
     // Ensure withdraw is a multiple of the item price
     withdraw.mod(_groupSettings.itemPrice).assertEquals(UInt32.zero);
 
-    // Derive admin token account
-    // let adminTokenAccount = new GroupUserStorage(
-    //   this.adminTokenAddress.getAndRequireEquals(),
-    //   this.deriveTokenId()
-    // );
-
-    this.sender.getAndRequireSignature();
-
     // Transfer token to the caller
     const token = new FungibleToken(_groupSettings.tokenAddress);
-    await token.transfer(
-      this.adminTokenAddress.getAndRequireEquals(),
-      senderAddr,
-      UInt64.from(withdraw)
-    );
+    await token.transfer(this.address, organiser, UInt64.from(withdraw));
   }
 
   @method
@@ -441,23 +426,8 @@ export class GroupBasic extends TokenContract {
     // Pay the total amount
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
-    Provable.log(token.account);
-
-    // Old payment to the contract
-    // await token.transfer(senderAddr, this.address, totalPay);
-
-    // Instead pay to the token account of the admin address
-    // let adminTokenAccount = new GroupUserStorage(
-    //   this.admin.getAndRequireEquals(),
-    //   this.deriveTokenId()
-    // );
-
-    // New payment
-    await token.transfer(
-      senderAddr,
-      this.adminTokenAddress.getAndRequireEquals(),
-      totalPay
-    );
+    // Payment to the contract
+    await token.transfer(senderAddr, this.address, totalPay);
 
     // Provable.log('totalPaymentsU64', totalPaymentsU64);
     // Provable.log('currentPaymentRound', currentPaymentRound);
@@ -685,10 +655,6 @@ export class GroupBasic extends TokenContract {
     groupSettingsHash.assertEquals(groupSettings.hash());
   }
 
-  //TODO extraPayment() ?
-  //TODO claimLottery()
-  //TODO claimAuction()
-
   // Testign helpers
   //**********************************************************************
 
@@ -696,18 +662,4 @@ export class GroupBasic extends TokenContract {
   @method async roundUpdate(roundIndex: UInt64) {
     this.paymentRound.set(roundIndex);
   }
-
-  // /** Function for testing only. Fetches total missed payments for a given user. */
-  // @method.returns(UInt32) async totalMissedHandle(
-  //   user: PublicKey
-  // ): Promise<UInt32> {
-  //   return this.totalMissed(user);
-  // }
-
-  /** Function for testing only. Retrieves how many payments a given user has made. */
-  // @method.returns(UInt32) async totalPaymentsHandle(
-  //   user: PublicKey
-  // ): Promise<UInt32> {
-  //   return this.totalPayments(user);
-  // }
 }

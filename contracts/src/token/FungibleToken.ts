@@ -107,7 +107,7 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
   @method
   async transfer(from: PublicKey, to: PublicKey, amount: UInt64) {
     this.internal.send({ from, to, amount });
-    this.send();
+    // this.send();
     this.emitEvent('Transfer', new TransferEvent({ from, to, amount }));
   }
 
@@ -117,6 +117,7 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
     // TODO: event emission here
   }
 
+  // Attempt at forcing send permission to be proof
   @method
   async setProofTransfer() {
     let update = AccountUpdate.createSigned(

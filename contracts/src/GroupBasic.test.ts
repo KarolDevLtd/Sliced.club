@@ -16,7 +16,7 @@ import {
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
 
-let proofsEnabled = false;
+let proofsEnabled = true;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -201,16 +201,6 @@ describe('GroupBasic', () => {
     // console.log(group.paymentRound.get().toBigInt());
     // console.log(groupAdmin.toBase58());
     expect(groupAdmin.toBase58()).toEqual(admin.toBase58());
-
-    // Log admin and admin token account
-    console.log('Admin address: ', group.admin.get().toBase58());
-    console.log(
-      'Admin token address: ',
-      group.adminTokenAddress.get().toBase58()
-    );
-
-    // Log token id
-    console.log('Token ID: ', group.deriveTokenId().toBigInt());
   });
 
   it('Mints and distributes tokens ', async () => {
@@ -390,15 +380,15 @@ describe('GroupBasic', () => {
       // AccountUpdate.fundNewAccount(alexa);
       await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), basePayment);
     });
-    // console.log(txn.toPretty());
+
     await txn.prove();
     await txn.sign([alexa.key]).send();
     expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
       initialBalanceAlexa - paymentAmount.toBigint()
     );
-    // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-    //   initialBalanceGroup + paymentAmount.toBigint()
-    // );
+    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+      initialBalanceGroup + paymentAmount.toBigint()
+    );
 
     // Payment has been marked
     let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
@@ -425,21 +415,17 @@ describe('GroupBasic', () => {
       await group.roundPayment(GROUP_SETTINGS, billyBid, basePayment);
     });
     await txn.prove();
-    // console.log('json: ', txn.toJSON() + '\n');
-    // console.log('TX deets: ', txn.toPretty()[3] + '\n');
-    // console.log('TX deets: ', txn.toPretty()[4] + '\n');
-    // console.log('TX deets: ', txn.toPretty()[5] + '\n');
+
     await txn.sign([billy.key]).send();
-    // expect((await tokenApp.getBalanceOf(billy)).toBigInt()).toEqual(
-    //   initialBalanceBilly - paymentAmount.mul(2).toBigint()
-    // );
-    // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-    //   initialBalanceGroup + paymentAmount.mul(2).toBigint()
-    // );
+    expect((await tokenApp.getBalanceOf(billy)).toBigInt()).toEqual(
+      initialBalanceBilly - paymentAmount.mul(2).toBigint()
+    );
+    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+      initialBalanceGroup + paymentAmount.mul(2).toBigint()
+    );
   });
 
   it('2nd user (higher bidder) correctly joins the auction', async () => {
-    console.log('account:', JSON.stringify(Mina.getAccount(tokenAddress)));
     const charlieBid = UInt64.from(3);
     const initialBalanceCharlie = (
       await tokenApp.getBalanceOf(charlie)
@@ -451,15 +437,15 @@ describe('GroupBasic', () => {
       // AccountUpdate.fundNewAccount(charlie);
       await group.roundPayment(GROUP_SETTINGS, charlieBid, basePayment);
     });
-    // console.log('TX deets: ', txn.toPretty() + '\n');
+
     await txn.prove();
     await txn.sign([charlie.key]).send();
-    // expect((await tokenApp.getBalanceOf(charlie)).toBigInt()).toEqual(
-    //   initialBalanceCharlie - paymentAmount.mul(2).toBigint()
-    // );
-    // expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
-    //   initialBalanceGroup + paymentAmount.mul(2).toBigint()
-    // );
+    expect((await tokenApp.getBalanceOf(charlie)).toBigInt()).toEqual(
+      initialBalanceCharlie - paymentAmount.mul(2).toBigint()
+    );
+    expect((await tokenApp.getBalanceOf(groupAddress)).toBigInt()).toEqual(
+      initialBalanceGroup + paymentAmount.mul(2).toBigint()
+    );
 
     // User did  pay current month, hence ellgible for the lottery
     let actions: Entry[][] = await group.reducer.fetchActions();
@@ -467,287 +453,258 @@ describe('GroupBasic', () => {
     expect(latestAction.lotteryElligible.toBoolean()).toEqual(true);
   });
 
-  // it('Correctly chooses the winners', async () => {
-  //   const paymentRound = group.paymentRound.get();
-  //   const randomIndex = Math.floor(Math.random() * 20);
-  //   const txn = await Mina.transaction(admin, async () => {
-  //     // AccountUpdate.fundNewAccount(admin);
-  //     // Keeping it at 10 makes both winners the same
-  //     await group.getResults(GROUP_SETTINGS, admin.key, Field.from(10));
-  //   });
-  //   console.log('Proven');
-  //   await txn.prove();
-
-  //   // Submit
-  //   // await txn.send();
-  //   await txn.sign([admin.key]).send();
-
-  //   //
-  //   let events = await group.fetchEvents();
-
-  //   // console.log('Events: ', events);
-
-  //   for (const event of await group.fetchEvents()) {
-  //     console.log(event.type, JSON.stringify(event.event.data));
-  //   }
-
-  //   let lotteryWinnerKey = JSON.stringify(events[1].event.data).slice(1, -1);
-
-  //   let auctionWinnerKey = JSON.stringify(events[0].event.data).slice(1, -1);
-  //   // For now, there must always be a lottery winner
-
-  //   // Need to assert that the emmited winner is not base publickey
-  //   expect(lotteryWinnerKey).not.toEqual(PublicKey.empty().toBase58());
-
-  //   console.log('Lottery winner key: ', lotteryWinnerKey);
-  //   console.log('Auction Winner key: ', auctionWinnerKey);
-  //   console.log('Empty          key', PublicKey.empty().toBase58());
-
-  //   // Need to assert that the emmited winner is not base publickey
-  //   // as there is a bidder
-  //   expect(auctionWinnerKey).not.toEqual(PublicKey.empty().toBase58());
-
-  //   // Lottery and auction winners are different
-  //   expect(lotteryWinnerKey).not.toEqual(auctionWinnerKey);
-  //   lotteryWinner = PublicKey.fromBase58(lotteryWinnerKey);
-
-  //   const newPaymentRound = group.paymentRound.get();
-  //   // expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
-
-  //   // Fetch actions
-  //   let actions: Entry[][] = await group.reducer.fetchActions();
-  //   console.log('Actions sizze: ', actions.length);
-  // });
-
-  // it('Claim as auction winner', async () => {
-  //   let udStart = new GroupUserStorage(charlie, group.deriveTokenId());
-  //   let claimed = udStart.claimed.get().toBoolean();
-
-  //   // Assert it is unclaimed at the start
-  //   expect(claimed).toEqual(false);
-
-  //   const txn = await Mina.transaction(charlie, async () => {
-  //     await group.userClaim();
-  //   });
-  //   console.log('Proven');
-  //   await txn.prove();
-  //   await txn.sign([charlie.key]).send();
-
-  //   let udEnd = new GroupUserStorage(charlie, group.deriveTokenId());
-  //   claimed = udEnd.claimed.get().toBoolean();
-
-  //   // Assert it is claimed at the end
-  //   expect(claimed).toEqual(true);
-  // });
-
-  // // it('Claim as lottery winner', async () => {
-  // //   // Fetch lottery winner from test accounts based on stored winner account
-  // //   let lotteryWinnerAccount = testAccounts.find(
-  // //     (account) => account.key.toBase58() === lotteryWinner.toBase58()
-  // //   );
-
-  // //   let udStart = new GroupUserStorage(
-  // //     lotteryWinnerAccount!,
-  // //     group.deriveTokenId()
-  // //   );
-  // //   let claimed = udStart.claimed.get().toBoolean();
-
-  // //   // Assert it is unclaimed at the start
-  // //   expect(claimed).toEqual(false);
-
-  // //   const txn = await Mina.transaction(lotteryWinnerAccount, async () => {
-  // //     await group.userClaim();
-  // //   });
-  // //   console.log('Proven');
-  // //   await txn.prove();
-  // //   await txn.sign([lotteryWinnerAccount!.key]).send();
-
-  // //   let udEnd = new GroupUserStorage(
-  // //     lotteryWinnerAccount!,
-  // //     group.deriveTokenId()
-  // //   );
-  // //   claimed = udEnd.claimed.get().toBoolean();
-
-  // //   // Assert it is claimed at the end
-  // //   expect(claimed).toEqual(true);
-  // // });
-
-  // it("Admin can't withdraw arbitrary number", async () => {
-  //   await expect(
-  //     Mina.transaction(admin, async () => {
-  //       await group.organiserWithdraw(GROUP_SETTINGS, UInt32.from(777));
-  //     })
-  //   ).rejects.toThrow();
-  // });
-
-  // it('Admin withdraws', async () => {
-  //   // Log contract token balance at the start
-  //   const initialBalanceAdmin = (
-  //     await tokenApp.getBalanceOf(group.admin.get())
-  //   ).toBigInt();
-
-  //   const initialBalanceAdminTokenAccount = (
-  //     await tokenApp.getBalanceOf(group.adminTokenAddress.get())
-  //   ).toBigInt();
-
-  //   // Log addresses of admin and admin token account
-  //   console.log("Admin's address: ", group.admin.get().toBase58());
-  //   console.log(
-  //     "Admin's token account address: ",
-  //     group.adminTokenAddress.get().toBase58()
-  //   );
-
-  //   console.log('Initial balance admin              : ', initialBalanceAdmin);
-  //   console.log(
-  //     'Initial balance admin token account: ',
-  //     initialBalanceAdminTokenAccount
-  //   );
-  //   console.log('Item price     : ', GROUP_SETTINGS.itemPrice.toString());
-
-  //   const txn = await Mina.transaction(admin, async () => {
-  //     await group.organiserWithdraw(GROUP_SETTINGS, UInt32.from(3000));
-  //   });
-
-  //   await txn.prove();
-  //   await txn.sign([admin.key, groupPrivateKey]).send();
-
-  //   const endlBalanceAdmin = (
-  //     await tokenApp.getBalanceOf(group.admin.get())
-  //   ).toBigInt();
-
-  //   const endBalanceAdminTokenAccount = (
-  //     await tokenApp.getBalanceOf(group.adminTokenAddress.get())
-  //   ).toBigInt();
-
-  //   console.log('End balance admin              : ', endlBalanceAdmin);
-  //   console.log(
-  //     'End balance admin token account: ',
-  //     endBalanceAdminTokenAccount
-  //   );
-
-  //   // Assertion for difference being taken away
-  //   expect(parseInt(endlBalanceAdmin.toString())).toEqual(
-  //     parseInt(initialBalanceAdmin.toString()) - 3000
-  //   );
-  // });
-
-  // // // // Below need to ensure that it does not emit lotetry readiness, if dues are unpaid.
-
-  // // // // it('Winners clain prize', async () => {});
-
-  // // it('Compensation tests one missed payment, but no current', async () => {
-  // //   console.log('Round at the start: ', group.paymentRound.get().toString());
-
-  // //   // Round already advanced in the winner
-  // //   let currentRoundStart = group.paymentRound.get();
-  // //   // Subtract depending on whether that tests runs or not
-  // //   let currentRound = await incrementRound(new UInt64(1));
-  // //   console.log(
-  // //     'Current round after increment: ',
-  // //     currentRound.toBigInt().toString()
-  // //   );
-
-  // //   console.log('Round at the end: ', group.paymentRound.get().toString());
-
-  // //   // TODO: payeSehment needs to fail until compensation is done
-  // //   // Start payment count
-  // //   let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
-  // //   let totalCompStart = fetchCompensation(alexa, 'Alexa start');
-
-  // //   // Compensate for missed payment, don't pay current payment
-  // //   const txn2 = await Mina.transaction(alexa, async () => {
-  // //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
-  // //   });
-
-  // //   await txn2.prove();
-  // //   await txn2.sign([alexa.key]).send();
-
-  // //   // Start payment count
-  // //   let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
-  // //   let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
-
-  // //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-  // //   expect(totalCompEnd).toEqual(totalCompStart + 1);
-
-  // //   // User did not pay current month, hence inellgible for the lottery
-  // //   let actions: Entry[][] = await group.reducer.fetchActions();
-  // //   let latestAction: Entry = actions[actions.length - 1][1];
-  // //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
-  // // });
-
-  // // it('Compensation tests two missed payment, plus current month', async () => {
-  // //   console.log('Round at the start: ', group.paymentRound.get().toString());
-
-  // //   let totalPaymentsStart = fetchPaid(timmy, 'Alexa start');
-  // //   let totalCompStart = fetchCompensation(timmy, 'Alexa start');
-
-  // //   // Compensate for two missed payments, pay current payment
-  // //   const txn2 = await Mina.transaction(timmy, async () => {
-  // //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
-  // //   });
-
-  // //   await txn2.prove();
-  // //   await txn2.sign([timmy.key]).send();
-
-  // //   // Start payment count
-  // //   let totalPaymentsEnd = fetchPaid(timmy, 'timmy end');
-  // //   let totalCompEnd = fetchCompensation(timmy, 'timmy end');
-
-  // //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
-  // //   expect(totalCompEnd).toEqual(totalCompStart + 2);
-
-  // //   // User did not pay current month, hence inellgible for the lottery
-  // //   let actions: Entry[][] = await group.reducer.fetchActions();
-  // //   let latestAction: Entry = actions[actions.length - 1][1];
-  // //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(true);
-  // // });
-
-  // // it('Compensation tests two missed payment, no current', async () => {
-  // //   // TODO: payeSehment needs to fail until compensation is done
-
-  // //   let totalPaymentsStart = fetchPaid(billy, 'Billy start');
-  // //   let totalCompStart = fetchCompensation(billy, 'Billy start');
-
-  // //   // Increment payment round by 1 from the current
-  // //   let currentRound = await incrementRound(UInt64.one);
-
-  // //   console.log(
-  // //     'Current round after increment: ',
-  // //     currentRound.toBigInt().toString()
-  // //   );
-
-  // //   // Compensate for missed payment
-  // //   const txn2 = await Mina.transaction(billy, async () => {
-  // //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
-  // //   });
-
-  // //   await txn2.prove();
-  // //   await txn2.sign([billy.key]).send();
-
-  // //   let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
-  // //   let totalCompEnd = fetchCompensation(billy, 'Billy end');
-
-  // //   // Assert compensation increased by 2
-  // //   expect(totalCompEnd).toEqual(totalCompStart + 2);
-
-  // //   // Assert payments unchanged
-  // //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-
-  // //   // User did not pay current month, hence inellgible for the lottery
-  // //   let actions: Entry[][] = await group.reducer.fetchActions();
-  // //   let latestAction: Entry = actions[actions.length - 1][1];
-  // //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
-  // // });
-
-  // // it('Compensation tests three missed payment (rejection)', async () => {
-  // //   // Increment payment round by 1 from the current
-  // //   let currentRound = await incrementRound(UInt64.one);
-
-  // //   // Compensate for missed payment
-  // //   await expect(
-  // //     Mina.transaction(bryan, async () => {
-  // //       await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
-  // //     })
-  // //   ).rejects.toThrow();
-  // // });
+  it('Correctly chooses the winners', async () => {
+    const txn = await Mina.transaction(admin, async () => {
+      // AccountUpdate.fundNewAccount(admin);
+      // Keeping it at 10 makes both winners the same
+      await group.getResults(GROUP_SETTINGS, admin.key, Field.from(10));
+    });
+    await txn.prove();
+    await txn.sign([admin.key]).send();
+
+    //
+    let events = await group.fetchEvents();
+    for (const event of await group.fetchEvents()) {
+      console.log(event.type, JSON.stringify(event.event.data));
+    }
+
+    let lotteryWinnerKey = JSON.stringify(events[1].event.data).slice(1, -1);
+    let auctionWinnerKey = JSON.stringify(events[0].event.data).slice(1, -1);
+
+    // Need to assert that the emmited winner is not base publickey
+    expect(lotteryWinnerKey).not.toEqual(PublicKey.empty().toBase58());
+
+    console.log('Lottery winner key: ', lotteryWinnerKey);
+    console.log('Auction Winner key: ', auctionWinnerKey);
+    console.log('Empty          key', PublicKey.empty().toBase58());
+
+    // Need to assert that the emmited winner is not base publickey
+    // as there is at least one bidder
+    expect(auctionWinnerKey).not.toEqual(PublicKey.empty().toBase58());
+
+    // Assert lottery and auction winners are different accounts
+    expect(lotteryWinnerKey).not.toEqual(auctionWinnerKey);
+    lotteryWinner = PublicKey.fromBase58(lotteryWinnerKey);
+
+    const newPaymentRound = group.paymentRound.get();
+    // expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
+
+    // Fetch actions
+    let actions: Entry[][] = await group.reducer.fetchActions();
+    console.log('Actions sizze: ', actions.length);
+  });
+
+  it('Claim as auction winner', async () => {
+    let udStart = new GroupUserStorage(billy, group.deriveTokenId());
+    let claimed = udStart.claimed.get().toBoolean();
+
+    // Assert it is unclaimed at the start
+    expect(claimed).toEqual(false);
+
+    const txn = await Mina.transaction(billy, async () => {
+      await group.userClaim();
+    });
+
+    await txn.prove();
+    await txn.sign([billy.key]).send();
+
+    let udEnd = new GroupUserStorage(billy, group.deriveTokenId());
+    claimed = udEnd.claimed.get().toBoolean();
+
+    // Assert it is claimed at the end
+    expect(claimed).toEqual(true);
+  });
+
+  it('Claim as lottery winner', async () => {
+    // Fetch lottery winner from test accounts based on stored winner account
+    let lotteryWinnerAccount = testAccounts.find(
+      (account) =>
+        account.key.toPublicKey().toBase58() === lotteryWinner.toBase58()
+    );
+
+    let udStart = new GroupUserStorage(
+      lotteryWinnerAccount!,
+      group.deriveTokenId()
+    );
+    let claimed = udStart.claimed.get().toBoolean();
+
+    // Assert it is unclaimed at the start
+    expect(claimed).toEqual(false);
+
+    const txn = await Mina.transaction(lotteryWinnerAccount, async () => {
+      await group.userClaim();
+    });
+
+    await txn.prove();
+    await txn.sign([lotteryWinnerAccount!.key]).send();
+
+    let udEnd = new GroupUserStorage(
+      lotteryWinnerAccount!,
+      group.deriveTokenId()
+    );
+    claimed = udEnd.claimed.get().toBoolean();
+
+    // Assert it is claimed at the end
+    expect(claimed).toEqual(true);
+  });
+
+  it("Admin can't withdraw arbitrary number", async () => {
+    await expect(
+      Mina.transaction(admin, async () => {
+        await group.organiserWithdraw(GROUP_SETTINGS, UInt32.from(777));
+      })
+    ).rejects.toThrow();
+  });
+
+  it('Admin withdraws', async () => {
+    // Log contract token balance at the start
+    const initialBalanceAdmin = (
+      await tokenApp.getBalanceOf(group.admin.get())
+    ).toBigInt();
+
+    const initialBalanceContract = (
+      await tokenApp.getBalanceOf(group.address)
+    ).toBigInt();
+
+    const txn = await Mina.transaction(admin, async () => {
+      await group.organiserWithdraw(
+        GROUP_SETTINGS,
+        UInt32.from(GROUP_SETTINGS.itemPrice.toBigint())
+      );
+    });
+    await txn.prove();
+    await txn.sign([admin.key, groupPrivateKey]).send();
+
+    const endlBalanceAdmin = (
+      await tokenApp.getBalanceOf(group.admin.get())
+    ).toBigInt();
+
+    const endBalanceContract = (
+      await tokenApp.getBalanceOf(group.address)
+    ).toBigInt();
+
+    // Assertion for difference being taken away
+    expect(parseInt(endlBalanceAdmin.toString())).toEqual(
+      parseInt(initialBalanceAdmin.toString()) + 3000
+    );
+    expect(parseInt(endBalanceContract.toString())).toEqual(
+      parseInt(initialBalanceContract.toString()) - 3000
+    );
+  });
+
+  it('Compensation tests one missed payment, but no current', async () => {
+    console.log('Round at the start: ', group.paymentRound.get().toString());
+
+    // Round already advanced in the winner
+    let currentRoundStart = group.paymentRound.get();
+    // Subtract depending on whether that tests runs or not
+    let currentRound = await incrementRound(new UInt64(1));
+    console.log(
+      'Current round after increment: ',
+      currentRound.toBigInt().toString()
+    );
+
+    console.log('Round at the end: ', group.paymentRound.get().toString());
+
+    // TODO: payeSehment needs to fail until compensation is done
+    // Start payment count
+    let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
+    let totalCompStart = fetchCompensation(alexa, 'Alexa start');
+
+    // Compensate for missed payment, don't pay current payment
+    const txn2 = await Mina.transaction(alexa, async () => {
+      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
+    });
+
+    await txn2.prove();
+    await txn2.sign([alexa.key]).send();
+
+    // Start payment count
+    let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
+    let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
+
+    expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
+    expect(totalCompEnd).toEqual(totalCompStart + 1);
+
+    // User did not pay current month, hence inellgible for the lottery
+    let actions: Entry[][] = await group.reducer.fetchActions();
+    let latestAction: Entry = actions[actions.length - 1][1];
+    expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
+  });
+
+  it('Compensation tests two missed payment, plus current month', async () => {
+    console.log('Round at the start: ', group.paymentRound.get().toString());
+
+    let totalPaymentsStart = fetchPaid(timmy, 'Alexa start');
+    let totalCompStart = fetchCompensation(timmy, 'Alexa start');
+
+    // Compensate for two missed payments, pay current payment
+    const txn2 = await Mina.transaction(timmy, async () => {
+      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
+    });
+
+    await txn2.prove();
+    await txn2.sign([timmy.key]).send();
+
+    // Start payment count
+    let totalPaymentsEnd = fetchPaid(timmy, 'timmy end');
+    let totalCompEnd = fetchCompensation(timmy, 'timmy end');
+
+    expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
+    expect(totalCompEnd).toEqual(totalCompStart + 2);
+
+    // User did not pay current month, hence inellgible for the lottery
+    let actions: Entry[][] = await group.reducer.fetchActions();
+    let latestAction: Entry = actions[actions.length - 1][1];
+    expect(latestAction.lotteryElligible.toBoolean()).toEqual(true);
+  });
+
+  it('Compensation tests two missed payment, no current', async () => {
+    // TODO: payeSehment needs to fail until compensation is done
+
+    let totalPaymentsStart = fetchPaid(billy, 'Billy start');
+    let totalCompStart = fetchCompensation(billy, 'Billy start');
+
+    // Increment payment round by 1 from the current
+    let currentRound = await incrementRound(UInt64.one);
+
+    console.log(
+      'Current round after increment: ',
+      currentRound.toBigInt().toString()
+    );
+
+    // Compensate for missed payment
+    const txn2 = await Mina.transaction(billy, async () => {
+      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
+    });
+
+    await txn2.prove();
+    await txn2.sign([billy.key]).send();
+
+    let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
+    let totalCompEnd = fetchCompensation(billy, 'Billy end');
+
+    // Assert compensation increased by 2
+    expect(totalCompEnd).toEqual(totalCompStart + 2);
+
+    // Assert payments unchanged
+    expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
+
+    // User did not pay current month, hence inellgible for the lottery
+    let actions: Entry[][] = await group.reducer.fetchActions();
+    let latestAction: Entry = actions[actions.length - 1][1];
+    expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
+  });
+
+  it('Compensation tests three missed payment (rejection)', async () => {
+    // Increment payment round by 1 from the current
+    let currentRound = await incrementRound(UInt64.one);
+
+    // Compensate for missed payment
+    await expect(
+      Mina.transaction(bryan, async () => {
+        await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
+      })
+    ).rejects.toThrow();
+  });
 });
