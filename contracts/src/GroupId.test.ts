@@ -1,5 +1,5 @@
 import { FungibleToken } from './token/FungibleToken';
-import { GroupBasic, GroupSettings, Payments, Entry } from './GroupBasic';
+import { GroupId, GroupSettings, Payments, Entry } from './GroupId';
 import {
   Field,
   Mina,
@@ -13,13 +13,25 @@ import {
   UInt64,
   Bool,
 } from 'o1js';
+import fs from 'fs';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
+
+import {
+  proofOfAge,
+  proofOfSanctions,
+  proofOfUniqueHuman,
+  proofOfNationality,
+  ProofOfAgeProof,
+  ProofOfSanctionsProof,
+  ProofOfUniqueHumanProof,
+  ProofOfNationalityProof,
+} from 'idmask-zk-programs';
 
 let proofsEnabled = false;
 const fee = 1e8;
 
-describe('GroupBasic', () => {
+describe('GroupId', () => {
   let testAccounts: TestPublicKey[],
     deployer: TestPublicKey,
     admin: TestPublicKey,
@@ -35,12 +47,17 @@ describe('GroupBasic', () => {
     groupAddress = groupPrivateKey.toPublicKey(),
     tokenPrivateKey = PrivateKey.random(),
     tokenAddress = tokenPrivateKey.toPublicKey(),
-    group: GroupBasic,
+    group: GroupId,
     tokenApp: FungibleToken,
     derivedTokenId: Field,
-    verificationKey: VerificationKey;
+    verificationKey: VerificationKey,
+    verificationKeyAge: VerificationKey;
 
   let userStart: number, userEnd: number;
+
+  const proof = JSON.parse(
+    fs.readFileSync('src/test_proofs/proofOfNationality.json', 'utf-8')
+  );
 
   let groupRounds = 6;
   let missable = 3;
@@ -67,8 +84,11 @@ describe('GroupBasic', () => {
   beforeAll(async () => {
     //we always need to compile vk2 for tokenStorage
     // Analsye methods
-    // console.log('Methods analysed: \n', await GroupBasic.analyzeMethods());
-    const { verificationKey: vk2 } = await GroupBasic.compile();
+    // console.log('Methods analysed: \n', await GroupId.analyzeMethods());
+
+    const { verificationKey: vk3 } = await proofOfNationality.compile();
+    verificationKeyAge = vk3;
+    const { verificationKey: vk2 } = await GroupId.compile();
     verificationKey = vk2;
     if (proofsEnabled) {
       await FungibleToken.compile();
@@ -93,7 +113,7 @@ describe('GroupBasic', () => {
       theodore,
     ] = testAccounts = Local.testAccounts;
 
-    group = new GroupBasic(groupAddress);
+    group = new GroupId(groupAddress);
 
     derivedTokenId = TokenId.derive(groupAddress);
 
@@ -113,7 +133,7 @@ describe('GroupBasic', () => {
 
 
     token ${tokenAddress.toBase58()}
-    groupBasic ${groupAddress.toBase58()}
+    GroupId ${groupAddress.toBase58()}
   `);
     await localDeploy();
   });
@@ -194,7 +214,30 @@ describe('GroupBasic', () => {
     expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
   }
 
-  it('Generates and deploys the `GroupBasic` smart contract', async () => {
+  it('Id mask test', async () => {
+    // Spawn Json Prood
+    // let proofFormat: JsonProof = ageProofJson;
+
+    console.log('proof: ', proof);
+    let correctProof = await ProofOfNationalityProof.fromJSON(proof);
+    const txn1 = await Mina.transaction(alexa, async () => {
+      await group.verifyNationality(correctProof);
+    });
+
+    console.log('proof: ', proof);
+
+    // const txn1 = await Mina.transaction(alexa, async () => {
+    //   await group.verifyNationality(proof);
+    // });
+    await txn1.prove();
+    await txn1.sign([alexa.key]).send();
+    // await fetchAccount({
+    //   publicKey: alexa.key.toPublicKey(),
+    //   tokenId: derivedTokenId,
+    // });
+  });
+
+  it('Generates and deploys the `GroupId` smart contract', async () => {
     // const groupToken = group.tokenAddress.get();
     // expect(groupToken).toEqual(tokenAddress);
     const groupAdmin = group.admin.get();
