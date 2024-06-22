@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+import TextInput from '@/app/_components/ui/TextInput';
+import { preventActionNotLoggedIn } from '@/helpers/user-helper';
+import { useWallet } from '@/providers/WalletProvider';
+import { useMinaProvider } from '@/providers/minaprovider';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -14,9 +18,16 @@ import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { api } from '~/trpc/react';
 
+import useStore from '~/stores/utils/useStore';
+import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { type UserState } from '~/stores/userStore';
+import { showModal } from '@/helpers/modal-helper';
+import BasicButton from '@/app/_components/ui/BasicButton';
+
 export default function Group() {
 	const router = useRouter();
 	const [refreshPosts, setRefreshPosts] = useState(false);
+	const { walletAddress } = useWallet();
 
 	const groupId = router.query.groupId;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
@@ -30,9 +41,24 @@ export default function Group() {
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
 
+	const [admitUserKey, setAdmitUserKey] = useState('');
+
+	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
+
 	const handlePostSubmission = () => {
 		// After the post is submitted successfully, set refreshPosts to true to trigger a refresh of posts
 		setRefreshPosts(true);
+	};
+
+	const {} = useMinaProvider();
+
+	const showAdmitModal = async () => {
+		try {
+			if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
+			// showModal('admit-user');
+		} catch (err) {
+			console.log('showGroupModal', err);
+		}
 	};
 
 	const fetchInfo = useCallback(async () => {
@@ -80,12 +106,39 @@ export default function Group() {
 						]}
 					/>
 				</div>
-				<PageHeader
-					text={groupData?.group?.name ?? 'Group Name'}
-					subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
-					buttonText="Leave group"
-					onClick={() => console.log('Leave group')}
-				/>
+				{group?.creatorKey == walletAddress ? (
+					<div className="w-full">
+						<PageHeader
+							text={groupData?.group?.name ?? 'Group Name'}
+							subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
+							buttonText="Admit user"
+							onClick={() => showAdmitModal()}
+						/>
+
+						{/* @ts-ignore */}
+						{/* <BasicButton type="primary" onClick={showAdmitModal}>
+							Add Group
+						</BasicButton> */}
+						<div className="w-1/4">
+							<TextInput
+								id={'user-key-text'}
+								name={'user-key-text'}
+								type={'text'}
+								placeholder="key of user to admit..."
+								onChange={(e) => {
+									setAdmitUserKey(e.target.value);
+								}}
+							/>
+						</div>
+					</div>
+				) : (
+					<PageHeader
+						text={groupData?.group?.name ?? 'Group Name'}
+						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
+						buttonText="Leave group"
+						onClick={() => console.log('Leave group')}
+					/>
+				)}
 			</div>
 
 			<div className="flex-1">
