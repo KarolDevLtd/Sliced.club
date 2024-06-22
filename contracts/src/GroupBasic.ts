@@ -128,6 +128,8 @@ export class GroupBasic extends TokenContract {
   @state(UInt64) paymentRound = State<UInt64>();
   /** Exact number of members needed for this group . */
   @state(UInt32) members = State<UInt32>();
+  /** Token account of the admin. */
+  @state(PublicKey) adminTokenAddress = State<PublicKey>();
   reducer = Reducer({ actionType: Entry });
   events = {
     'lottery-winner': PublicKey,
@@ -157,9 +159,12 @@ export class GroupBasic extends TokenContract {
       incrementNonce: Permissions.proofOrSignature(),
     });
 
-    // Call token to set proof send permission for this contract
-    const token = new FungibleToken(args.groupSettings.tokenAddress);
-    await token.setProofTransfer();
+    let adminTokenAccount = new GroupUserStorage(
+      args.admin,
+      this.deriveTokenId()
+    );
+
+    this.adminTokenAddress.set(adminTokenAccount.address);
   }
 
   @method
@@ -174,9 +179,21 @@ export class GroupBasic extends TokenContract {
     // Ensure withdraw is a multiple of the item price
     withdraw.mod(_groupSettings.itemPrice).assertEquals(UInt32.zero);
 
+    // Derive admin token account
+    // let adminTokenAccount = new GroupUserStorage(
+    //   this.adminTokenAddress.getAndRequireEquals(),
+    //   this.deriveTokenId()
+    // );
+
+    this.sender.getAndRequireSignature();
+
     // Transfer token to the caller
     const token = new FungibleToken(_groupSettings.tokenAddress);
-    await token.transfer(this.address, senderAddr, UInt64.from(withdraw));
+    await token.transfer(
+      this.adminTokenAddress.getAndRequireEquals(),
+      senderAddr,
+      UInt64.from(withdraw)
+    );
   }
 
   @method
@@ -424,15 +441,23 @@ export class GroupBasic extends TokenContract {
     // Pay the total amount
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
-    // Old payment
+    Provable.log(token.account);
+
+    // Old payment to the contract
     // await token.transfer(senderAddr, this.address, totalPay);
 
     // Instead pay to the token account of the admin address
-    let adminTokenAccount = new GroupUserStorage(
-      this.admin.getAndRequireEquals(),
-      this.deriveTokenId()
+    // let adminTokenAccount = new GroupUserStorage(
+    //   this.admin.getAndRequireEquals(),
+    //   this.deriveTokenId()
+    // );
+
+    // New payment
+    await token.transfer(
+      senderAddr,
+      this.adminTokenAddress.getAndRequireEquals(),
+      totalPay
     );
-    // await token.transfer(senderAddr, adminTokenAccount, totalPay);
 
     // Provable.log('totalPaymentsU64', totalPaymentsU64);
     // Provable.log('currentPaymentRound', currentPaymentRound);
