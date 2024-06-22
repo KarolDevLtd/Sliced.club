@@ -206,18 +206,18 @@ export class GroupId extends TokenContract {
     );
   }
 
-  @method async verifyNationality(proof: ProofOfNationalityProof) {
-    proof.verify();
-  }
-
   /** Called once at the start. User relinquishes ability to modify token account bu signing */
   @method async addUserToGroup(
     _groupSettings: GroupSettings,
     address: PublicKey,
-    vk: VerificationKey
+    vk: VerificationKey,
+    proof: ProofOfNationalityProof
   ) {
     const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
     this.approve(groupUserStorageUpdate); // TODO: check if this is needed
+
+    // Verify nationality proof
+    proof.verify();
 
     // Check if caller is the admin
     let adminCaller: Bool = this.admin
@@ -258,6 +258,12 @@ export class GroupId extends TokenContract {
     AccountUpdate.setValue(
       groupUserStorageUpdate.body.update.appState[6], // isAdmin
       Provable.if(adminCaller, Bool(true), Bool(false)).toField()
+    );
+
+    // Set the id veirifcation bool
+    AccountUpdate.setValue(
+      groupUserStorageUpdate.body.update.appState[7], // verified ID
+      Provable.if(adminCaller, Bool(true), Bool(true)).toField()
     );
 
     groupUserStorageUpdate.requireSignature();

@@ -59,10 +59,16 @@ describe('GroupId', () => {
     fs.readFileSync('src/test_proofs/proofOfNationality.json', 'utf-8')
   );
 
+  const corruptedProof = JSON.parse(
+    fs.readFileSync('src/test_proofs/corruptedNationalityProof.json', 'utf-8')
+  );
+
   let groupRounds = 6;
   let missable = 3;
   let basePayment = UInt32.from(1);
   let lotteryWinner: PublicKey;
+  let identityProof: ProofOfNationalityProof;
+  let corruptedIdentityProof: ProofOfNationalityProof;
 
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(8), // members
@@ -96,6 +102,11 @@ describe('GroupId', () => {
     }
 
     const Local = await Mina.LocalBlockchain({ proofsEnabled });
+    identityProof = await ProofOfNationalityProof.fromJSON(proof);
+    corruptedIdentityProof = await ProofOfNationalityProof.fromJSON(
+      corruptedProof
+    );
+
     Mina.setActiveInstance(Local);
     // users at indexes: 2 - 9
     userStart = 2;
@@ -214,29 +225,6 @@ describe('GroupId', () => {
     expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
   }
 
-  it('Id mask test', async () => {
-    // Spawn Json Prood
-    // let proofFormat: JsonProof = ageProofJson;
-
-    console.log('proof: ', proof);
-    let correctProof = await ProofOfNationalityProof.fromJSON(proof);
-    const txn1 = await Mina.transaction(alexa, async () => {
-      await group.verifyNationality(correctProof);
-    });
-
-    console.log('proof: ', proof);
-
-    // const txn1 = await Mina.transaction(alexa, async () => {
-    //   await group.verifyNationality(proof);
-    // });
-    await txn1.prove();
-    await txn1.sign([alexa.key]).send();
-    // await fetchAccount({
-    //   publicKey: alexa.key.toPublicKey(),
-    //   tokenId: derivedTokenId,
-    // });
-  });
-
   it('Generates and deploys the `GroupId` smart contract', async () => {
     // const groupToken = group.tokenAddress.get();
     // expect(groupToken).toEqual(tokenAddress);
@@ -313,7 +301,8 @@ describe('GroupId', () => {
       await group.addUserToGroup(
         GROUP_SETTINGS,
         alexa.key.toPublicKey(),
-        verificationKey
+        verificationKey,
+        identityProof
       );
     });
     await txn1.prove();
@@ -348,6 +337,20 @@ describe('GroupId', () => {
     ).rejects.toThrow();
   });
 
+  it('Fails to add user with incorrect proof', async () => {
+    await expect(
+      Mina.transaction(deployer, async () => {
+        AccountUpdate.fundNewAccount(deployer);
+        await group.addUserToGroup(
+          GROUP_SETTINGS,
+          deployer.key.toPublicKey(),
+          verificationKey,
+          corruptedIdentityProof
+        );
+      })
+    ).rejects.toThrow();
+  });
+
   it('Adds remaining users to the group', async () => {
     // console.log('Adding remaining users to the group', userStart, userEnd);
     for (let i = userStart + 1; i <= userEnd; i++) {
@@ -357,7 +360,8 @@ describe('GroupId', () => {
         await group.addUserToGroup(
           GROUP_SETTINGS,
           testAccounts[i].key.toPublicKey(),
-          verificationKey
+          verificationKey,
+          identityProof
         );
       });
       await txn1.prove();
@@ -394,7 +398,8 @@ describe('GroupId', () => {
         await group.addUserToGroup(
           GROUP_SETTINGS,
           deployer.key.toPublicKey(),
-          verificationKey
+          verificationKey,
+          identityProof
         );
       })
     ).rejects.toThrow();

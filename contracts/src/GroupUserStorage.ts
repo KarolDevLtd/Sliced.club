@@ -9,4 +9,5 @@ export class GroupUserStorage extends SmartContract {
   @state(Bool) canClaim = State<Bool>();
   @state(Bool) claimed = State<Bool>();
   @state(Bool) isAdmin = State<Bool>();
+  @state(Bool) idVerified = State<Bool>();
 }
