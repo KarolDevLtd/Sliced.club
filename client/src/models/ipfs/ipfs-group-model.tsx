@@ -9,4 +9,5 @@ export interface IPFSGroupModel {
 	country: string;
 	productHash: string;
 	creatorKey: string;
+	userObjectHash: string;
 }

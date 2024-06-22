@@ -86,6 +86,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
 			if (!currentSelectedProduct) return;
+			// const userObjectHash = groupUsersToIPFS.mutateAsync({ creatorKey: walletAddress!.toString() });
+			// console.log(userObjectHash);
 			await groupToIPFS.mutateAsync({
 				name: name,
 				description: description,
@@ -98,6 +100,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				productPrice: currentSelectedProduct?.metadata.keyvalues.price,
 				creatorKey: walletAddress!.toString(),
 				dateTime: DateTime.now().toString(),
+				userObjectHash: null,
 			});
 		} catch (err) {
 			console.log(err);
@@ -112,20 +115,16 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
-			// await saveGroup(
-			// 	data['group-name'] as string,
-			// 	data['group-description'] as string,
-			// 	currentSelectedProduct?.metadata.keyvalues.price!,
-			// 	duration.toString(),
-			// 	participants.toString()
-			// );
-			// reset();
-			// closeModal('add-group');
-
-			// await spinUp();
-			// await triggerDeploy();
-			// await setTokenNoDeploy();
-			await triggerDeployGroup();
+			// await triggerDeployGroup();
+			await saveGroup(
+				data['group-name'] as string,
+				data['group-description'] as string,
+				currentSelectedProduct?.metadata.keyvalues.price!,
+				duration.toString(),
+				participants.toString()
+			);
+			reset();
+			closeModal('add-group');
 			toast.success('Posted successfully');
 		} catch (err) {
 			console.log(err);
@@ -289,16 +288,6 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 										}}
 									>
 										Cancel
-									</BasicButton>
-									<BasicButton
-										type={'primary'}
-										onClick={async () => {
-											await logFetchAccount(
-												'B62qpBMb8ULboXZxojPtHbdkRwRxJhtbnb9sbAhUetw2ietJLV5Qgkw'
-											);
-										}}
-									>
-										Fetch Group Info
 									</BasicButton>
 								</div>
 							)}

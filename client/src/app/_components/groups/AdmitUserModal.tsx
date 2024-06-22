@@ -3,8 +3,21 @@ import BasicModal from '../ui/BasicModal';
 import { useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import { closeModal } from '@/helpers/modal-helper';
+import { useWallet } from '@/providers/WalletProvider';
+import { api } from '@/trpc/react';
+import { use, useCallback, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
-const AdmitUserModal = () => {
+type AdmitUserModalrops = {
+	groupHash: string;
+	participants: any[];
+};
+
+const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalrops) => {
+	const { isConnected, walletAddress } = useWallet();
+
+	// const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupHash });
+	const groupParticipantToIPFS = api.PinataGroup.createGroupParticipantObject.useMutation();
 	const {
 		register,
 		unregister,
@@ -19,9 +32,23 @@ const AdmitUserModal = () => {
 		// resolver: {}
 	});
 
+	const [isLoading, setIsLoading] = useState(false);
+	// const [participants, setParticipants] = useState();
+
 	const onSubmit = async (data: any) => {
 		try {
-			console.log(data['user-key']);
+			// console.log(data['user-key']);
+			//If group user hash is null then need to create
+			//if not null, then need to update
+			const hash = groupParticipantToIPFS.mutateAsync({
+				groupHash: groupHash,
+				creatorKey: walletAddress!.toString(),
+				userKey: data['user-key'],
+				status: 'pending',
+			});
+			console.log(hash);
+			clearForm();
+			handleOnClose();
 		} catch (err) {
 			console.log(err);
 		} finally {
@@ -39,6 +66,33 @@ const AdmitUserModal = () => {
 		reset();
 		unregister(['user-key']);
 	};
+
+	// const fetchInfo = useCallback(async () => {
+	// 	setIsLoading(true);
+	// 	try {
+	// 		if (participantData) {
+	// 			// const currGroup = participantData.users;
+	// 			setParticipants(participantData.users);
+	// 			console.log('group data');
+	// 			// const z = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupId });
+	// 			// console.log(z);
+	// 		}
+	// 		// if (productData) {
+	// 		// 	const currProd = productData.product as IPFSProductModel;
+	// 		// 	setProduct(productData.product);
+	// 		// 	await fetchImageData(currProd, setHasImage, setImageData, setImageError);
+	// 		// }
+	// 	} catch (err) {
+	// 		console.log(err);
+	// 		toast.error('Error fetching user item info');
+	// 	} finally {
+	// 		setIsLoading(false);
+	// 	}
+	// }, [participantData]);
+
+	// useEffect(() => {
+	// 	void fetchInfo();
+	// }, [fetchInfo, participantData]);
 
 	return (
 		<BasicModal
@@ -72,6 +126,13 @@ const AdmitUserModal = () => {
 					>
 						Admit
 					</BasicButton>
+					{participants ? (
+						participants.map((participant: any, index) => {
+							return <div key={index}>{participant.tostring()}</div>;
+						})
+					) : (
+						<p>No participants</p>
+					)}
 				</form>
 			}
 		></BasicModal>

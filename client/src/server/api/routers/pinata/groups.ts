@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { z } from 'zod';
+import { array, z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../../trpc';
-import { URLBuilder } from '~/helpers/search-helper';
+import { URLBuilder, defaultPageLimit, defaultStatus } from '~/helpers/search-helper';
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 export const PinataGroupRouter = createTRPCRouter({
@@ -22,6 +22,7 @@ export const PinataGroupRouter = createTRPCRouter({
 				productPrice: z.string().nullish(),
 				creatorKey: z.string(),
 				dateTime: z.string(),
+				userObjectHash: z.string().nullish(),
 			})
 		)
 		.mutation(async ({ input }) => {
@@ -118,4 +119,69 @@ export const PinataGroupRouter = createTRPCRouter({
 			}
 			return { groups };
 		}),
+
+	createGroupParticipantObject: publicProcedure
+		.input(
+			z.object({
+				groupHash: z.string(),
+				creatorKey: z.string(),
+				userKey: z.string(),
+				status: z.string(),
+			})
+		)
+		.mutation(async ({ input }) => {
+			let data;
+			const pinataMetadata = {
+				name: `participant - ${input.groupHash}`,
+				keyvalues: {
+					userKey: input.userKey,
+					groupHash: input.groupHash,
+					type: 'participant',
+				},
+			};
+
+			try {
+				const options = {
+					method: 'POST',
+					headers: {
+						accept: 'application/json',
+						'content-type': 'application/json',
+						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+					},
+					body: JSON.stringify({ pinataContent: input, pinataMetadata }),
+				};
+				const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options);
+				data = await response.json();
+				console.log(data);
+			} catch (err) {
+				console.log(err);
+			}
+			return { data };
+		}),
+
+	getGroupParticipants: publicProcedure.input(z.object({ groupHash: z.string() })).query(async ({ input }) => {
+		let users;
+		console.log(input.groupHash);
+		if (input.groupHash != null) {
+			try {
+				const options = {
+					method: 'GET',
+					headers: {
+						'content-type': 'application/json',
+						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+					},
+				};
+				const response = await fetch(
+					`https://api.pinata.cloud/data/pinList?status=${defaultStatus}&metadata[keyvalues]={"type":{"value":"${'participant'}","op":"eq"},"groupHash":{"value":"${input.groupHash}","op":"eq"}}&pageLimit=${defaultPageLimit}&includeCount=true`,
+					options
+				);
+				users = await response.json();
+			} catch (err) {
+				console.log('Error getting hash from IPFS');
+			}
+		} else {
+			console.log('sliced-server-msg:getGroups, current creatorKey id is null');
+		}
+		return { users };
+	}),
 });

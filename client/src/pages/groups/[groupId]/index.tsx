@@ -17,6 +17,7 @@ import PlatformLayout from '~/layouts/platform';
 import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { api } from '~/trpc/react';
+import AdmitUserModal from '~/app/_components/groups/AdmitUserModal';
 
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -33,6 +34,9 @@ export default function Group() {
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
 	const { data: productData } = api.PinataProduct.getProduct.useQuery({
 		hash: groupData == undefined ? '' : groupData?.group?.productHash,
+	});
+	const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery({
+		groupHash: groupData == undefined ? '' : groupId,
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
@@ -55,7 +59,7 @@ export default function Group() {
 	const showAdmitModal = async () => {
 		try {
 			if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
-			// showModal('admit-user');
+			showModal('admit-user');
 		} catch (err) {
 			console.log('showGroupModal', err);
 		}
@@ -67,11 +71,20 @@ export default function Group() {
 			if (groupData) {
 				const currGroup = groupData.group as IPFSGroupModel;
 				setGroup(currGroup);
+				console.log('group data');
+				// const z = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupId });
+				// console.log(z);
 			}
 			if (productData) {
 				const currProd = productData.product as IPFSProductModel;
 				setProduct(productData.product);
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
+			}
+			if (participantData) {
+				// const currProd = productData.product as IPFSProductModel;
+				// setProduct(productData.product);
+				// await fetchImageData(currProd, setHasImage, setImageData, setImageError);
+				console.log(participantData);
 			}
 		} catch (err) {
 			console.log(err);
@@ -79,7 +92,7 @@ export default function Group() {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [groupData, productData]);
+	}, [groupData, productData, participantData]);
 
 	useEffect(() => {
 		void fetchInfo();
@@ -114,22 +127,6 @@ export default function Group() {
 							buttonText="Admit user"
 							onClick={() => showAdmitModal()}
 						/>
-
-						{/* @ts-ignore */}
-						{/* <BasicButton type="primary" onClick={showAdmitModal}>
-							Add Group
-						</BasicButton> */}
-						<div className="w-1/4">
-							<TextInput
-								id={'user-key-text'}
-								name={'user-key-text'}
-								type={'text'}
-								placeholder="key of user to admit..."
-								onChange={(e) => {
-									setAdmitUserKey(e.target.value);
-								}}
-							/>
-						</div>
 					</div>
 				) : (
 					<PageHeader
@@ -168,6 +165,7 @@ export default function Group() {
 					<div className="col-span-3"></div>
 				</div>
 			</div>
+			<AdmitUserModal groupHash={groupId?.toString()} participants={participantData} />
 		</>
 	);
 }
