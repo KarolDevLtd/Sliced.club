@@ -39,6 +39,8 @@ export default function Group() {
 	const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery({
 		groupHash: groupData == undefined ? '' : groupId,
 	});
+	const groupParticipantToIPFS = api.PinataGroup.createGroupParticipantObject.useMutation();
+
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [product, setProduct] = useState<IPFSProductModel>();
@@ -112,8 +114,6 @@ export default function Group() {
 				setIsParticipant(false);
 			}
 		}
-		console.log('Particip');
-		console.log(participants);
 	}, [participants, walletAddress]);
 
 	useEffect(() => {
@@ -155,14 +155,28 @@ export default function Group() {
 						text={groupData?.group?.name ?? 'Group Name'}
 						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
 						buttonText="Leave group"
-						onClick={() => console.log('Leave group')}
+						onClick={() => {
+							console.log('Leave group needs implementing');
+							// setIsParticipant(false);
+						}}
 					/>
 				) : (
 					<PageHeader
 						text={groupData?.group?.name ?? 'Group Name'}
 						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
 						buttonText="Join group"
-						onClick={() => console.log('Join group')}
+						onClick={async () => {
+							console.log('Joining group');
+							if (groupId && walletAddress && group && !isParticipant) {
+								const hash = await groupParticipantToIPFS.mutateAsync({
+									groupHash: groupId.toString(),
+									creatorKey: group.creatorKey,
+									userKey: walletAddress.toString(),
+									status: 'pending',
+								});
+								setIsParticipant(true);
+							}
+						}}
 					/>
 				)}
 			</div>
@@ -194,7 +208,7 @@ export default function Group() {
 					<div className="col-span-3"></div>
 				</div>
 			</div>
-			<AdmitUserModal groupHash={groupId?.toString()} participants={participantData} />
+			<AdmitUserModal groupHash={groupId?.toString()} participants={participantData?.participants.rows} />
 		</>
 	);
 }

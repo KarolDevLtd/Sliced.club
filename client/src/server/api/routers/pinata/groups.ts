@@ -160,6 +160,33 @@ export const PinataGroupRouter = createTRPCRouter({
 			return { data };
 		}),
 
+	deleteGroupParticipantObject: publicProcedure
+		.input(
+			z.object({
+				groupHash: z.string(),
+			})
+		)
+		.mutation(async ({ input }) => {
+			let data;
+
+			try {
+				const options = {
+					method: 'DELETE',
+					headers: {
+						accept: 'application/json',
+						'content-type': 'application/json',
+						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+					},
+				};
+				const response = await fetch(`https://api.pinata.cloud/pinning/unpin/${input.groupHash}`, options);
+				data = await response.json();
+				console.log(data);
+			} catch (err) {
+				console.log(err);
+			}
+			return { data };
+		}),
+
 	getGroupParticipants: publicProcedure.input(z.object({ groupHash: z.string() })).query(async ({ input }) => {
 		let participants;
 		// console.log(input.groupHash);
@@ -185,4 +212,32 @@ export const PinataGroupRouter = createTRPCRouter({
 		}
 		return { participants };
 	}),
+
+	getGroupParticipant: publicProcedure
+		.input(z.object({ groupHash: z.string(), userKey: z.string() }))
+		.query(async ({ input }) => {
+			let participant;
+			// console.log(input.groupHash);
+			if (input.groupHash != null) {
+				try {
+					const options = {
+						method: 'GET',
+						headers: {
+							'content-type': 'application/json',
+							authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+						},
+					};
+					const response = await fetch(
+						`https://api.pinata.cloud/data/pinList?status=${defaultStatus}&metadata[keyvalues]={"type":{"value":"${'participant'}","op":"eq"},"groupHash":{"value":"${input.groupHash}","op":"eq"},"userKey":{"value":"${input.userKey}","op":"eq"}}&pageLimit=${defaultPageLimit}&includeCount=true`,
+						options
+					);
+					participant = await response.json();
+				} catch (err) {
+					console.log('Error getting hash from IPFS');
+				}
+			} else {
+				console.log('sliced-server-msg:getGroups, current creatorKey id is null');
+			}
+			return { participant };
+		}),
 });

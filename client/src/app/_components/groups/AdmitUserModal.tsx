@@ -5,19 +5,28 @@ import BasicButton from '../ui/BasicButton';
 import { closeModal } from '@/helpers/modal-helper';
 import { useWallet } from '@/providers/WalletProvider';
 import { api } from '@/trpc/react';
-import { use, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, use, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-
-type AdmitUserModalrops = {
+import { DropDownContentModel } from '@/models/dropdown-content-model';
+import { IPFSSearchModel } from '@/models/ipfs/ipfs-search-model';
+import { IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
+import SelectOption from '../ui/SelectOption';
+type AdmitUserModalProps = {
 	groupHash: string;
-	participants: any[];
+	participants: IPFSGroupParticipantModel[];
 };
 
-const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalrops) => {
+const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalProps) => {
 	const { isConnected, walletAddress } = useWallet();
+	const [dropdownParticipants, setDropdownParticipants] = useState<DropDownContentModel[]>([]);
+	const [currentSelectedParticpant, setCurrentSelectedParticpant] = useState<IPFSGroupParticipantModel>();
 
-	// const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupHash });
 	const groupParticipantToIPFS = api.PinataGroup.createGroupParticipantObject.useMutation();
+	const { data: participantData } = api.PinataGroup.getGroupParticipant.useQuery({
+		groupHash: groupHash,
+		userKey: currentSelectedParticpant ? currentSelectedParticpant.metadata.keyvalues.userKey : '',
+	});
+	const deleteData = api.PinataGroup.deleteGroupParticipantObject.useMutation();
 	const {
 		register,
 		unregister,
@@ -37,18 +46,26 @@ const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalrops) => {
 
 	const onSubmit = async (data: any) => {
 		try {
-			// console.log(data['user-key']);
-			//If group user hash is null then need to create
 			//if not null, then need to update
-			const hash = groupParticipantToIPFS.mutateAsync({
-				groupHash: groupHash,
-				creatorKey: walletAddress!.toString(),
-				userKey: data['user-key'],
-				status: 'pending',
-			});
-			console.log(hash);
-			clearForm();
-			handleOnClose();
+			if (walletAddress && currentSelectedParticpant) {
+				//Fetch all instances with that user key and pending status and get ipfs hash
+				const pendingEntries = participantData?.participant.rows;
+				//Delete all objects
+				for (let i = 0; i < pendingEntries.length; i++) {
+					// console.log(pendingEntries[i].ipfs_pin_hash);
+					await deleteData.mutateAsync({ groupHash: pendingEntries[i].ipfs_pin_hash });
+				}
+				//Create new instances with approved status
+				const hash = groupParticipantToIPFS.mutateAsync({
+					groupHash: groupHash,
+					creatorKey: walletAddress!.toString(),
+					userKey: currentSelectedParticpant.metadata.keyvalues.userKey.toString(),
+					status: 'approved',
+				});
+				//console.log(hash);
+				clearForm();
+				handleOnClose();
+			}
 		} catch (err) {
 			console.log(err);
 		} finally {
@@ -94,6 +111,30 @@ const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalrops) => {
 	// 	void fetchInfo();
 	// }, [fetchInfo, participantData]);
 
+	// useEffect(() => {
+	// 	console.log('participants');
+	// 	console.log(participants);
+	// }, [participants]);
+
+	const serializeList = (list: IPFSGroupParticipantModel[]): DropDownContentModel[] => {
+		console.log('list');
+		console.log(list);
+		return list.map((item) => ({
+			name: item.metadata.keyvalues.userKey,
+			value: item.metadata.keyvalues.userKey,
+		}));
+	};
+
+	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+		//TODO: This filter on name should be replaced with filter on id?
+		const selectedParticipant = participants?.find((p) => p.metadata.keyvalues.userKey === event.target.value)!;
+		if (selectedParticipant) setCurrentSelectedParticpant(selectedParticipant);
+	};
+
+	useEffect(() => {
+		if (participants) setDropdownParticipants(serializeList(participants ?? []));
+	}, [participants]);
+
 	return (
 		<BasicModal
 			id="admit-user"
@@ -101,23 +142,19 @@ const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalrops) => {
 			onClose={handleOnClose}
 			content={
 				<form onSubmit={handleSubmit(onSubmit)}>
-					<TextInput
-						id="user-key"
-						// icon={<FaUserGroup />}
-						name="user-key"
-						type="text"
-						label="User Key"
-						required={true}
-						errors={errors}
-						register={register}
-						validationSchema={{
-							required: 'User key must be provided',
-							minLength: {
-								value: 10,
-								message: 'User key must be at least 10 characters',
-							},
-						}}
-					/>
+					{dropdownParticipants.length > 0 ? (
+						<div>
+							<SelectOption
+								id="product"
+								name="product"
+								placeholder="-- Please select user to approve --"
+								defaultValue=""
+								value={currentSelectedParticpant?.metadata.keyvalues.userKey}
+								onChange={(e) => handleSelectChange(e)}
+								options={dropdownParticipants}
+							/>
+						</div>
+					) : null}
 					<BasicButton
 						type="primary"
 						// icon={isLoading ? <Spinner size="sm" /> : null}
@@ -126,13 +163,17 @@ const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalrops) => {
 					>
 						Admit
 					</BasicButton>
-					{participants ? (
-						participants.map((participant: any, index) => {
-							return <div key={index}>{participant.tostring()}</div>;
+					{/* {participants ? (
+						participants.users.rows.map((participant: any, index) => {
+							return (
+								<div>
+									<div key={index}>{participant.ipfs_pin_hash}</div>
+								</div>
+							);
 						})
 					) : (
 						<p>No participants</p>
-					)}
+					)} */}
 				</form>
 			}
 		></BasicModal>
