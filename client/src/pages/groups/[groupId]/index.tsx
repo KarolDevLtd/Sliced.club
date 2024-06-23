@@ -24,6 +24,7 @@ import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import { showModal } from '@/helpers/modal-helper';
 import BasicButton from '@/app/_components/ui/BasicButton';
+import { IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 
 export default function Group() {
 	const router = useRouter();
@@ -41,9 +42,11 @@ export default function Group() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [product, setProduct] = useState<IPFSProductModel>();
+	const [participants, setParticipants] = useState<IPFSGroupParticipantModel[]>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
+	const [isParticipant, setIsParticipant] = useState<boolean>(false);
 
 	const [admitUserKey, setAdmitUserKey] = useState('');
 
@@ -84,7 +87,8 @@ export default function Group() {
 				// const currProd = productData.product as IPFSProductModel;
 				// setProduct(productData.product);
 				// await fetchImageData(currProd, setHasImage, setImageData, setImageError);
-				console.log(participantData);
+				console.log(participantData.participants);
+				setParticipants(participantData.participants.rows);
 			}
 		} catch (err) {
 			console.log(err);
@@ -93,6 +97,24 @@ export default function Group() {
 			setIsLoading(false);
 		}
 	}, [groupData, productData, participantData]);
+
+	useEffect(() => {
+		if (participants) {
+			// console.log('user');
+			// console.log(participants[0].metadata.keyvalues.userKey);
+			// console.log('wallet');
+			// console.log(walletAddress);
+			if (
+				participants.some((participant) => participant.metadata.keyvalues.userKey === walletAddress?.toString())
+			) {
+				setIsParticipant(true);
+			} else {
+				setIsParticipant(false);
+			}
+		}
+		console.log('Particip');
+		console.log(participants);
+	}, [participants, walletAddress]);
 
 	useEffect(() => {
 		void fetchInfo();
@@ -128,12 +150,19 @@ export default function Group() {
 							onClick={() => showAdmitModal()}
 						/>
 					</div>
-				) : (
+				) : isParticipant ? (
 					<PageHeader
 						text={groupData?.group?.name ?? 'Group Name'}
 						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
 						buttonText="Leave group"
 						onClick={() => console.log('Leave group')}
+					/>
+				) : (
+					<PageHeader
+						text={groupData?.group?.name ?? 'Group Name'}
+						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
+						buttonText="Join group"
+						onClick={() => console.log('Join group')}
 					/>
 				)}
 			</div>

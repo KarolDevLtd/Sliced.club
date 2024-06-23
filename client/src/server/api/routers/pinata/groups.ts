@@ -137,6 +137,7 @@ export const PinataGroupRouter = createTRPCRouter({
 					userKey: input.userKey,
 					groupHash: input.groupHash,
 					type: 'participant',
+					status: input.status,
 				},
 			};
 
@@ -160,8 +161,8 @@ export const PinataGroupRouter = createTRPCRouter({
 		}),
 
 	getGroupParticipants: publicProcedure.input(z.object({ groupHash: z.string() })).query(async ({ input }) => {
-		let users;
-		console.log(input.groupHash);
+		let participants;
+		// console.log(input.groupHash);
 		if (input.groupHash != null) {
 			try {
 				const options = {
@@ -175,13 +176,13 @@ export const PinataGroupRouter = createTRPCRouter({
 					`https://api.pinata.cloud/data/pinList?status=${defaultStatus}&metadata[keyvalues]={"type":{"value":"${'participant'}","op":"eq"},"groupHash":{"value":"${input.groupHash}","op":"eq"}}&pageLimit=${defaultPageLimit}&includeCount=true`,
 					options
 				);
-				users = await response.json();
+				participants = await response.json();
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}
 		} else {
 			console.log('sliced-server-msg:getGroups, current creatorKey id is null');
 		}
-		return { users };
+		return { participants };
 	}),
 });

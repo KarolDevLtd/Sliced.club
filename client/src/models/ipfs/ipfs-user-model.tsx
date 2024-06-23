@@ -1,4 +1,10 @@
-export interface IPFSGroupUserModel {
-	userKey: string;
-	status: string;
+export interface IPFSGroupParticipantModel {
+	metadata: {
+		keyvalues: {
+			groupHash: string;
+			creatorKey: string;
+			userKey: string;
+			status: string;
+		};
+	};
 }
