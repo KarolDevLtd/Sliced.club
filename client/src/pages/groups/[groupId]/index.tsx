@@ -49,6 +49,7 @@ export default function Group() {
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
 	const [isParticipant, setIsParticipant] = useState<boolean>(false);
+	const [pendingParticipants, setPendingParticipants] = useState<IPFSGroupParticipantModel[]>();
 
 	const [admitUserKey, setAdmitUserKey] = useState('');
 
@@ -113,6 +114,9 @@ export default function Group() {
 			} else {
 				setIsParticipant(false);
 			}
+			setPendingParticipants(
+				participants.filter((participant) => participant.metadata.keyvalues.status === 'pending')
+			);
 		}
 	}, [participants, walletAddress]);
 
@@ -208,7 +212,7 @@ export default function Group() {
 					<div className="col-span-3"></div>
 				</div>
 			</div>
-			<AdmitUserModal groupHash={groupId?.toString()} participants={participantData?.participants.rows} />
+			<AdmitUserModal groupHash={groupId?.toString()} participants={pendingParticipants} />
 		</>
 	);
 }

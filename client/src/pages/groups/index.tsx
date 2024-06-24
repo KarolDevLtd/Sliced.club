@@ -60,13 +60,13 @@ export default function Groups() {
 		setSearchCategory(event.target.value);
 	};
 
-	useEffect(() => {
-		console.log(`max price ${searchMaximumPrice}`);
-	}, [searchMaximumPrice]);
+	// useEffect(() => {
+	// 	console.log(`max price ${searchMaximumPrice}`);
+	// }, [searchMaximumPrice]);
 
-	useEffect(() => {
-		console.log(`min price ${searchMinimumPrice}`);
-	}, [searchMinimumPrice]);
+	// useEffect(() => {
+	// 	console.log(`min price ${searchMinimumPrice}`);
+	// }, [searchMinimumPrice]);
 
 	return (
 		<>

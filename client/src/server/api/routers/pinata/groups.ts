@@ -187,31 +187,33 @@ export const PinataGroupRouter = createTRPCRouter({
 			return { data };
 		}),
 
-	getGroupParticipants: publicProcedure.input(z.object({ groupHash: z.string() })).query(async ({ input }) => {
-		let participants;
-		// console.log(input.groupHash);
-		if (input.groupHash != null) {
-			try {
-				const options = {
-					method: 'GET',
-					headers: {
-						'content-type': 'application/json',
-						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
-					},
-				};
-				const response = await fetch(
-					`https://api.pinata.cloud/data/pinList?status=${defaultStatus}&metadata[keyvalues]={"type":{"value":"${'participant'}","op":"eq"},"groupHash":{"value":"${input.groupHash}","op":"eq"}}&pageLimit=${defaultPageLimit}&includeCount=true`,
-					options
-				);
-				participants = await response.json();
-			} catch (err) {
-				console.log('Error getting hash from IPFS');
+	getGroupParticipants: publicProcedure
+		.input(z.object({ groupHash: z.string(), status: z.string().nullish() }))
+		.query(async ({ input }) => {
+			let participants;
+			// console.log(input.groupHash);
+			if (input.groupHash != null) {
+				try {
+					const options = {
+						method: 'GET',
+						headers: {
+							'content-type': 'application/json',
+							authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+						},
+					};
+					const response = await fetch(
+						`https://api.pinata.cloud/data/pinList?status=${defaultStatus}&metadata[keyvalues]={"type":{"value":"${'participant'}","op":"eq"},"groupHash":{"value":"${input.groupHash}","op":"eq"}${input.status ? `,"status":{"value":"${input.status}","op":"eq"}` : ''}}&pageLimit=${defaultPageLimit}&includeCount=true`,
+						options
+					);
+					participants = await response.json();
+				} catch (err) {
+					console.log('Error getting hash from IPFS');
+				}
+			} else {
+				console.log('sliced-server-msg:getGroups, current creatorKey id is null');
 			}
-		} else {
-			console.log('sliced-server-msg:getGroups, current creatorKey id is null');
-		}
-		return { participants };
-	}),
+			return { participants };
+		}),
 
 	getGroupParticipant: publicProcedure
 		.input(z.object({ groupHash: z.string(), userKey: z.string() }))

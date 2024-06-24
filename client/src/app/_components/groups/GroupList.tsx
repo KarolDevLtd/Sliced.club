@@ -42,7 +42,7 @@ const GroupList = ({
 		refetch,
 		isLoading,
 	} = api.PinataGroup.getGroups.useQuery({
-		creatorKey: walletAddress?.toString(),
+		// creatorKey: walletAddress?.toString(),
 		groupCount: displayGroupCount,
 		searchValue: searchValue,
 		searchCategory: searchCategory,
