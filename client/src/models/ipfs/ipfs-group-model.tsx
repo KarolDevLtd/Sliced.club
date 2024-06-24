@@ -10,4 +10,5 @@ export interface IPFSGroupModel {
 	productHash: string;
 	creatorKey: string;
 	userObjectHash: string;
+	chainPubKey: string;
 }

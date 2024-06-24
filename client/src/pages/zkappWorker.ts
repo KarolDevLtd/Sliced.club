@@ -285,6 +285,7 @@ const functions = {
 			missable,
 			payemntDuration
 		);
+		console.log('params ready');
 		const transaction = await Mina.transaction({ sender: admin, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(admin);
 			await state.groupZkapp!.addUserToGroup(groupSettings, userKey, vk);

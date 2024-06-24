@@ -12,17 +12,25 @@ import { boolean, number } from 'zod';
 import { Field, PrivateKey, PublicKey, UInt64 } from 'o1js';
 import ZkappWorkerClient from '@/pages/zkappWorkerClient';
 // import { useWallet } from '../WalletProvider';
-import { stat } from 'fs';
 
 interface MinaContextType {
 	spinUp: () => Promise<void>;
-	triggerDeployGroup: () => void;
+	// triggerDeployGroup: () => Promise<void>;
 	logFetchAccount: (key: string) => void;
 	compileContracts: (type: string) => Promise<void>;
 	deployToken: () => Promise<void>;
 	mintTokenTo: (pubkey: string) => Promise<void>;
 	isMinaLoading: boolean;
 	deployGroup: (maxMembers: number, itemPrice: number, groupDuration: number, missable: number) => Promise<void>;
+	addUserToGroup: (
+		_groupPubKey: string,
+		participantKey: string,
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number
+	) => Promise<void>;
+	groupPublicKey: string;
 }
 
 const MinaProviderContext = createContext<MinaContextType | undefined>(undefined);
@@ -62,6 +70,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 
 	const [zkappWorkerClient, setZkappWorkerClient] = useState<null | ZkappWorkerClient>();
 	const [userPublicKey, setUserPublicKey] = useState<null | PublicKey>();
+	const [groupPublicKey, setGroupPublicKey] = useState<string>('');
 	const [groupPrivateKey, setGroupPrivateKey] = useState<null | PublicKey>();
 	// const [userPrivatecKey, setUserPublicKey] = useState<null | PublicKey>();
 	const [deployingGroup, setDeployingGroup] = useState<boolean>(false);
@@ -247,9 +256,9 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		});
 	}
 
-	const triggerDeployGroup = () => {
-		setDeployingGroup(true);
-	};
+	// const triggerDeployGroup = () => {
+	// 	setDeployingGroup(true);
+	// };
 
 	// const prepareForGroupDeploy = async () => {
 	// 	try {
@@ -305,6 +314,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			}
 			const groupPrivKey = PrivateKey.random();
 			const groupPubKey = groupPrivKey.toPublicKey();
+			setGroupPublicKey(groupPubKey.toBase58());
 			console.log('Group public key:', groupPubKey.toBase58());
 
 			console.log('INTO DEPLOY');
@@ -355,6 +365,55 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		} finally {
 			setDeployingGroup(false);
 			setIsMinaLoading(false);
+		}
+	};
+
+	const addUserToGroup = async (
+		_groupPubKey: string,
+		participantKey: string,
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number
+	) => {
+		if (userPublicKey && zkappWorkerClient) {
+			const admin = userPublicKey.toBase58();
+			const groupPubKey = PublicKey.fromBase58(_groupPubKey);
+			setGroupPublicKey(groupPubKey.toBase58());
+			console.log('admin', admin);
+			const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
+			console.log('here add', result);
+			if (!result.group) {
+				setIsMinaLoading(true);
+				await zkappWorkerClient.initGroupInstance(groupPubKey);
+
+				const tokenPubKey = PrivateKey.fromBase58(tokenPrivKeyBase58).toPublicKey();
+				await zkappWorkerClient.initTokenInstance(tokenPubKey);
+				console.log('Compiling Group contract...');
+				await zkappWorkerClient.compileGroupContract();
+			}
+			setIsMinaLoading(true);
+			await zkappWorkerClient.addUserToGroup(
+				admin,
+				participantKey,
+				maxMembers,
+				itemPrice,
+				groupDuration,
+				missable
+			);
+			await zkappWorkerClient.proveTransaction();
+			console.log('Transaction proved');
+			const txn = await zkappWorkerClient.getTransactionJSON();
+			const { hash } = await window.mina.sendTransaction({
+				transaction: txn,
+				feePayer: {
+					fee: 0.1 * 1e9,
+					memo: 'add user to group',
+				},
+			});
+			console.log('hash', hash);
+			await zkappWorkerClient.loopUntilConfirmed(hash);
+			console.log('User added');
 		}
 	};
 
@@ -462,13 +521,15 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 
 	const value: MinaContextType = {
 		spinUp,
-		triggerDeployGroup,
+		// triggerDeployGroup,
 		logFetchAccount,
 		compileContracts,
 		deployToken,
 		mintTokenTo,
 		isMinaLoading,
 		deployGroup,
+		addUserToGroup,
+		groupPublicKey,
 	};
 
 	return <MinaProviderContext.Provider value={value}>{children}</MinaProviderContext.Provider>;

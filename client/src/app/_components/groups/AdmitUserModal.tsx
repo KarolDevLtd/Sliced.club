@@ -11,13 +11,17 @@ import { DropDownContentModel } from '@/models/dropdown-content-model';
 import { IPFSSearchModel } from '@/models/ipfs/ipfs-search-model';
 import { IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 import SelectOption from '../ui/SelectOption';
+import { useMinaProvider } from '@/providers/minaprovider';
+import { IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 type AdmitUserModalProps = {
 	groupHash: string;
 	participants: IPFSGroupParticipantModel[];
+	group: IPFSGroupModel;
 };
 
-const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalProps) => {
+const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps) => {
 	const { isConnected, walletAddress } = useWallet();
+	const { addUserToGroup, groupPublicKey } = useMinaProvider();
 	const [dropdownParticipants, setDropdownParticipants] = useState<DropDownContentModel[]>([]);
 	const [currentSelectedParticpant, setCurrentSelectedParticpant] = useState<IPFSGroupParticipantModel>();
 
@@ -47,7 +51,17 @@ const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalProps) => {
 	const onSubmit = async (data: any) => {
 		try {
 			//if not null, then need to update
-			if (walletAddress && currentSelectedParticpant) {
+			if (walletAddress && currentSelectedParticpant && group) {
+				//addUserToGroup
+				await addUserToGroup(
+					group.chainPubKey,
+					currentSelectedParticpant.metadata.keyvalues.userKey,
+					parseInt(group.participants),
+					parseInt(group.price),
+					parseInt(group.duration),
+					3
+				);
+
 				//Fetch all instances with that user key and pending status and get ipfs hash
 				const pendingEntries = participantData?.participant.rows;
 				//Delete all objects
@@ -84,41 +98,9 @@ const AdmitUserModal = ({ groupHash, participants }: AdmitUserModalProps) => {
 		unregister(['user-key']);
 	};
 
-	// const fetchInfo = useCallback(async () => {
-	// 	setIsLoading(true);
-	// 	try {
-	// 		if (participantData) {
-	// 			// const currGroup = participantData.users;
-	// 			setParticipants(participantData.users);
-	// 			console.log('group data');
-	// 			// const z = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupId });
-	// 			// console.log(z);
-	// 		}
-	// 		// if (productData) {
-	// 		// 	const currProd = productData.product as IPFSProductModel;
-	// 		// 	setProduct(productData.product);
-	// 		// 	await fetchImageData(currProd, setHasImage, setImageData, setImageError);
-	// 		// }
-	// 	} catch (err) {
-	// 		console.log(err);
-	// 		toast.error('Error fetching user item info');
-	// 	} finally {
-	// 		setIsLoading(false);
-	// 	}
-	// }, [participantData]);
-
-	// useEffect(() => {
-	// 	void fetchInfo();
-	// }, [fetchInfo, participantData]);
-
-	// useEffect(() => {
-	// 	console.log('participants');
-	// 	console.log(participants);
-	// }, [participants]);
-
 	const serializeList = (list: IPFSGroupParticipantModel[]): DropDownContentModel[] => {
-		console.log('list');
-		console.log(list);
+		// console.log('list');
+		// console.log(list);
 		return list.map((item) => ({
 			name: item.metadata.keyvalues.userKey,
 			value: item.metadata.keyvalues.userKey,

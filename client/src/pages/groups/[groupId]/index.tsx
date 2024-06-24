@@ -212,7 +212,7 @@ export default function Group() {
 					<div className="col-span-3"></div>
 				</div>
 			</div>
-			<AdmitUserModal groupHash={groupId?.toString()} participants={pendingParticipants} />
+			<AdmitUserModal groupHash={groupId?.toString()} participants={pendingParticipants} group={group} />
 		</>
 	);
 }

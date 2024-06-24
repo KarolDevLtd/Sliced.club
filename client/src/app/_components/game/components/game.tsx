@@ -74,22 +74,22 @@ const Game = ({ playerChoice, setPlayerChoice, setScore }) => {
 		switch (choice) {
 			case 'paper':
 				return (
-					<button id="paper" className="text-3xl">
+					<div id="paper" className="text-3xl">
 						<FaHandPaper />
-					</button>
+					</div>
 				);
 			case 'scissors':
 				return (
-					<button id="scissors" className="text-3xl">
+					<div id="scissors" className="text-3xl">
 						<FaHandScissors />
-					</button>
+					</div>
 				);
 
 			case 'rock':
 				return (
-					<button id="rock" className="text-3xl">
+					<div id="rock" className="text-3xl">
 						<FaHandRock />
-					</button>
+					</div>
 				);
 
 			default:

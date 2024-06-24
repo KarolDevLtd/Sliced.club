@@ -39,7 +39,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [displayProductCount, setDisplayProductCount] = useState(20);
 
-	const { triggerDeployGroup, logFetchAccount, isMinaLoading } = useMinaProvider();
+	const { deployGroup, logFetchAccount, isMinaLoading, groupPublicKey } = useMinaProvider();
 
 	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
@@ -80,11 +80,14 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		description: string,
 		price: string,
 		duration: string,
-		participants: string
+		participants: string,
+		chainPubKey: string
 	) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
+			console.log('Saving group');
+			console.log(currentSelectedProduct);
 			if (!currentSelectedProduct) return;
 			// const userObjectHash = groupUsersToIPFS.mutateAsync({ creatorKey: walletAddress!.toString() });
 			// console.log(userObjectHash);
@@ -101,6 +104,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				creatorKey: walletAddress!.toString(),
 				dateTime: DateTime.now().toString(),
 				userObjectHash: null,
+				chainPubKey: chainPubKey,
 			});
 		} catch (err) {
 			console.log(err);
@@ -115,13 +119,14 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
-			// await triggerDeployGroup();
+			await deployGroup(participants, parseInt(currentSelectedProduct?.metadata.keyvalues.price!), duration, 3);
 			await saveGroup(
 				data['group-name'] as string,
 				data['group-description'] as string,
 				currentSelectedProduct?.metadata.keyvalues.price!,
 				duration.toString(),
-				participants.toString()
+				participants.toString(),
+				groupPublicKey
 			);
 			reset();
 			closeModal('add-group');
