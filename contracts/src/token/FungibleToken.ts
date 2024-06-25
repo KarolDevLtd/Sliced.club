@@ -55,7 +55,8 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
 
     this.account.permissions.set({
       ...Permissions.default(),
-      send: Permissions.none(),
+      send: Permissions.proofOrSignature(),
+      incrementNonce: Permissions.proofOrSignature(),
     });
   }
 
@@ -104,33 +105,17 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
     return accountUpdate;
   }
 
-  @method
-  async transfer(from: PublicKey, to: PublicKey, amount: UInt64) {
-    this.internal.send({ from, to, amount });
-    // this.send();
-    this.emitEvent('Transfer', new TransferEvent({ from, to, amount }));
-  }
+  // @method
+  // async transfer(from: PublicKey, to: PublicKey, amount: UInt64) {
+  //   this.internal.send({ from, to, amount });
+  //   // this.send();
+  //   this.emitEvent('Transfer', new TransferEvent({ from, to, amount }));
+  // }
 
   @method
   async approveBase(updates: AccountUpdateForest): Promise<void> {
     this.checkZeroBalanceChange(updates);
     // TODO: event emission here
-  }
-
-  // Attempt at forcing send permission to be proof
-  @method
-  async setProofTransfer() {
-    let update = AccountUpdate.createSigned(
-      this.sender.getAndRequireSignature()
-    );
-
-    // Set send permission to proof
-    update.account.permissions.set({
-      ...Permissions.default(),
-      send: Permissions.none(),
-    });
-
-    update.requireSignature();
   }
 
   @method.returns(UInt64)

@@ -561,19 +561,27 @@ describe('GroupBasic', () => {
     const initialBalanceAdmin = (
       await tokenApp.getBalanceOf(group.admin.get())
     ).toBigInt();
-
     const initialBalanceContract = (
       await tokenApp.getBalanceOf(group.address)
     ).toBigInt();
+    console.log(
+      'Initial balance contract: ',
+      initialBalanceContract,
+      '\n',
+      'Initial balance admin: ',
+      initialBalanceAdmin
+    );
 
     const txn = await Mina.transaction(admin, async () => {
       await group.organiserWithdraw(
         GROUP_SETTINGS,
         UInt32.from(GROUP_SETTINGS.itemPrice.toBigint())
       );
+      await tokenApp.approveAccountUpdate(group.self);
     });
     await txn.prove();
-    await txn.sign([admin.key, groupPrivateKey]).send();
+    await txn.sign([admin.key]).send();
+    console.log('Withdrawn', txn.toPretty());
 
     const endlBalanceAdmin = (
       await tokenApp.getBalanceOf(group.admin.get())
@@ -582,6 +590,13 @@ describe('GroupBasic', () => {
     const endBalanceContract = (
       await tokenApp.getBalanceOf(group.address)
     ).toBigInt();
+    console.log(
+      'End balance contract: ',
+      endBalanceContract,
+      '\n',
+      'End balance admin: ',
+      endlBalanceAdmin
+    );
 
     // Assertion for difference being taken away
     expect(parseInt(endlBalanceAdmin.toString())).toEqual(

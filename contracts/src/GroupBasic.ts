@@ -167,8 +167,9 @@ export class GroupBasic extends TokenContract {
   @method
   async organiserWithdraw(_groupSettings: GroupSettings, withdraw: UInt32) {
     let organiser = this.sender.getAndRequireSignature();
+    let admin = this.admin.getAndRequireEquals();
     // Assert organsier is calling
-    this.admin.getAndRequireEquals().assertEquals(organiser);
+    organiser.assertEquals(organiser);
 
     // Validate group settings
     await this.assertGroupHash(_groupSettings);
@@ -178,7 +179,29 @@ export class GroupBasic extends TokenContract {
 
     // Transfer token to the caller
     const token = new FungibleToken(_groupSettings.tokenAddress);
-    await token.transfer(this.address, organiser, UInt64.from(withdraw));
+
+    // withdraw the amount
+    // let receiverAu = this.send({ to: admin, amount: new UInt64(withdraw) }); //err with overflow, I guess it's wrong token?
+
+    let receiverAu = token.send({
+      to: admin,
+      amount: new UInt64(withdraw),
+    }); // doesnt transfer the tokens
+
+    // let receiverAu = token.internal.send({
+    //   from: this.address,
+    //   to: admin,
+    //   amount: new UInt64(withdraw),
+    // }); // doesnt transfer the tokens
+
+    // await token.transfer(this.address, admin, new UInt64(withdraw)); // fails due 'incrementNonce' because permission for this field is 'Signature', but the required authorization was not provided ???
+
+    // let adminAU = AccountUpdate.createSigned(admin, token.deriveTokenId()); // forces admin to sign
+    // adminAU.body.useFullCommitment = Bool(true); // admin signs full tx so that the signature can't be reused against them
+    // adminAU.send({ to: admin, amount: new UInt64(withdraw) });
+
+    // let the receiver update inherit token permissions from this contract
+    receiverAu.body.mayUseToken = AccountUpdate.MayUseToken.InheritFromParent;
   }
 
   @method
@@ -280,7 +303,7 @@ export class GroupBasic extends TokenContract {
       value: {
         ...Permissions.default(),
         // TODO test acc update for this with sig only
-        editState: Permissions.none(),
+        editState: Permissions.none(), // TODO
         send: Permissions.none(), // we don't want to allow sending - soulbound
       },
     };
