@@ -30,6 +30,7 @@ export default function Group() {
 	const router = useRouter();
 	const [refreshPosts, setRefreshPosts] = useState(false);
 	const { walletAddress } = useWallet();
+	const { addUserToGroup } = useMinaProvider();
 
 	const groupId = router.query.groupId;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
@@ -172,11 +173,22 @@ export default function Group() {
 						onClick={async () => {
 							console.log('Joining group');
 							if (groupId && walletAddress && group && !isParticipant) {
+								//here I think we need to
+								console.log('pubkeyt', group.chainPubKey.toString());
+								await addUserToGroup(
+									group.chainPubKey.toString(), // TODO state problems?
+									// currentSelectedParticpant.metadata.keyvalues.userKey,
+									walletAddress.toString(),
+									parseInt(group.participants),
+									parseInt(group.price),
+									parseInt(group.duration),
+									3
+								);
 								const hash = await groupParticipantToIPFS.mutateAsync({
 									groupHash: groupId.toString(),
 									creatorKey: group.creatorKey,
 									userKey: walletAddress.toString(),
-									status: 'pending',
+									status: 'approved',
 								});
 								setIsParticipant(true);
 							}

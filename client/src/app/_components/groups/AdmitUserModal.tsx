@@ -53,14 +53,15 @@ const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps)
 			//if not null, then need to update
 			if (walletAddress && currentSelectedParticpant && group) {
 				//addUserToGroup
-				await addUserToGroup(
-					group.chainPubKey,
-					currentSelectedParticpant.metadata.keyvalues.userKey,
-					parseInt(group.participants),
-					parseInt(group.price),
-					parseInt(group.duration),
-					3
-				);
+				// console.log('pubkeyt', group.chainPubKey.toString());
+				// await addUserToGroup(
+				// 	group.chainPubKey.toString(),
+				// 	currentSelectedParticpant.metadata.keyvalues.userKey,
+				// 	parseInt(group.participants),
+				// 	parseInt(group.price),
+				// 	parseInt(group.duration),
+				// 	3
+				// );
 
 				//Fetch all instances with that user key and pending status and get ipfs hash
 				const pendingEntries = participantData?.participant.rows;

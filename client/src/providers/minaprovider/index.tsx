@@ -377,10 +377,10 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		missable: number
 	) => {
 		if (userPublicKey && zkappWorkerClient) {
-			const admin = userPublicKey.toBase58();
+			// const admin = userPublicKey.toBase58();
 			const groupPubKey = PublicKey.fromBase58(_groupPubKey);
 			setGroupPublicKey(groupPubKey.toBase58());
-			console.log('admin', admin);
+			// console.log('admin', admin);
 			const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
 			console.log('here add', result);
 			if (!result.group) {
@@ -394,7 +394,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			}
 			setIsMinaLoading(true);
 			await zkappWorkerClient.addUserToGroup(
-				admin,
+				// admin,
 				participantKey,
 				maxMembers,
 				itemPrice,

@@ -122,7 +122,7 @@ export default class ZkappWorkerClient {
 		});
 	}
 	async addUserToGroup(
-		admin: string,
+		// admin: string,
 		userKey: string,
 		maxMembers: number,
 		itemPrice: number,
@@ -131,7 +131,7 @@ export default class ZkappWorkerClient {
 		payemntDuration?: number
 	) {
 		return await this._call('addUserToGroup', {
-			admin,
+			// admin,
 			userKey,
 			maxMembers,
 			itemPrice,
