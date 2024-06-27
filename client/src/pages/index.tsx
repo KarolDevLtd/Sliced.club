@@ -37,7 +37,7 @@ export default function Dashboard() {
 	return (
 		<>
 			<DashboardHeader />
-			<div className="grid grid-rows-3 gap-4 min-h-full flex-1">
+			<div className="grid grid-rows-5 gap-4 min-h-full flex-1">
 				<div className="row-span-1 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
 						<Carousel
@@ -72,7 +72,7 @@ export default function Dashboard() {
 						></Carousel>
 					</div>
 				</div>
-				<div className="row-span-2 grid grid-cols-3 gap-4">
+				<div className="row-span-3 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
 						{walletConnected ? (
 							<ProductList heading="My Products" isHomeScreen={true} />

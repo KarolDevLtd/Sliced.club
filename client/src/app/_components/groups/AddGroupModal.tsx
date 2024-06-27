@@ -29,6 +29,7 @@ import TextArea from '../ui/TextArea';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { useMinaProvider } from '@/providers/minaprovider';
 import Game from '../game/game';
+import { PeriodOptions } from '@/models/period-options';
 
 type AddGroupModalProps = {
 	onGroupSubmitted: () => void;
@@ -61,18 +62,25 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		// https://react-hook-form.com/docs/useform#resolver
 		// resolver: {}
 	});
-	const [participants, setParticipants] = useState(12);
-	const [duration, setDuration] = useState(6);
+	const [participants, setParticipants] = useState(0);
+	const [duration, setDuration] = useState(0);
+	const [period, setPeriod] = useState('');
 	const [instalments, setInstalments] = useState<number | null>();
 	const updateParticipantDuration = (sliderVal: number) => {
 		setDuration(sliderVal);
 		setParticipants(2 * sliderVal);
 	};
 	const [currentSelectedProduct, setCurrentSelectedProduct] = useState<IPFSSearchModel>();
-	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+	const handleProductSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		//TODO: This filter on name should be replaced with filter on id?
 		const selectedProduct = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
 		if (selectedProduct) setCurrentSelectedProduct(selectedProduct as IPFSSearchModel);
+	};
+	const handleDurationSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+		//TODO: This filter on name should be replaced with filter on id?
+		// const selectedDuration = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
+		// if (selectedProduct) setCurrentSelectedProduct(selectedProduct as IPFSSearchModel);
+		setPeriod(event.target.value);
 	};
 
 	const saveGroup = async (
@@ -119,7 +127,13 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
-			await deployGroup(participants, parseInt(currentSelectedProduct?.metadata.keyvalues.price!), duration, 3);
+			await deployGroup(
+				participants,
+				parseInt(currentSelectedProduct?.metadata.keyvalues.price!),
+				duration,
+				3,
+				parseInt(period)
+			);
 			await saveGroup(
 				data['group-name'] as string,
 				data['group-description'] as string,
@@ -200,20 +214,50 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								placeholder="-- Please select a product --"
 								defaultValue=""
 								value={currentSelectedProduct?.metadata.name}
-								onChange={(e) => handleSelectChange(e)}
+								onChange={(e) => handleProductSelectChange(e)}
 								options={dropdownProducts}
 							/>
-							<div>
-								<InstalmentSlider
-									participants={participants}
-									duration={duration}
-									onSlide={updateParticipantDuration}
-								/>
+							<div className="flex flex-col">
+								<div className="flex">
+									<div className="my-2 mx-1 w-1/3">
+										<TextInput
+											id={'duration'}
+											name={'duration'}
+											type={'number'}
+											placeholder="Duration"
+											onChange={(e) => setDuration(e.target.value)}
+										/>
+									</div>
+									<div className="my-2 mx-1 w-1/3">
+										<TextInput
+											id={'participants'}
+											name={'participants'}
+											type={'number'}
+											placeholder="Participants"
+											onChange={(e) => setParticipants(e.target.value)}
+										/>
+									</div>
+									<div className="my-2 mx-1 w-1/3">
+										<SelectOption
+											id="period"
+											name="period"
+											placeholder="-- Please select a duration --"
+											defaultValue=""
+											value={period}
+											onChange={(e) => handleDurationSelectChange(e)}
+											options={PeriodOptions}
+										/>
+									</div>
+								</div>
 								<div>{`Product price ${currentSelectedProduct?.metadata.keyvalues.price}`}</div>
 								<div>{`Installment price per user ${(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)}`}</div>
 							</div>
 						</div>
 					) : (
+						//Dropdown for weekly, bi-weekly and months
+						//Textbox for duration of these
+						//Product Price
+						//Instalments
 						`No products`
 					)}
 					<TextArea

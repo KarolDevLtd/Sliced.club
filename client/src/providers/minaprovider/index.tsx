@@ -21,7 +21,13 @@ interface MinaContextType {
 	deployToken: () => Promise<void>;
 	mintTokenTo: (pubkey: string) => Promise<void>;
 	isMinaLoading: boolean;
-	deployGroup: (maxMembers: number, itemPrice: number, groupDuration: number, missable: number) => Promise<void>;
+	deployGroup: (
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number,
+		payemntDuration: number
+	) => Promise<void>;
 	addUserToGroup: (
 		_groupPubKey: string,
 		participantKey: string,
@@ -306,7 +312,13 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		}
 	};
 
-	const deployGroup = async (maxMembers: number, itemPrice: number, groupDuration: number, missable: number) => {
+	const deployGroup = async (
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number,
+		paymentDuration: number
+	) => {
 		try {
 			if (zkappWorkerClient == null) {
 				console.log('zkappWorkerClient is null');
@@ -339,7 +351,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				itemPrice,
 				groupDuration,
 				missable,
-				0
+				paymentDuration
 			);
 
 			setIsMinaLoading(true);
