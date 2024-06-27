@@ -27,6 +27,7 @@ import {
 import { FungibleToken } from './token/FungibleToken';
 import { GroupUserStorage } from './GroupUserStorage';
 import { PackedBoolFactory } from './lib/packed-types/PackedBool';
+import { Escrow } from './Escrow';
 
 export class Payments extends PackedBoolFactory(251) {}
 type CipherText = {
@@ -184,10 +185,10 @@ export class GroupBasic extends TokenContract {
     // withdraw the amount
     // let receiverAu = this.send({ to: admin, amount: new UInt64(withdraw) }); //err with overflow, I guess it's wrong token?
 
-    let receiverAu = token.send({
-      to: admin,
-      amount: new UInt64(withdraw),
-    }); // doesnt transfer the tokens
+    // let receiverAu = token.send({
+    //   to: admin,
+    //   amount: new UInt64(withdraw),
+    // }); // doesnt transfer the tokens
 
     // let receiverAu = token.internal.send({
     //   from: this.address,
@@ -202,7 +203,12 @@ export class GroupBasic extends TokenContract {
     // adminAU.send({ to: admin, amount: new UInt64(withdraw) });
 
     // let the receiver update inherit token permissions from this contract
-    receiverAu.body.mayUseToken = AccountUpdate.MayUseToken.InheritFromParent;
+    // receiverAu.body.mayUseToken = AccountUpdate.MayUseToken.InheritFromParent;
+
+    // Need to call the escrow to withdraw
+    // let escrow = new Escrow(this.escrow.getAndRequireEquals());
+
+    // escrow.withdraw(new UInt64(withdraw));
   }
 
   @method
@@ -422,7 +428,11 @@ export class GroupBasic extends TokenContract {
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
     // Payment to the contract
-    await token.transfer(senderAddr, this.address, totalPay);
+    await token.transfer(
+      senderAddr,
+      this.escrow.getAndRequireEquals(),
+      totalPay
+    );
 
     // Provable.log('totalPaymentsU64', totalPaymentsU64);
     // Provable.log('currentPaymentRound', currentPaymentRound);
