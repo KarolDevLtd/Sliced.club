@@ -185,13 +185,18 @@ describe('GroupBasic', () => {
     ).wait();
 
     const deployGroupTx = await Mina.transaction(deployer, async () => {
-      AccountUpdate.fundNewAccount(deployer, 2);
+      AccountUpdate.fundNewAccount(deployer, 3);
       await group.deploy({
         admin: admin,
         groupSettings: GROUP_SETTINGS,
         escrow: escrowAddress,
       });
       await escrow.deploy({ withdrawauth: groupAddress });
+      let groupToken = AccountUpdate.create(
+        groupAddress,
+        tokenApp.deriveTokenId()
+      );
+      await tokenApp.approveAccountUpdates([groupToken, escrow.self]);
     });
     await deployGroupTx.prove();
     await (
@@ -213,14 +218,20 @@ describe('GroupBasic', () => {
     expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
   }
 
+  // Works by itself
   it('Escrow transfer', async () => {
-    let tx0 = await Mina.transaction(deployer, async () => {
-      AccountUpdate.fundNewAccount(deployer, 2);
-      let escrowToken = AccountUpdate.create(admin, tokenApp.deriveTokenId());
-      await tokenApp.approveAccountUpdates([escrowToken, escrow.self]);
-    });
-    await tx0.sign([deployer.key, escrowPrivateKey]).prove();
-    await tx0.send();
+    // let tx0 = await Mina.transaction(deployer, async () => {
+    //   AccountUpdate.fundNewAccount(deployer, 1);
+    //   let groupToken = AccountUpdate.create(
+    //     groupAddress,
+    //     tokenApp.deriveTokenId()
+    //   );
+    //   await tokenApp.approveAccountUpdates([groupToken, escrow.self]);
+    // });
+    // await tx0.sign([deployer.key, escrowPrivateKey]).prove();
+    // await tx0.send();
+
+    console.log('hello timmy');
   });
 
   it('Generates and deploys the `GroupBasic` smart contract', async () => {
@@ -257,6 +268,7 @@ describe('GroupBasic', () => {
 
     // All user get fake stable
     for (let i = userStart; i <= userEnd; i++) {
+      console.log(`Minting for user[${i}]: `, testAccounts[i].toBase58());
       const transferTx = await Mina.transaction(
         {
           sender: admin,
@@ -276,21 +288,27 @@ describe('GroupBasic', () => {
       );
     }
 
-    // Initially fund smart contract for stablecoin
-    const initTokenStable = await Mina.transaction(
-      {
-        sender: admin,
-        fee,
-      },
-      async () => {
-        AccountUpdate.fundNewAccount(admin);
-        await tokenApp.transfer(admin, groupAddress, new UInt64(1));
-      }
-    );
+    console.log('Created all of the token accounts');
 
-    await initTokenStable.prove();
-    initTokenStable.sign([admin.key]);
-    await initTokenStable.send().then((v) => v.wait());
+    // Initially fund smart contract for stablecoin
+    // console.log('Trying to fund group contract with stable');
+    // Account already created
+    // const initTokenStable = await Mina.transaction(
+    //   {
+    //     sender: admin,
+    //     fee,
+    //   },
+    //   async () => {
+    //     // AccountUpdate.fundNewAccount(admin);
+    //     await tokenApp.transfer(admin, groupAddress, new UInt64(1));
+    //   }
+    // );
+
+    // await initTokenStable.prove();
+    // initTokenStable.sign([admin.key]);
+    // await initTokenStable.send().then((v) => v.wait());
+
+    // console.log('Funded smart contract with stablecount');
   });
 
   // it('Sets group contract as the withdraw auth of the escrow ', async () => {});
