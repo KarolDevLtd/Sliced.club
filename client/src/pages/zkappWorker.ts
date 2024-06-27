@@ -208,9 +208,11 @@ const functions = {
 		const { verificationKey: vk } = await state.GroupBasic!.compile();
 		state.groupVerificationKey = vk;
 	},
-	initGroupInstance: async (args: { publicKey: PublicKey }) => {
-		// const publicKey = PublicKey.fromBase58(args.publicKey58);
-		state.groupZkapp = new state.GroupBasic!(args.publicKey);
+	initGroupInstance: async (args: { publicKey: string }) => {
+		state.GroupBasic = GroupBasic;
+		console.log('initGroupInstance', args.publicKey);
+		const publicKey = PublicKey.fromBase58(args.publicKey);
+		state.groupZkapp = new state.GroupBasic(publicKey);
 	},
 
 	areContractsCompiled: async (args: {}) => {
@@ -257,6 +259,7 @@ const functions = {
 		});
 		transaction.sign([groupPrivKey]);
 		state.groupZkapp = instance;
+		console.log('stateAddr set to ', state.groupZkapp.address.toBase58());
 		state.transaction = transaction;
 	},
 	addUserToGroup: async (args: {
@@ -287,6 +290,7 @@ const functions = {
 		);
 		console.log('params ready');
 		console.log('userKey', userKey.toBase58());
+		console.log('tokenAddress', tokenAddress.toBase58());
 		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
 		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(userKey);

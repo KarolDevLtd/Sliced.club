@@ -336,7 +336,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			const res = await zkappWorkerClient.fetchAccount({ publicKey: userPublicKey!.toBase58() });
 			console.log('index fetchAcc log in groupDeploy ', res);
 
-			await zkappWorkerClient.initGroupInstance(groupPubKey);
+			await zkappWorkerClient.initGroupInstance(groupPubKey.toBase58());
 
 			// maxMembers: number,
 			// itemPrice: number,
@@ -392,12 +392,13 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			// const admin = userPublicKey.toBase58();
 			const groupPubKey = PublicKey.fromBase58(_groupPubKey);
 			setGroupPublicKey(groupPubKey.toBase58());
+			console.log(_groupPubKey, 'groupsssss');
 			// console.log('admin', admin);
 			const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
 			console.log('here add', result);
 			if (!result.group) {
 				setIsMinaLoading(true);
-				await zkappWorkerClient.initGroupInstance(groupPubKey);
+				await zkappWorkerClient.initGroupInstance(_groupPubKey);
 
 				const tokenPubKey = PrivateKey.fromBase58(tokenPrivKeyBase58).toPublicKey();
 				await zkappWorkerClient.initTokenInstance(tokenPubKey);

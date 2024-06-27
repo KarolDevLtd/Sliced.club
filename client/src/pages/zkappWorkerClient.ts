@@ -79,7 +79,7 @@ export default class ZkappWorkerClient {
 
 	initTokenInstance(publicKey: PublicKey) {
 		return this._call('initTokenInstance', {
-			publicKey58: publicKey,
+			publicKey: publicKey,
 		});
 	}
 
@@ -95,9 +95,9 @@ export default class ZkappWorkerClient {
 		return this._call('areContractsCompiled', {});
 	}
 
-	initGroupInstance(publicKey: PublicKey) {
+	initGroupInstance(publicKey: string) {
 		return this._call('initGroupInstance', {
-			publicKey58: publicKey,
+			publicKey: publicKey,
 		});
 	}
 	async deployGroup(
