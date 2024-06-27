@@ -404,6 +404,8 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				console.log('Compiling Group contract...');
 				await zkappWorkerClient.compileGroupContract();
 			}
+			const res = await zkappWorkerClient.fetchAccount({ publicKey: _groupPubKey });
+			console.log('res', res);
 			setIsMinaLoading(true);
 			await zkappWorkerClient.addUserToGroup(
 				// admin,

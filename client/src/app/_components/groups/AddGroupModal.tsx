@@ -134,17 +134,19 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				3,
 				parseInt(period)
 			);
-			await saveGroup(
-				data['group-name'] as string,
-				data['group-description'] as string,
-				currentSelectedProduct?.metadata.keyvalues.price!,
-				duration.toString(),
-				participants.toString(),
-				groupPublicKey
-			);
-			reset();
-			closeModal('add-group');
-			toast.success('Posted successfully');
+			if (groupPublicKey) {
+				await saveGroup(
+					data['group-name'] as string,
+					data['group-description'] as string,
+					currentSelectedProduct?.metadata.keyvalues.price!,
+					duration.toString(),
+					participants.toString(),
+					groupPublicKey
+				);
+				reset();
+				closeModal('add-group');
+				toast.success('Posted successfully');
+			} else console.log('group pub key', groupPublicKey);
 		} catch (err) {
 			console.log(err);
 		} finally {
@@ -168,7 +170,9 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	useEffect(() => {
 		//TO DO : fix this cast
 		setInstalments(
-			(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)
+			Math.round(
+				(((currentSelectedProduct?.metadata.keyvalues.price as unknown as number) * 2) / participants) * 100
+			) / 100
 		);
 	}, [participants, duration, currentSelectedProduct]);
 
@@ -218,39 +222,37 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								options={dropdownProducts}
 							/>
 							<div className="flex flex-col">
-								<div className="flex">
-									<div className="my-2 mx-1 w-1/3">
-										<TextInput
-											id={'duration'}
-											name={'duration'}
-											type={'number'}
-											placeholder="Duration"
-											onChange={(e) => setDuration(e.target.value)}
-										/>
-									</div>
-									<div className="my-2 mx-1 w-1/3">
-										<TextInput
-											id={'participants'}
-											name={'participants'}
-											type={'number'}
-											placeholder="Participants"
-											onChange={(e) => setParticipants(e.target.value)}
-										/>
-									</div>
-									<div className="my-2 mx-1 w-1/3">
-										<SelectOption
-											id="period"
-											name="period"
-											placeholder="-- Please select a duration --"
-											defaultValue=""
-											value={period}
-											onChange={(e) => handleDurationSelectChange(e)}
-											options={PeriodOptions}
-										/>
+								<div className="flex flex-col">
+									<div className="my-2 mx-1 w-1/2">Participants: {participants}</div>
+									<div className="flex">
+										<div className="my-2 mx-1 w-1/2">
+											<TextInput
+												label="Duration"
+												id={'duration'}
+												name={'duration'}
+												type={'number'}
+												placeholder="Duration"
+												onChange={(e) => {
+													setDuration(e.target.value);
+													setParticipants(e.target.value * 2);
+												}}
+											/>
+										</div>
+										<div className="my-2 mx-1 w-1/3">
+											<SelectOption
+												id="period"
+												name="period"
+												placeholder="-- Please select a duration --"
+												defaultValue=""
+												value={period}
+												onChange={(e) => handleDurationSelectChange(e)}
+												options={PeriodOptions}
+											/>
+										</div>
 									</div>
 								</div>
 								<div>{`Product price ${currentSelectedProduct?.metadata.keyvalues.price}`}</div>
-								<div>{`Installment price per user ${(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)}`}</div>
+								<div>{`Installment price per user ${instalments}`}</div>
 							</div>
 						</div>
 					) : (

@@ -171,26 +171,32 @@ export default function Group() {
 						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
 						buttonText="Join group"
 						onClick={async () => {
-							console.log('Joining group');
-							if (groupId && walletAddress && group && !isParticipant) {
-								//here I think we need to
-								console.log('pubkeyt', group.chainPubKey.toString());
-								await addUserToGroup(
-									group.chainPubKey.toString(), // TODO state problems?
-									// currentSelectedParticpant.metadata.keyvalues.userKey,
-									walletAddress.toString(),
-									parseInt(group.participants),
-									parseInt(group.price),
-									parseInt(group.duration),
-									3
-								);
-								const hash = await groupParticipantToIPFS.mutateAsync({
-									groupHash: groupId.toString(),
-									creatorKey: group.creatorKey,
-									userKey: walletAddress.toString(),
-									status: 'approved',
-								});
-								setIsParticipant(true);
+							try {
+								console.log('Joining group');
+								if (groupId && walletAddress && group && !isParticipant) {
+									//here I think we need to
+									console.log('pubkeyt', groupData.group.chainPubKey);
+									console.log('wallet', walletAddress.toString());
+
+									await addUserToGroup(
+										groupData.group.chainPubKey, // TODO state problems?
+										// currentSelectedParticpant.metadata.keyvalues.userKey,
+										walletAddress.toString(),
+										parseInt(group.participants),
+										parseInt(group.price),
+										parseInt(group.duration),
+										3
+									);
+									// await groupParticipantToIPFS.mutateAsync({
+									// 	groupHash: groupId.toString(),
+									// 	creatorKey: group.creatorKey,
+									// 	userKey: walletAddress.toString(),
+									// 	status: 'approved',
+									// });
+									// setIsParticipant(true);
+								}
+							} catch (error) {
+								console.log(error);
 							}
 						}}
 					/>
@@ -205,7 +211,7 @@ export default function Group() {
 							<h2 className="card-title">{product?.name ?? 'Product Name'}</h2>
 							<div className="flex items-center gap-4">
 								<span>Price: ${product?.price ?? '420.00'}</span>
-								<span>Installment: $69.00</span>
+								<span>Installment: ${group?.instalments}</span>
 							</div>
 							<p>
 								{groupData?.group?.description ??

@@ -286,6 +286,8 @@ const functions = {
 			payemntDuration
 		);
 		console.log('params ready');
+		console.log('userKey', userKey.toBase58());
+		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
 		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(userKey);
 			await state.groupZkapp!.addUserToGroup(groupSettings, userKey, vk);
