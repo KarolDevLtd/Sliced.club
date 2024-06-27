@@ -28,6 +28,13 @@ import { FungibleToken } from './token/FungibleToken';
 import { GroupUserStorage } from './GroupUserStorage';
 import { PackedBoolFactory } from './lib/packed-types/PackedBool';
 
+import {
+  ProofOfAgeProof,
+  ProofOfSanctionsProof,
+  ProofOfUniqueHumanProof,
+  ProofOfNationalityProof,
+} from 'idmask-zk-programs';
+
 export class Payments extends PackedBoolFactory(251) {}
 type CipherText = {
   publicKey: Group;
@@ -119,7 +126,7 @@ export class GroupSettings extends Struct({
 const MAX_PAYMENTS = 200;
 const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
-export class GroupBasic extends TokenContract {
+export class GroupId extends TokenContract {
   /** Settings specified by the organiser. */
   @state(Field) groupSettingsHash = State<Field>();
   /** Also organiser. */
@@ -167,9 +174,8 @@ export class GroupBasic extends TokenContract {
   @method
   async organiserWithdraw(_groupSettings: GroupSettings, withdraw: UInt32) {
     let organiser = this.sender.getAndRequireSignature();
-    let admin = this.admin.getAndRequireEquals();
     // Assert organsier is calling
-    organiser.assertEquals(organiser);
+    this.admin.getAndRequireEquals().assertEquals(organiser);
 
     // Validate group settings
     await this.assertGroupHash(_groupSettings);
@@ -179,29 +185,7 @@ export class GroupBasic extends TokenContract {
 
     // Transfer token to the caller
     const token = new FungibleToken(_groupSettings.tokenAddress);
-
-    // withdraw the amount
-    // let receiverAu = this.send({ to: admin, amount: new UInt64(withdraw) }); //err with overflow, I guess it's wrong token?
-
-    let receiverAu = token.send({
-      to: admin,
-      amount: new UInt64(withdraw),
-    }); // doesnt transfer the tokens
-
-    // let receiverAu = token.internal.send({
-    //   from: this.address,
-    //   to: admin,
-    //   amount: new UInt64(withdraw),
-    // }); // doesnt transfer the tokens
-
-    // await token.transfer(this.address, admin, new UInt64(withdraw)); // fails due 'incrementNonce' because permission for this field is 'Signature', but the required authorization was not provided ???
-
-    // let adminAU = AccountUpdate.createSigned(admin, token.deriveTokenId()); // forces admin to sign
-    // adminAU.body.useFullCommitment = Bool(true); // admin signs full tx so that the signature can't be reused against them
-    // adminAU.send({ to: admin, amount: new UInt64(withdraw) });
-
-    // let the receiver update inherit token permissions from this contract
-    receiverAu.body.mayUseToken = AccountUpdate.MayUseToken.InheritFromParent;
+    await token.transfer(this.address, organiser, UInt64.from(withdraw));
   }
 
   @method
@@ -226,10 +210,14 @@ export class GroupBasic extends TokenContract {
   @method async addUserToGroup(
     _groupSettings: GroupSettings,
     address: PublicKey,
-    vk: VerificationKey
+    vk: VerificationKey,
+    proof: ProofOfNationalityProof
   ) {
     const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
     this.approve(groupUserStorageUpdate); // TODO: check if this is needed
+
+    // Verify nationality proof
+    proof.verify();
 
     // Check if caller is the admin
     let adminCaller: Bool = this.admin
@@ -272,6 +260,12 @@ export class GroupBasic extends TokenContract {
       Provable.if(adminCaller, Bool(true), Bool(false)).toField()
     );
 
+    // Set the id veirifcation bool
+    AccountUpdate.setValue(
+      groupUserStorageUpdate.body.update.appState[7], // verified ID
+      Provable.if(adminCaller, Bool(true), Bool(true)).toField()
+    );
+
     groupUserStorageUpdate.requireSignature();
   }
 
@@ -303,7 +297,7 @@ export class GroupBasic extends TokenContract {
       value: {
         ...Permissions.default(),
         // TODO test acc update for this with sig only
-        editState: Permissions.none(), // TODO
+        editState: Permissions.none(),
         send: Permissions.none(), // we don't want to allow sending - soulbound
       },
     };

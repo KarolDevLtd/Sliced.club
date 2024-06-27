@@ -8,6 +8,7 @@ import {
   state,
   Struct,
   TokenContract,
+  Permissions,
   UInt64,
 } from 'o1js';
 import { FungibleTokenLike } from './FungibleTokenLike';
@@ -51,6 +52,12 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
 
     this.account.tokenSymbol.set(props.symbol);
     this.account.zkappUri.set(props.src);
+
+    this.account.permissions.set({
+      ...Permissions.default(),
+      send: Permissions.proofOrSignature(),
+      incrementNonce: Permissions.proofOrSignature(),
+    });
   }
 
   private ensureOwnerSignature() {
@@ -98,11 +105,12 @@ export class FungibleToken extends TokenContract implements FungibleTokenLike {
     return accountUpdate;
   }
 
-  @method
-  async transfer(from: PublicKey, to: PublicKey, amount: UInt64) {
-    this.internal.send({ from, to, amount });
-    this.emitEvent('Transfer', new TransferEvent({ from, to, amount }));
-  }
+  // @method
+  // async transfer(from: PublicKey, to: PublicKey, amount: UInt64) {
+  //   this.internal.send({ from, to, amount });
+  //   // this.send();
+  //   this.emitEvent('Transfer', new TransferEvent({ from, to, amount }));
+  // }
 
   @method
   async approveBase(updates: AccountUpdateForest): Promise<void> {

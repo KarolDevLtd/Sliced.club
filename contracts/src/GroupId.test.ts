@@ -1,5 +1,5 @@
 import { FungibleToken } from './token/FungibleToken';
-import { GroupBasic, GroupSettings, Payments, Entry } from './GroupBasic';
+import { GroupId, GroupSettings, Payments, Entry } from './GroupId';
 import {
   Field,
   Mina,
@@ -13,14 +13,25 @@ import {
   UInt64,
   Bool,
 } from 'o1js';
+import fs from 'fs';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
-import { Escrow } from './Escrow';
+
+import {
+  proofOfAge,
+  proofOfSanctions,
+  proofOfUniqueHuman,
+  proofOfNationality,
+  ProofOfAgeProof,
+  ProofOfSanctionsProof,
+  ProofOfUniqueHumanProof,
+  ProofOfNationalityProof,
+} from 'idmask-zk-programs';
 
 let proofsEnabled = false;
 const fee = 1e8;
 
-describe('GroupBasic', () => {
+describe('GroupId', () => {
   let testAccounts: TestPublicKey[],
     deployer: TestPublicKey,
     admin: TestPublicKey,
@@ -34,22 +45,30 @@ describe('GroupBasic', () => {
     theodore: TestPublicKey,
     groupPrivateKey = PrivateKey.random(),
     groupAddress = groupPrivateKey.toPublicKey(),
-    escrowPrivateKey = PrivateKey.random(),
-    escrowAddress = escrowPrivateKey.toPublicKey(),
     tokenPrivateKey = PrivateKey.random(),
     tokenAddress = tokenPrivateKey.toPublicKey(),
-    group: GroupBasic,
-    escrow: Escrow,
+    group: GroupId,
     tokenApp: FungibleToken,
     derivedTokenId: Field,
-    verificationKey: VerificationKey;
+    verificationKey: VerificationKey,
+    verificationKeyAge: VerificationKey;
 
   let userStart: number, userEnd: number;
+
+  const proof = JSON.parse(
+    fs.readFileSync('src/test_proofs/proofOfNationality.json', 'utf-8')
+  );
+
+  const corruptedProof = JSON.parse(
+    fs.readFileSync('src/test_proofs/corruptedNationalityProof.json', 'utf-8')
+  );
 
   let groupRounds = 6;
   let missable = 3;
   let basePayment = UInt32.from(1);
   let lotteryWinner: PublicKey;
+  let identityProof: ProofOfNationalityProof;
+  let corruptedIdentityProof: ProofOfNationalityProof;
 
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(8), // members
@@ -71,8 +90,11 @@ describe('GroupBasic', () => {
   beforeAll(async () => {
     //we always need to compile vk2 for tokenStorage
     // Analsye methods
-    // console.log('Methods analysed: \n', await GroupBasic.analyzeMethods());
-    const { verificationKey: vk2 } = await GroupBasic.compile();
+    // console.log('Methods analysed: \n', await GroupId.analyzeMethods());
+
+    const { verificationKey: vk3 } = await proofOfNationality.compile();
+    verificationKeyAge = vk3;
+    const { verificationKey: vk2 } = await GroupId.compile();
     verificationKey = vk2;
     if (proofsEnabled) {
       await FungibleToken.compile();
@@ -80,6 +102,8 @@ describe('GroupBasic', () => {
     }
 
     const Local = await Mina.LocalBlockchain({ proofsEnabled });
+    identityProof = await ProofOfNationalityProof.fromJSON(proof);
+
     Mina.setActiveInstance(Local);
     // users at indexes: 2 - 9
     userStart = 2;
@@ -97,15 +121,11 @@ describe('GroupBasic', () => {
       theodore,
     ] = testAccounts = Local.testAccounts;
 
-    group = new GroupBasic(groupAddress);
-    tokenKey = PrivateKey.random();
-
-    group = new GroupBasic(groupAddress);
-    escrow = new Escrow(escrowAddress);
-    tokenApp = new FungibleToken(tokenAddress);
+    group = new GroupId(groupAddress);
 
     derivedTokenId = TokenId.derive(groupAddress);
 
+    tokenApp = new FungibleToken(tokenAddress);
     console.log(`
     deployer ${deployer.toBase58()}
     admin ${admin.toBase58()}
@@ -121,7 +141,7 @@ describe('GroupBasic', () => {
 
 
     token ${tokenAddress.toBase58()}
-    groupBasic ${groupAddress.toBase58()}
+    GroupId ${groupAddress.toBase58()}
   `);
     await localDeploy();
   });
@@ -198,20 +218,11 @@ describe('GroupBasic', () => {
       await deployGroupTx.sign([deployer.key, groupPrivateKey]).send()
     ).wait();
 
-    const escrowDeployTx = await Mina.transaction(deployer, async () => {
-      AccountUpdate.fundNewAccount(deployer);
-      await escrow.deploy({ admin: admin });
-    });
-    await escrowDeployTx.prove();
-    await (
-      await escrowDeployTx.sign([deployer.key, escrowPrivateKey]).send()
-    ).wait();
-
     // Assert group deploy field equal to hash of the field
     expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
   }
 
-  it('Generates and deploys the `GroupBasic` smart contract', async () => {
+  it('Generates and deploys the `GroupId` smart contract', async () => {
     // const groupToken = group.tokenAddress.get();
     // expect(groupToken).toEqual(tokenAddress);
     const groupAdmin = group.admin.get();
@@ -287,7 +298,8 @@ describe('GroupBasic', () => {
       await group.addUserToGroup(
         GROUP_SETTINGS,
         alexa.key.toPublicKey(),
-        verificationKey
+        verificationKey,
+        identityProof
       );
     });
     await txn1.prove();
@@ -322,6 +334,20 @@ describe('GroupBasic', () => {
     ).rejects.toThrow();
   });
 
+  it('Fails to add user with incorrect proof', async () => {
+    await expect(
+      Mina.transaction(deployer, async () => {
+        AccountUpdate.fundNewAccount(deployer);
+        await group.addUserToGroup(
+          GROUP_SETTINGS,
+          deployer.key.toPublicKey(),
+          verificationKey,
+          await ProofOfNationalityProof.fromJSON(corruptedProof)
+        );
+      })
+    ).rejects.toThrow();
+  });
+
   it('Adds remaining users to the group', async () => {
     // console.log('Adding remaining users to the group', userStart, userEnd);
     for (let i = userStart + 1; i <= userEnd; i++) {
@@ -331,7 +357,8 @@ describe('GroupBasic', () => {
         await group.addUserToGroup(
           GROUP_SETTINGS,
           testAccounts[i].key.toPublicKey(),
-          verificationKey
+          verificationKey,
+          identityProof
         );
       });
       await txn1.prove();
@@ -368,7 +395,8 @@ describe('GroupBasic', () => {
         await group.addUserToGroup(
           GROUP_SETTINGS,
           deployer.key.toPublicKey(),
-          verificationKey
+          verificationKey,
+          identityProof
         );
       })
     ).rejects.toThrow();
@@ -578,27 +606,19 @@ describe('GroupBasic', () => {
     const initialBalanceAdmin = (
       await tokenApp.getBalanceOf(group.admin.get())
     ).toBigInt();
+
     const initialBalanceContract = (
       await tokenApp.getBalanceOf(group.address)
     ).toBigInt();
-    console.log(
-      'Initial balance contract: ',
-      initialBalanceContract,
-      '\n',
-      'Initial balance admin: ',
-      initialBalanceAdmin
-    );
 
     const txn = await Mina.transaction(admin, async () => {
       await group.organiserWithdraw(
         GROUP_SETTINGS,
         UInt32.from(GROUP_SETTINGS.itemPrice.toBigint())
       );
-      await tokenApp.approveAccountUpdate(group.self);
     });
     await txn.prove();
-    await txn.sign([admin.key]).send();
-    console.log('Withdrawn', txn.toPretty());
+    await txn.sign([admin.key, groupPrivateKey]).send();
 
     const endlBalanceAdmin = (
       await tokenApp.getBalanceOf(group.admin.get())
@@ -607,13 +627,6 @@ describe('GroupBasic', () => {
     const endBalanceContract = (
       await tokenApp.getBalanceOf(group.address)
     ).toBigInt();
-    console.log(
-      'End balance contract: ',
-      endBalanceContract,
-      '\n',
-      'End balance admin: ',
-      endlBalanceAdmin
-    );
 
     // Assertion for difference being taken away
     expect(parseInt(endlBalanceAdmin.toString())).toEqual(

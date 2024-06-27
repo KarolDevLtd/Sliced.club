@@ -23,6 +23,8 @@
     "testw": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "npx eslint src/* --fix",
     "basic": "npm run build && npm run test GroupBasic",
+    "id": "npm run build && npm run test GroupId",
+    "data": "npm run build && npm run test UserData"
     "escrow": "npm run build && npm run test Escrow",
     "deployToken": "npm run build && npm run test TokenLightnet"
   },
@@ -30,6 +32,7 @@
     "@babel/preset-env": "^7.16.4",
     "@babel/preset-typescript": "^7.16.0",
     "@types/jest": "^27.0.3",
+    "idmask-zk-programs": "^0.1.3",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
     "eslint": "^8.7.0",
