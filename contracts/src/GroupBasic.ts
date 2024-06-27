@@ -276,45 +276,16 @@ export class GroupBasic extends TokenContract {
     groupUserStorageUpdate.requireSignature();
   }
 
-  /** Called once at the start. User relinquishes ability to modify token account bu signing */
-  @method async addAdminTokenAccount(
-    _groupSettings: GroupSettings,
-    address: PublicKey,
-    vk: VerificationKey
-  ) {
-    const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
-    this.approve(groupUserStorageUpdate); // TODO: check if this is needed
-
-    // Check for correct settings given
-    await this.assertGroupHash(_groupSettings);
-
-    // Ensure new addition doesn't exceed max allowed
-    let members = this.members.getAndRequireEquals();
-    members.assertLessThan(_groupSettings.members);
-
-    // Increment members
-    this.members.set(members.add(UInt32.one));
-
-    groupUserStorageUpdate.body.update.verificationKey = {
-      isSome: Bool(true),
-      value: vk,
-    };
-    groupUserStorageUpdate.body.update.permissions = {
-      isSome: Bool(true),
-      value: {
-        ...Permissions.default(),
-        // TODO test acc update for this with sig only
-        editState: Permissions.none(), // TODO
-        send: Permissions.none(), // we don't want to allow sending - soulbound
-      },
-    };
-
-    AccountUpdate.setValue(
-      groupUserStorageUpdate.body.update.appState[6], // isAdmin
-      Bool(true).toField()
+  @method
+  async testPayment(_groupSettings: GroupSettings) {
+    // Payment to the contract
+    let senderAddr = this.sender.getAndRequireSignature();
+    const token = new FungibleToken(_groupSettings.tokenAddress);
+    await token.transfer(
+      senderAddr,
+      this.escrow.getAndRequireEquals(),
+      new UInt64(100)
     );
-
-    groupUserStorageUpdate.requireSignature();
   }
 
   @method
