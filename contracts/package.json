@@ -23,6 +23,7 @@
     "testw": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "npx eslint src/* --fix",
     "basic": "npm run build && npm run test GroupBasic",
+    "escrow": "npm run build && npm run test Escrow",
     "deployToken": "npm run build && npm run test TokenLightnet"
   },
   "devDependencies": {
