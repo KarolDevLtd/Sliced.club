@@ -232,6 +232,16 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 												name={'duration'}
 												type={'number'}
 												placeholder="Duration"
+												required={true}
+												errors={errors}
+												register={register}
+												validationSchema={{
+													required: 'Duration is required',
+													max: {
+														value: 48,
+														message: 'Max value is 48',
+													},
+												}}
 												onChange={(e) => {
 													setDuration(e.target.value);
 													setParticipants(e.target.value * 2);
@@ -277,8 +287,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								message: 'Group Description must be at least 20 characters',
 							},
 							maxLength: {
-								value: 250,
-								message: 'Group Description must be at less than 250 characters',
+								value: 1500,
+								message: 'Group Description must be at less than 1500 characters',
 							},
 						}}
 					/>

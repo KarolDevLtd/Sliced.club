@@ -38,6 +38,10 @@ type TextInputProps = {
 			value?: number;
 			message?: string;
 		};
+		max?: {
+			value?: number;
+			message?: string;
+		};
 	};
 	register?: any;
 	errors?: any;
@@ -92,6 +96,9 @@ const TextInput = ({
 				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 			)}
 			{errors && errors[name]?.type === 'min' && (
+				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+			)}
+			{errors && errors[name]?.type === 'max' && (
 				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 			)}
 		</div>
