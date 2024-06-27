@@ -98,8 +98,6 @@ describe('GroupBasic', () => {
     ] = testAccounts = Local.testAccounts;
 
     group = new GroupBasic(groupAddress);
-    tokenKey = PrivateKey.random();
-
     group = new GroupBasic(groupAddress);
     escrow = new Escrow(escrowAddress);
     tokenApp = new FungibleToken(tokenAddress);
@@ -187,29 +185,43 @@ describe('GroupBasic', () => {
     ).wait();
 
     const deployGroupTx = await Mina.transaction(deployer, async () => {
-      AccountUpdate.fundNewAccount(deployer);
+      AccountUpdate.fundNewAccount(deployer, 2);
       await group.deploy({
         admin: admin,
         groupSettings: GROUP_SETTINGS,
+        escrow: escrowAddress,
       });
+      await escrow.deploy({ withdrawauth: groupAddress });
     });
     await deployGroupTx.prove();
     await (
-      await deployGroupTx.sign([deployer.key, groupPrivateKey]).send()
+      await deployGroupTx
+        .sign([deployer.key, groupPrivateKey, escrowPrivateKey])
+        .send()
     ).wait();
 
-    const escrowDeployTx = await Mina.transaction(deployer, async () => {
-      AccountUpdate.fundNewAccount(deployer);
-      await escrow.deploy({ admin: admin });
-    });
-    await escrowDeployTx.prove();
-    await (
-      await escrowDeployTx.sign([deployer.key, escrowPrivateKey]).send()
-    ).wait();
+    // const escrowDeployTx = await Mina.transaction(deployer, async () => {
+    //   AccountUpdate.fundNewAccount(deployer);
+    //   await escrow.deploy({ withdrawauth: admin });
+    // });
+    // await escrowDeployTx.prove();
+    // await (
+    //   await escrowDeployTx.sign([deployer.key, escrowPrivateKey]).send()
+    // ).wait();
 
     // Assert group deploy field equal to hash of the field
     expect(GROUP_SETTINGS.hash()).toEqual(group.groupSettingsHash.get());
   }
+
+  it('Escrow transfer', async () => {
+    let tx0 = await Mina.transaction(deployer, async () => {
+      AccountUpdate.fundNewAccount(deployer, 2);
+      let escrowToken = AccountUpdate.create(admin, tokenApp.deriveTokenId());
+      await tokenApp.approveAccountUpdates([escrowToken, escrow.self]);
+    });
+    await tx0.sign([deployer.key, escrowPrivateKey]).prove();
+    await tx0.send();
+  });
 
   it('Generates and deploys the `GroupBasic` smart contract', async () => {
     // const groupToken = group.tokenAddress.get();
@@ -280,6 +292,8 @@ describe('GroupBasic', () => {
     initTokenStable.sign([admin.key]);
     await initTokenStable.send().then((v) => v.wait());
   });
+
+  // it('Sets group contract as the withdraw auth of the escrow ', async () => {});
 
   it('Adds a single user to the group', async () => {
     const txn1 = await Mina.transaction(alexa, async () => {

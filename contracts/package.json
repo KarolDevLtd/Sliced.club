@@ -24,7 +24,7 @@
     "lint": "npx eslint src/* --fix",
     "basic": "npm run build && npm run test GroupBasic",
     "id": "npm run build && npm run test GroupId",
-    "data": "npm run build && npm run test UserData"
+    "data": "npm run build && npm run test UserData",
     "escrow": "npm run build && npm run test Escrow",
     "deployToken": "npm run build && npm run test TokenLightnet"
   },

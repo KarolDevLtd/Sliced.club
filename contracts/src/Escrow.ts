@@ -15,28 +15,28 @@ import {
 import { FungibleToken } from './token/FungibleToken';
 
 export class Escrow extends SmartContract {
-  @state(PublicKey) admin = State<PublicKey>();
+  @state(PublicKey) withdrawauth = State<PublicKey>();
   @state(PublicKey) group = State<PublicKey>();
-  async deploy(args: DeployArgs & { admin: PublicKey }) {
+  async deploy(args: DeployArgs & { withdrawauth: PublicKey }) {
     await super.deploy(args);
-    this.admin.set(args.admin);
+    this.withdrawauth.set(args.withdrawauth);
   }
 
   @method async setGroup(group: PublicKey) {
-    let admin: PublicKey = this.admin.getAndRequireEquals();
-    this.sender.getAndRequireSignature().assertEquals(admin);
+    let withdrawauth: PublicKey = this.withdrawauth.getAndRequireEquals();
+    this.sender.getAndRequireSignature().assertEquals(withdrawauth);
     this.group.set(group);
   }
 
   @method async withdraw(amount: UInt64) {
-    let admin: PublicKey = this.admin.getAndRequireEquals();
+    let withdrawauth: PublicKey = this.withdrawauth.getAndRequireEquals();
 
-    // only the admin can withdraw
-    this.sender.getAndRequireSignature().assertEquals(admin);
+    // only the withdrawauth can withdraw
+    this.sender.getAndRequireSignature().assertEquals(withdrawauth);
 
     // withdraw the amount
     let receiverAU = this.send({
-      to: admin,
+      to: withdrawauth,
       amount,
     });
 
@@ -44,9 +44,9 @@ export class Escrow extends SmartContract {
   }
 
   @method async withdrawOptimized(amount: UInt64) {
-    let admin: PublicKey = this.admin.getAndRequireEquals();
-    let adminAU = AccountUpdate.createSigned(admin, this.tokenId); // forces admin to sign
-    adminAU.body.useFullCommitment = Bool(true); // admin signs full tx so that the signature can't be reused against them
+    let withdrawauth: PublicKey = this.withdrawauth.getAndRequireEquals();
+    let adminAU = AccountUpdate.createSigned(withdrawauth, this.tokenId); // forces withdrawauth to sign
+    adminAU.body.useFullCommitment = Bool(true); // withdrawauth signs full tx so that the signature can't be reused against them
 
     // withdraw the amount
     this.send({ to: adminAU, amount });

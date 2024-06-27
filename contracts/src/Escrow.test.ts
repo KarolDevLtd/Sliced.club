@@ -24,7 +24,7 @@ describe('Escrow', () => {
 
     let Local = await Mina.LocalBlockchain({ proofsEnabled: false });
     Mina.setActiveInstance(Local);
-    [admin, deployer] = Local.testAccounts;
+    [admin, deployer, group] = Local.testAccounts;
     token = new FungibleToken(tokenAddress);
     const tokenId = token.deriveTokenId();
     escrow = new Escrow(escrowAddress, tokenId);
@@ -54,7 +54,7 @@ describe('Escrow', () => {
     let tx0 = await Mina.transaction(deployer, async () => {
       AccountUpdate.fundNewAccount(deployer, 2);
       adminToken = AccountUpdate.create(admin, tokenId);
-      await escrow.deploy({ admin });
+      await escrow.deploy({ withdrawauth: admin });
       await token.approveAccountUpdates([adminToken, escrow.self]);
     });
 
@@ -123,9 +123,42 @@ describe('Escrow', () => {
 
     let tx = await Mina.transaction(admin, async () => {
       await escrow.setGroup(group);
+      await token.approveAccountUpdate(escrow.self);
     })
       .sign([admin.key])
       .prove()
       .send();
   });
 });
+
+// const deployGroupTx = await Mina.transaction(deployer, async () => {
+//     AccountUpdate.fundNewAccount(deployer, 3);
+//     await group.deploy({
+//       admin: admin,
+//       groupSettings: GROUP_SETTINGS,
+//       escrow: escrowAddress,
+//     });
+//     await escrow.deploy({ withdrawauth: groupAddress });
+//     let escrowToken = AccountUpdate.create(admin, tokenApp.deriveTokenId());
+//     await tokenApp.approveAccountUpdates([escrowToken, escrow.self]);
+//   });
+//   await deployGroupTx.prove();
+//   await (
+//     await deployGroupTx
+//       .sign([deployer.key, groupPrivateKey, escrowPrivateKey])
+//       .send()
+//   ).wait();
+
+// it('Escrow transfer', async () => {
+//   let tx0 = await Mina.transaction(deployer, async () => {
+//     AccountUpdate.fundNewAccount(deployer, 3);
+//     AccountUpdate.create(escrowAddress, tokenApp.deriveTokenId());
+//     AccountUpdate.create(tokenAddress, tokenApp.deriveTokenId());
+//     let groupUpdate = AccountUpdate.create(
+//       groupAddress,
+//       tokenApp.deriveTokenId()
+//     );
+//     // await tokenApp.approveAccountUpdates([groupUpdate, escrow.self]);
+//   });
+//   await tx0.sign([deployer.key, escrowPrivateKey, groupPrivateKey]).prove();
+//   await tx0.send(

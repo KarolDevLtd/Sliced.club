@@ -124,6 +124,7 @@ export class GroupBasic extends TokenContract {
   @state(Field) groupSettingsHash = State<Field>();
   /** Also organiser. */
   @state(PublicKey) admin = State<PublicKey>();
+  @state(PublicKey) escrow = State<PublicKey>();
   /** Current index of the payment. */
   @state(UInt64) paymentRound = State<UInt64>();
   /** Exact number of members needed for this group . */
@@ -142,10 +143,15 @@ export class GroupBasic extends TokenContract {
   }
 
   async deploy(
-    args: DeployArgs & { admin: PublicKey; groupSettings: GroupSettings }
+    args: DeployArgs & {
+      admin: PublicKey;
+      groupSettings: GroupSettings;
+      escrow: PublicKey;
+    }
   ) {
     await super.deploy(args);
     this.admin.set(args.admin);
+    this.escrow.set(args.escrow);
     // Set group hash
     this.groupSettingsHash.set(args.groupSettings.hash());
     this.paymentRound.set(UInt64.zero);
@@ -157,11 +163,6 @@ export class GroupBasic extends TokenContract {
       send: Permissions.none(),
       incrementNonce: Permissions.proofOrSignature(),
     });
-
-    let adminTokenAccount = new GroupUserStorage(
-      args.admin,
-      this.deriveTokenId()
-    );
   }
 
   @method
