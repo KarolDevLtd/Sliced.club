@@ -16,9 +16,16 @@ import { FungibleToken } from './token/FungibleToken';
 
 export class Escrow extends SmartContract {
   @state(PublicKey) admin = State<PublicKey>();
+  @state(PublicKey) group = State<PublicKey>();
   async deploy(args: DeployArgs & { admin: PublicKey }) {
     await super.deploy(args);
     this.admin.set(args.admin);
+  }
+
+  @method async setGroup(group: PublicKey) {
+    let admin: PublicKey = this.admin.getAndRequireEquals();
+    this.sender.getAndRequireSignature().assertEquals(admin);
+    this.group.set(group);
   }
 
   @method async withdraw(amount: UInt64) {

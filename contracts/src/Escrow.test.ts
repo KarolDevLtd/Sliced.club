@@ -12,20 +12,22 @@ import { FungibleToken } from './token/FungibleToken';
 import { Escrow } from './Escrow';
 
 describe('Escrow', () => {
-  let deployer: TestPublicKey, admin: TestPublicKey;
+  let deployer: TestPublicKey, admin: TestPublicKey, group: TestPublicKey;
   let escrowKey = PrivateKey.random();
   let escrowAddress = escrowKey.toPublicKey();
+  let escrow: Escrow;
+  let token: FungibleToken;
 
-  it('Mints and distributes tokens ', async () => {
+  it('Set-up', async () => {
     const tokenKey = PrivateKey.random();
     const tokenAddress = tokenKey.toPublicKey();
 
     let Local = await Mina.LocalBlockchain({ proofsEnabled: false });
     Mina.setActiveInstance(Local);
     [admin, deployer] = Local.testAccounts;
-    let token = new FungibleToken(tokenAddress);
+    token = new FungibleToken(tokenAddress);
     const tokenId = token.deriveTokenId();
-    let escrow = new Escrow(escrowAddress, tokenId);
+    escrow = new Escrow(escrowAddress, tokenId);
 
     await Mina.transaction(admin, async () => {
       // deploy token contract
@@ -110,6 +112,17 @@ describe('Escrow', () => {
 
       // token-approve the withdrawal
       await token.approveAccountUpdate(escrow.self);
+    })
+      .sign([admin.key])
+      .prove()
+      .send();
+  });
+
+  it('Admin setspermitted group', async () => {
+    console.log('Admin', admin.toBase58());
+
+    let tx = await Mina.transaction(admin, async () => {
+      await escrow.setGroup(group);
     })
       .sign([admin.key])
       .prove()

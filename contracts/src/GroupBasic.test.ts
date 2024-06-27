@@ -15,6 +15,7 @@ import {
 } from 'o1js';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
+import { Escrow } from './Escrow';
 
 let proofsEnabled = false;
 const fee = 1e8;
@@ -34,9 +35,12 @@ describe('GroupBasic', () => {
     tokenKey: PrivateKey,
     groupPrivateKey = PrivateKey.random(),
     groupAddress = groupPrivateKey.toPublicKey(),
+    escrowPrivateKey = PrivateKey.random(),
+    escrowAddress = escrowPrivateKey.toPublicKey(),
     tokenPrivateKey = PrivateKey.random(),
     tokenAddress = tokenPrivateKey.toPublicKey(),
     group: GroupBasic,
+    escrow: Escrow,
     tokenApp: FungibleToken,
     derivedTokenId: Field,
     verificationKey: VerificationKey;
@@ -89,12 +93,14 @@ describe('GroupBasic', () => {
       theodore,
     ] = testAccounts = Local.testAccounts;
 
-    group = new GroupBasic(groupAddress);
     tokenKey = PrivateKey.random();
+
+    group = new GroupBasic(groupAddress);
+    escrow = new Escrow(escrowAddress);
+    tokenApp = new FungibleToken(tokenAddress);
 
     derivedTokenId = TokenId.derive(groupAddress);
 
-    tokenApp = new FungibleToken(tokenAddress);
     console.log(`
     deployer ${deployer.toBase58()}
     admin ${admin.toBase58()}
@@ -182,6 +188,15 @@ describe('GroupBasic', () => {
     await deployGroupTx.prove();
     await (
       await deployGroupTx.sign([deployer.key, groupPrivateKey]).send()
+    ).wait();
+
+    const escrowDeployTx = await Mina.transaction(deployer, async () => {
+      AccountUpdate.fundNewAccount(deployer);
+      await escrow.deploy({ admin: admin });
+    });
+    await escrowDeployTx.prove();
+    await (
+      await escrowDeployTx.sign([deployer.key, escrowPrivateKey]).send()
     ).wait();
 
     // Assert group deploy field equal to hash of the field
