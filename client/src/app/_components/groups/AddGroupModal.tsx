@@ -243,6 +243,9 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 													},
 												}}
 												onChange={(e) => {
+													if (e.target.value > 48) {
+														e.target.value = 48;
+													}
 													setDuration(e.target.value);
 													setParticipants(e.target.value * 2);
 												}}
