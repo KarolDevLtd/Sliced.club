@@ -4,7 +4,6 @@
 // https:jujuontheweb.medium.com/how-to-use-react-hook-form-with-your-custom-form-components-a86a1a77cf3c
 
 import React, { type ReactElement } from 'react';
-import { useFormContext, RegisterOptions } from 'react-hook-form';
 
 type TextInputProps = {
 	label?: string;
@@ -60,13 +59,10 @@ const TextInput = ({
 	disabled,
 	required = false,
 	value,
-	// React Hook Form Props
 	validationSchema,
 	register = () => [],
 	errors,
 }: TextInputProps) => {
-	// const { register } = useFormContext();
-
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (onChange) {
 			onChange(e);
