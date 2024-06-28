@@ -76,7 +76,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		const selectedProduct = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
 		if (selectedProduct) setCurrentSelectedProduct(selectedProduct as IPFSSearchModel);
 	};
-	const handleDurationSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+	const handlePeriodSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		//TODO: This filter on name should be replaced with filter on id?
 		// const selectedDuration = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
 		// if (selectedProduct) setCurrentSelectedProduct(selectedProduct as IPFSSearchModel);
@@ -255,7 +255,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 												placeholder="-- Please select a duration --"
 												defaultValue=""
 												value={period}
-												onChange={(e) => handleDurationSelectChange(e)}
+												onChange={(e) => handlePeriodSelectChange(e)}
 												options={PeriodOptions}
 											/>
 										</div>

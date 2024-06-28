@@ -4,6 +4,7 @@
 // https:jujuontheweb.medium.com/how-to-use-react-hook-form-with-your-custom-form-components-a86a1a77cf3c
 
 import React, { type ReactElement } from 'react';
+import { useFormContext, RegisterOptions } from 'react-hook-form';
 
 type TextInputProps = {
 	label?: string;
@@ -14,7 +15,7 @@ type TextInputProps = {
 	autoComplete?: string;
 	placeholder?: string;
 	icon?: ReactElement | null;
-	onChange?: (e: any) => any;
+	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	disabled?: boolean;
 	required?: boolean;
 	value?: string;
@@ -64,6 +65,14 @@ const TextInput = ({
 	register = () => [],
 	errors,
 }: TextInputProps) => {
+	// const { register } = useFormContext();
+
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (onChange) {
+			onChange(e);
+		}
+	};
+
 	return (
 		<div>
 			<label htmlFor={id} className="input input-bordered flex items-center gap-2">
@@ -74,12 +83,17 @@ const TextInput = ({
 					type={type}
 					autoComplete={autoComplete}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
-					onChange={onChange}
+					onChange={handleChange}
 					disabled={disabled}
 					required={required}
-					value={value}
+					defaultValue={value}
 					// React Hook Form
-					{...register(name, validationSchema)}
+					{...register(name, {
+						...validationSchema,
+						onChange: (e) => {
+							handleChange(e);
+						},
+					})}
 					className="grow"
 				/>
 				{required && <span className="badge badge-info">Required</span>}
