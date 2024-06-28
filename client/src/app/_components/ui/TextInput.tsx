@@ -15,7 +15,7 @@ type TextInputProps = {
 	autoComplete?: string;
 	placeholder?: string;
 	icon?: ReactElement | null;
-	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	onChange?: (e: any) => void;
 	disabled?: boolean;
 	required?: boolean;
 	value?: string;
@@ -86,7 +86,7 @@ const TextInput = ({
 					onChange={handleChange}
 					disabled={disabled}
 					required={required}
-					defaultValue={value}
+					value={value}
 					// React Hook Form
 					{...register(name, {
 						...validationSchema,
