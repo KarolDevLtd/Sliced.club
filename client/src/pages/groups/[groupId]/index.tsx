@@ -179,12 +179,13 @@ export default function Group() {
 									console.log('wallet', walletAddress.toString());
 
 									await addUserToGroup(
-										groupData.group.chainPubKey, // TODO state problems?
+										groupData.group.chainPubKey,
 										// currentSelectedParticpant.metadata.keyvalues.userKey,
 										walletAddress.toString(),
-										parseInt(group.participants),
-										parseInt(group.price),
-										parseInt(group.duration),
+										parseInt(groupData.group.participants),
+										parseInt(groupData.group.price),
+										parseInt(groupData.group.duration),
+										// parseInt(groupData.group.missable) // TODO that's wrong
 										3
 									);
 									// await groupParticipantToIPFS.mutateAsync({
