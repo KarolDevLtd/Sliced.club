@@ -253,6 +253,12 @@ const functions = {
 			missable,
 			payemntDuration
 		);
+		console.log('maxMembers:', maxMembers.toBigint().toString());
+		console.log('itemPrice:', itemPrice.toBigint().toString());
+		console.log('groupDuration:', groupDuration.toBigint().toString());
+		console.log('tokenAddress:', tokenAddress.toBase58());
+		console.log('missable:', missable.toBigint().toString());
+		console.log('payemntDuration:', payemntDuration.toBigInt().toString());
 		const transaction = await Mina.transaction({ sender: deployer, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(deployer);
 			await instance.deploy({ admin, groupSettings });
@@ -288,6 +294,13 @@ const functions = {
 			missable,
 			payemntDuration
 		);
+		console.log('s');
+		console.log('maxMembers:', maxMembers.toBigint().toString());
+		console.log('itemPrice:', itemPrice.toBigint().toString());
+		console.log('groupDuration:', groupDuration.toBigint().toString());
+		console.log('tokenAddress:', tokenAddress.toBase58());
+		console.log('missable:', missable.toBigint().toString());
+		console.log('payemntDuration:', payemntDuration.toBigInt().toString());
 		console.log('params ready');
 		console.log('userKey', userKey.toBase58());
 		console.log('tokenAddress', tokenAddress.toBase58());

@@ -347,7 +347,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			await zkappWorkerClient.deployGroup(
 				userPublicKey!.toBase58(),
 				groupPrivKey.toBase58(),
-				maxMembers, //PASS THOSE VALUES
+				maxMembers,
 				itemPrice,
 				groupDuration,
 				missable,
@@ -408,13 +408,20 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			const res = await zkappWorkerClient.fetchAccount({ publicKey: _groupPubKey });
 			console.log('res', res);
 			setIsMinaLoading(true);
+			console.log('participantKey:', participantKey);
+			console.log('maxMembers:', maxMembers);
+			console.log('itemPrice:', itemPrice);
+			console.log('groupDuration:', groupDuration);
+			console.log('missable:', missable);
+
 			await zkappWorkerClient.addUserToGroup(
 				// admin,
 				participantKey,
 				maxMembers,
 				itemPrice,
 				groupDuration,
-				missable
+				missable,
+				2592000 // TODO pass this from above
 			);
 			await zkappWorkerClient.proveTransaction();
 			console.log('Transaction proved');
