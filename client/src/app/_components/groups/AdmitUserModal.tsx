@@ -1,18 +1,15 @@
-import TextInput from '../ui/TextInput';
 import BasicModal from '../ui/BasicModal';
 import { useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import { closeModal } from '@/helpers/modal-helper';
 import { useWallet } from '@/providers/WalletProvider';
 import { api } from '@/trpc/react';
-import { ChangeEvent, use, useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import { DropDownContentModel } from '@/models/dropdown-content-model';
-import { IPFSSearchModel } from '@/models/ipfs/ipfs-search-model';
-import { IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
+import { type ChangeEvent, useEffect, useState } from 'react';
+import { type DropDownContentModel } from '@/models/dropdown-content-model';
+import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 import SelectOption from '../ui/SelectOption';
 import { useMinaProvider } from '@/providers/minaprovider';
-import { IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
+import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 type AdmitUserModalProps = {
 	groupHash: string;
 	participants: IPFSGroupParticipantModel[];
