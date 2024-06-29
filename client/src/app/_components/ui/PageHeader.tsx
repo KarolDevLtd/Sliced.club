@@ -12,9 +12,10 @@ type PageHeaderProps = {
 	hideQuickLinks?: boolean;
 	buttonText?: string;
 	onClick?: () => void;
+	customElement?: React.ReactNode; // Add this line
 };
 
-const PageHeader = ({ text, subtext, hideQuickLinks = false, buttonText, onClick }: PageHeaderProps) => {
+const PageHeader = ({ text, subtext, hideQuickLinks = false, buttonText, onClick, customElement }: PageHeaderProps) => {
 	return (
 		<div className="flex justify-between items-center min-h-[56px] min-w-full">
 			<div className="flex items-center">
@@ -31,6 +32,7 @@ const PageHeader = ({ text, subtext, hideQuickLinks = false, buttonText, onClick
 						</BasicButton>
 					</div>
 				)}
+				{customElement ? customElement : null}
 			</div>
 			{!hideQuickLinks ? (
 				<div className="flex items-center gap-3">
