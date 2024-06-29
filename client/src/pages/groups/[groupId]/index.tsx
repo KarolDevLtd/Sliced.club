@@ -157,11 +157,13 @@ export default function Group() {
 					<PageHeader
 						text={groupData?.group?.name ?? 'Group Name'}
 						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
-						buttonText="Leave group"
-						onClick={() => {
-							console.log('Leave group needs implementing');
-							// setIsParticipant(false);
-						}}
+						customElement={
+							<div className="px-4">
+								<strong className=" flex border border-bellow rounded-3xl px-5 text-bellow">
+									Joined Group
+								</strong>
+							</div>
+						}
 					/>
 				) : (
 					<PageHeader
