@@ -232,7 +232,7 @@ const functions = {
 		itemPrice: number;
 		groupDuration: number;
 		missable: number; // number of payment that can be missed
-		paymentDuration?: number;
+		paymentDuration: number;
 		deployer?: PublicKey;
 	}) => {
 		const admin = PublicKey.fromBase58(args.adminPublicKey);
@@ -244,7 +244,7 @@ const functions = {
 		const groupDuration = UInt32.from(args.groupDuration);
 		const tokenAddress = state.tokenZkapp!.address;
 		const missable = UInt32.from(args.missable);
-		const paymentDuration = args.paymentDuration ? UInt64.from(args.paymentDuration) : UInt64.from(0);
+		const paymentDuration = UInt64.from(args.paymentDuration);
 		console.log('maxMembers:', maxMembers.toBigint().toString());
 		console.log('itemPrice:', itemPrice.toBigint().toString());
 		console.log('groupDuration:', groupDuration.toBigint().toString());
@@ -275,7 +275,7 @@ const functions = {
 		itemPrice: number;
 		groupDuration: number;
 		missable: number;
-		paymentDuration?: number;
+		paymentDuration: number;
 	}) => {
 		// const admin = PublicKey.fromBase58(args.admin);
 		const userKey = PublicKey.fromBase58(args.userKey);
@@ -285,7 +285,7 @@ const functions = {
 		const groupDuration = UInt32.from(args.groupDuration);
 		const tokenAddress = state.tokenZkapp!.address;
 		const missable = UInt32.from(args.missable);
-		const paymentDuration = args.paymentDuration ? UInt64.from(args.paymentDuration) : UInt64.from(0);
+		const paymentDuration = UInt64.from(args.paymentDuration);
 		const groupSettings = new GroupSettings(
 			maxMembers,
 			itemPrice,

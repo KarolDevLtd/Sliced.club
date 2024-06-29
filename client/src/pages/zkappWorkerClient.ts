@@ -107,7 +107,7 @@ export default class ZkappWorkerClient {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		paymentDuration?: number,
+		paymentDuration: number,
 		deployer?: PublicKey
 	) {
 		return await this._call('deployGroup', {
@@ -128,7 +128,7 @@ export default class ZkappWorkerClient {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		paymentDuration?: number
+		paymentDuration: number
 	) {
 		return await this._call('addUserToGroup', {
 			// admin,

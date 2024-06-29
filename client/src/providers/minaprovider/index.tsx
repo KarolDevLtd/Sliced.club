@@ -35,7 +35,7 @@ interface MinaContextType {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		paymentDuration?: number
+		paymentDuration: number
 	) => Promise<void>;
 	userPayment: (
 		_groupPubKey: string,
@@ -402,7 +402,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		paymentDuration?: number
+		paymentDuration: number
 	) => {
 		if (userPublicKey && zkappWorkerClient) {
 			// const admin = userPublicKey.toBase58();
@@ -438,7 +438,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				itemPrice,
 				groupDuration,
 				missable,
-				paymentDuration ? paymentDuration : 2592000 // month
+				paymentDuration
 			);
 			await zkappWorkerClient.proveTransaction();
 			console.log('Transaction proved');

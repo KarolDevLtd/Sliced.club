@@ -89,7 +89,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		price: string,
 		duration: string,
 		participants: string,
-		chainPubKey: string
+		chainPubKey: string,
+		period: string
 	) => {
 		try {
 			setIsLoading(true);
@@ -113,6 +114,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				dateTime: DateTime.now().toString(),
 				userObjectHash: null,
 				chainPubKey: chainPubKey,
+				period: period,
 			});
 		} catch (err) {
 			console.log(err);
@@ -141,7 +143,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 					currentSelectedProduct?.metadata.keyvalues.price!,
 					duration.toString(),
 					participants.toString(),
-					gpk
+					gpk,
+					period
 				);
 				reset();
 				closeModal('add-group');

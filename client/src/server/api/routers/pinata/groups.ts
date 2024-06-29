@@ -24,6 +24,7 @@ export const PinataGroupRouter = createTRPCRouter({
 				dateTime: z.string(),
 				userObjectHash: z.string().nullish(),
 				chainPubKey: z.string(),
+				period: z.string(),
 			})
 		)
 		.mutation(async ({ input }) => {

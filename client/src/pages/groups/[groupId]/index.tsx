@@ -184,8 +184,9 @@ export default function Group() {
 										parseInt(groupData.group.price),
 										parseInt(groupData.group.duration),
 										// parseInt(groupData.group.missable) // TODO that's wrong
-										3 // missable
+										3, // missable
 										// payment duration
+										parseInt(groupData.group.period)
 									);
 									// await groupParticipantToIPFS.mutateAsync({
 									// 	groupHash: groupId.toString(),
