@@ -27,7 +27,7 @@ interface MinaContextType {
 		groupDuration: number,
 		missable: number,
 		payemntDuration: number
-	) => Promise<void>;
+	) => Promise<string | null>;
 	addUserToGroup: (
 		_groupPubKey: string,
 		participantKey: string,
@@ -36,7 +36,7 @@ interface MinaContextType {
 		groupDuration: number,
 		missable: number
 	) => Promise<void>;
-	groupPublicKey: string;
+	// groupPublicKey: string;
 }
 
 const MinaProviderContext = createContext<MinaContextType | undefined>(undefined);
@@ -318,11 +318,11 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		groupDuration: number,
 		missable: number,
 		paymentDuration: number
-	) => {
+	): Promise<string | null> => {
 		try {
 			if (zkappWorkerClient == null) {
 				console.log('zkappWorkerClient is null');
-				return;
+				return null;
 			}
 			const groupPrivKey = PrivateKey.random();
 			const groupPubKey = groupPrivKey.toPublicKey();
@@ -371,10 +371,14 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			console.log('Group created');
 			//check if worked...
 			await logFetchAccount(groupPubKey.toBase58(), zkappWorkerClient);
+
+			return groupPubKey.toBase58();
 		} catch (err) {
 			// You may want to show the error message in your UI to the user if the transaction fails.
 			console.log(err);
+			return null;
 		} finally {
+			//finally always executes, evenr with return...
 			setDeployingGroup(false);
 			setIsMinaLoading(false);
 		}
@@ -551,7 +555,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		isMinaLoading,
 		deployGroup,
 		addUserToGroup,
-		groupPublicKey,
+		// groupPublicKey,
 	};
 
 	return <MinaProviderContext.Provider value={value}>{children}</MinaProviderContext.Provider>;

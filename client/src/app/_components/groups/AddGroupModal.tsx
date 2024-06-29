@@ -127,21 +127,21 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
-			await deployGroup(
+			const gpk = await deployGroup(
 				participants,
 				parseInt(currentSelectedProduct?.metadata.keyvalues.price!),
 				duration,
 				3,
 				parseInt(period)
 			);
-			if (groupPublicKey) {
+			if (gpk) {
 				await saveGroup(
 					data['group-name'] as string,
 					data['group-description'] as string,
 					currentSelectedProduct?.metadata.keyvalues.price!,
 					duration.toString(),
 					participants.toString(),
-					groupPublicKey
+					gpk
 				);
 				reset();
 				closeModal('add-group');
