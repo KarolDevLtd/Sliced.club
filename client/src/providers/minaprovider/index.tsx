@@ -34,7 +34,18 @@ interface MinaContextType {
 		maxMembers: number,
 		itemPrice: number,
 		groupDuration: number,
-		missable: number
+		missable: number,
+		payemntDuration?: number
+	) => Promise<void>;
+	userPayment: (
+		_groupPubKey: string,
+		participantKey: string,
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number,
+		payemntDuration: number,
+		amountOfBids: number
 	) => Promise<void>;
 	// groupPublicKey: string;
 }
@@ -390,7 +401,8 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		maxMembers: number,
 		itemPrice: number,
 		groupDuration: number,
-		missable: number
+		missable: number,
+		payemntDuration?: number
 	) => {
 		if (userPublicKey && zkappWorkerClient) {
 			// const admin = userPublicKey.toBase58();
@@ -417,6 +429,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			console.log('itemPrice:', itemPrice);
 			console.log('groupDuration:', groupDuration);
 			console.log('missable:', missable);
+			console.log('payemntDuration:', payemntDuration);
 
 			await zkappWorkerClient.addUserToGroup(
 				// admin,
@@ -425,7 +438,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				itemPrice,
 				groupDuration,
 				missable,
-				2592000 // TODO pass this from above
+				payemntDuration ? payemntDuration : 2592000 // month
 			);
 			await zkappWorkerClient.proveTransaction();
 			console.log('Transaction proved');
@@ -440,6 +453,64 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			console.log('hash', hash);
 			await zkappWorkerClient.loopUntilConfirmed(hash);
 			console.log('User added');
+		}
+	};
+
+	const userPayment = async (
+		_groupPubKey: string,
+		participantKey: string,
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number,
+		payemntDuration: number,
+		amountOfBids: number
+	) => {
+		if (userPublicKey && zkappWorkerClient) {
+			const groupPubKey = PublicKey.fromBase58(_groupPubKey);
+			setGroupPublicKey(groupPubKey.toBase58());
+			console.log(_groupPubKey, 'groupsssss');
+			// console.log('admin', admin);
+			const result = JSON.parse((await zkappWorkerClient.areContractsCompiled()) as string);
+			console.log('here pay', result);
+			if (!result.group) {
+				setIsMinaLoading(true);
+				await zkappWorkerClient.initGroupInstance(_groupPubKey);
+
+				const tokenPubKey = PrivateKey.fromBase58(tokenPrivKeyBase58).toPublicKey();
+				await zkappWorkerClient.initTokenInstance(tokenPubKey);
+				console.log('Compiling Group contract...');
+				await zkappWorkerClient.compileGroupContract();
+			}
+			console.log('participantKey:', participantKey);
+			console.log('maxMembers:', maxMembers);
+			console.log('itemPrice:', itemPrice);
+			console.log('groupDuration:', groupDuration);
+			console.log('missable:', missable);
+			console.log('payemntDuration:', payemntDuration);
+			console.log('amountOfBids:', amountOfBids);
+			await zkappWorkerClient.roundPayment(
+				participantKey,
+				maxMembers,
+				itemPrice,
+				groupDuration,
+				missable,
+				payemntDuration,
+				amountOfBids
+			);
+			await zkappWorkerClient.proveTransaction();
+			console.log('Transaction proved');
+			const txn = await zkappWorkerClient.getTransactionJSON();
+			const { hash } = await window.mina.sendTransaction({
+				transaction: txn,
+				feePayer: {
+					fee: 0.1 * 1e9,
+					memo: 'user payment',
+				},
+			});
+			console.log('hash', hash);
+			await zkappWorkerClient.loopUntilConfirmed(hash);
+			console.log('User paid');
 		}
 	};
 
@@ -555,6 +626,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		isMinaLoading,
 		deployGroup,
 		addUserToGroup,
+		userPayment,
 		// groupPublicKey,
 	};
 

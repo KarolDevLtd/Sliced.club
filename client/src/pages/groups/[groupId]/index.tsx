@@ -30,7 +30,7 @@ export default function Group() {
 	const router = useRouter();
 	const [refreshPosts, setRefreshPosts] = useState(false);
 	const { walletAddress } = useWallet();
-	const { addUserToGroup } = useMinaProvider();
+	const { addUserToGroup, userPayment } = useMinaProvider();
 
 	const groupId = router.query.groupId;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
@@ -174,9 +174,7 @@ export default function Group() {
 							try {
 								console.log('Joining group');
 								if (groupId && walletAddress && group && !isParticipant) {
-									//here I think we need to
-									console.log('pubkeyt', groupData.group.chainPubKey);
-									console.log('wallet', walletAddress.toString());
+									console.log('add user ipfs values :\n', groupData.group);
 
 									await addUserToGroup(
 										groupData.group.chainPubKey,
@@ -186,7 +184,8 @@ export default function Group() {
 										parseInt(groupData.group.price),
 										parseInt(groupData.group.duration),
 										// parseInt(groupData.group.missable) // TODO that's wrong
-										3
+										3 // missable
+										// payment duration
 									);
 									// await groupParticipantToIPFS.mutateAsync({
 									// 	groupHash: groupId.toString(),
@@ -202,6 +201,44 @@ export default function Group() {
 						}}
 					/>
 				)}
+				<PageHeader
+					text={'Pay'}
+					subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
+					buttonText="Payment"
+					onClick={async () => {
+						try {
+							console.log('paying group');
+							if (groupId && walletAddress && group) {
+								// console.log('add user ipfs values :\n', groupData.group);
+								console.log(walletAddress.toString());
+								console.log(parseInt(groupData.group.participants));
+								console.log(parseInt(groupData.group.price));
+								console.log(parseInt(groupData.group.duration));
+								await userPayment(
+									groupData.group.chainPubKey,
+									// currentSelectedParticpant.metadata.keyvalues.userKey,
+									walletAddress.toString(),
+									parseInt(groupData.group.participants),
+									parseInt(groupData.group.price),
+									parseInt(groupData.group.duration),
+									// parseInt(groupData.group.missable) // TODO that's wrong
+									3, // missable
+									2592000, // payment duration
+									0
+								);
+								// await groupParticipantToIPFS.mutateAsync({
+								// 	groupHash: groupId.toString(),
+								// 	creatorKey: group.creatorKey,
+								// 	userKey: walletAddress.toString(),
+								// 	status: 'approved',
+								// });
+								// setIsParticipant(true);
+							}
+						} catch (error) {
+							console.log(error);
+						}
+					}}
+				/>
 			</div>
 
 			<div className="flex-1">

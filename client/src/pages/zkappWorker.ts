@@ -253,12 +253,6 @@ const functions = {
 			missable,
 			payemntDuration
 		);
-		console.log('maxMembers:', maxMembers.toBigint().toString());
-		console.log('itemPrice:', itemPrice.toBigint().toString());
-		console.log('groupDuration:', groupDuration.toBigint().toString());
-		console.log('tokenAddress:', tokenAddress.toBase58());
-		console.log('missable:', missable.toBigint().toString());
-		console.log('payemntDuration:', payemntDuration.toBigInt().toString());
 		const transaction = await Mina.transaction({ sender: deployer, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(deployer);
 			await instance.deploy({ admin, groupSettings });
@@ -317,16 +311,25 @@ const functions = {
 		itemPrice: number;
 		groupDuration: number;
 		missable: number;
-		payemntDuration?: number;
+		paymentDuration: number;
 		amountOfBids: number;
 	}) => {
+		console.log('in roundPayment');
+		console.log('s');
+		console.log('maxMembers:', args.maxMembers);
+		console.log('itemPrice:', args.itemPrice);
+		console.log('groupDuration:', args.groupDuration);
+		console.log('missable:', args.missable);
+		console.log('payemntDuration:', args.paymentDuration);
+		console.log('params ready');
+		console.log('userKey', args.userKey);
 		const userKey = PublicKey.fromBase58(args.userKey);
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
 		const groupDuration = UInt32.from(args.groupDuration);
 		const tokenAddress = state.tokenZkapp!.address;
 		const missable = UInt32.from(args.missable);
-		const payemntDuration = args.payemntDuration ? UInt64.from(args.payemntDuration) : UInt64.from(0);
+		const payemntDuration = UInt64.from(args.paymentDuration);
 		const groupSettings = new GroupSettings(
 			maxMembers,
 			itemPrice,
@@ -335,6 +338,17 @@ const functions = {
 			missable,
 			payemntDuration
 		);
+		console.log('s');
+		console.log('maxMembers:', maxMembers.toBigint().toString());
+		console.log('itemPrice:', itemPrice.toBigint().toString());
+		console.log('groupDuration:', groupDuration.toBigint().toString());
+		console.log('tokenAddress:', tokenAddress.toBase58());
+		console.log('missable:', missable.toBigint().toString());
+		console.log('payemntDuration:', payemntDuration.toBigInt().toString());
+		console.log('params ready');
+		console.log('userKey', userKey.toBase58());
+		console.log('tokenAddress', tokenAddress.toBase58());
+		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
 		const amountOfBids = UInt64.from(args.amountOfBids);
 		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
 			//gonna have to fund group with token first

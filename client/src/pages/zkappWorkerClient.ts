@@ -149,6 +149,7 @@ export default class ZkappWorkerClient {
 		paymentDuration: number,
 		amountOfBids: number
 	) {
+		console.log('roundPayment');
 		return await this._call('roundPayment', {
 			userKey,
 			maxMembers,
