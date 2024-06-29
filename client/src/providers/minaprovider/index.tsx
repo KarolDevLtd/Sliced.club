@@ -26,7 +26,7 @@ interface MinaContextType {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration: number
+		paymentDuration: number
 	) => Promise<string | null>;
 	addUserToGroup: (
 		_groupPubKey: string,
@@ -35,7 +35,7 @@ interface MinaContextType {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration?: number
+		paymentDuration?: number
 	) => Promise<void>;
 	userPayment: (
 		_groupPubKey: string,
@@ -44,7 +44,7 @@ interface MinaContextType {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration: number,
+		paymentDuration: number,
 		amountOfBids: number
 	) => Promise<void>;
 	// groupPublicKey: string;
@@ -353,7 +353,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			// itemPrice: number,
 			// groupDuration: number,
 			// missable: number,
-			// payemntDuration?: number,
+			// paymentDuration?: number,
 			// deployer?: PublicKey
 			await zkappWorkerClient.deployGroup(
 				userPublicKey!.toBase58(),
@@ -402,7 +402,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration?: number
+		paymentDuration?: number
 	) => {
 		if (userPublicKey && zkappWorkerClient) {
 			// const admin = userPublicKey.toBase58();
@@ -429,7 +429,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			console.log('itemPrice:', itemPrice);
 			console.log('groupDuration:', groupDuration);
 			console.log('missable:', missable);
-			console.log('payemntDuration:', payemntDuration);
+			console.log('paymentDuration:', paymentDuration);
 
 			await zkappWorkerClient.addUserToGroup(
 				// admin,
@@ -438,7 +438,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				itemPrice,
 				groupDuration,
 				missable,
-				payemntDuration ? payemntDuration : 2592000 // month
+				paymentDuration ? paymentDuration : 2592000 // month
 			);
 			await zkappWorkerClient.proveTransaction();
 			console.log('Transaction proved');
@@ -463,7 +463,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration: number,
+		paymentDuration: number,
 		amountOfBids: number
 	) => {
 		if (userPublicKey && zkappWorkerClient) {
@@ -487,7 +487,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			console.log('itemPrice:', itemPrice);
 			console.log('groupDuration:', groupDuration);
 			console.log('missable:', missable);
-			console.log('payemntDuration:', payemntDuration);
+			console.log('paymentDuration:', paymentDuration);
 			console.log('amountOfBids:', amountOfBids);
 			await zkappWorkerClient.roundPayment(
 				participantKey,
@@ -495,7 +495,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				itemPrice,
 				groupDuration,
 				missable,
-				payemntDuration,
+				paymentDuration,
 				amountOfBids
 			);
 			await zkappWorkerClient.proveTransaction();

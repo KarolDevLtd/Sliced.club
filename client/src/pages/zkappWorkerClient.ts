@@ -107,7 +107,7 @@ export default class ZkappWorkerClient {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration?: number,
+		paymentDuration?: number,
 		deployer?: PublicKey
 	) {
 		return await this._call('deployGroup', {
@@ -117,7 +117,7 @@ export default class ZkappWorkerClient {
 			itemPrice,
 			groupDuration,
 			missable,
-			payemntDuration,
+			paymentDuration,
 			deployer,
 		});
 	}
@@ -128,7 +128,7 @@ export default class ZkappWorkerClient {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration?: number
+		paymentDuration?: number
 	) {
 		return await this._call('addUserToGroup', {
 			// admin,
@@ -137,7 +137,7 @@ export default class ZkappWorkerClient {
 			itemPrice,
 			groupDuration,
 			missable,
-			payemntDuration,
+			paymentDuration,
 		});
 	}
 	async roundPayment(
