@@ -18,13 +18,11 @@ import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
 import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { api } from '~/trpc/react';
 import AdmitUserModal from '~/app/_components/groups/AdmitUserModal';
-
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import { showModal } from '@/helpers/modal-helper';
-import BasicButton from '@/app/_components/ui/BasicButton';
-import { IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
+import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 
 export default function Group() {
 	const router = useRouter();
@@ -201,7 +199,7 @@ export default function Group() {
 						}}
 					/>
 				)}
-				<PageHeader
+				{/* <PageHeader
 					text={'Pay'}
 					subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
 					buttonText="Payment"
@@ -238,7 +236,7 @@ export default function Group() {
 							console.log(error);
 						}
 					}}
-				/>
+				/> */}
 			</div>
 
 			<div className="flex-1">
