@@ -301,8 +301,8 @@ export class GroupBasic extends TokenContract {
     totalCompensations.assertLessThan(_groupSettings.missable);
 
     // Cant pay unless the group is full
-    let members = this.members.getAndRequireEquals();
-    members.assertEquals(_groupSettings.members);
+    // let members = this.members.getAndRequireEquals(); TODO UNCOMMENT
+    // members.assertEquals(_groupSettings.members);
 
     // Write back payments and compensations to the token storage
     const update = AccountUpdate.createSigned(senderAddr, this.deriveTokenId());

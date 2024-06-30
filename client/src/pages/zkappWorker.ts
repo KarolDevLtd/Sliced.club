@@ -418,7 +418,7 @@ const functions = {
 			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });
 			await instance.deploy({
 				owner: admin,
-				supply: UInt64.from(10_000_000_000_000),
+				supply: UInt64.from(100000000 * 1e9),
 				symbol: 'mUSD',
 				src: 'source code link',
 			});

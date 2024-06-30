@@ -45,7 +45,7 @@
 		"react-toastify": "^10.0.5",
 		"recharts": "^2.12.7",
 		"server-only": "^0.0.1",
-		"sliced-contracts": "/Users/scottphillips/Documents/Scott_Development/Projects/Sliced/Sliced.club/contracts/sliced-contracts-0.1.0.tgz",
+		"sliced-contracts": "/Users/karol/Documents//Sliced.club/contracts/sliced-contracts-0.1.3.tgz",
 		"superjson": "^2.2.1",
 		"tailwindcss": "3.4.1",
 		"typescript": "5.4.3",

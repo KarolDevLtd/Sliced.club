@@ -482,6 +482,11 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				console.log('Compiling Group contract...');
 				await zkappWorkerClient.compileGroupContract();
 			}
+			if (!result.token) {
+				console.log('Compiling token contract for transfer...');
+				await zkappWorkerClient.compileTokenContract();
+			}
+
 			console.log('participantKey:', participantKey);
 			console.log('maxMembers:', maxMembers);
 			console.log('itemPrice:', itemPrice);
@@ -595,7 +600,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				//only deployer of initial token can mint
 				// await zkappWorkerClient.mintToken(admin, reciverPubKey.toBase58(), 96);
 				setIsMinaLoading(true);
-				await zkappWorkerClient.mintToken(admin, key, 50000);
+				await zkappWorkerClient.mintToken(admin, key, 50_000_000_000_000);
 				await zkappWorkerClient.proveTransaction();
 				console.log('Transaction proved');
 				const txn = await zkappWorkerClient.getTransactionJSON();
