@@ -17,7 +17,7 @@ import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
 import { Escrow } from './Escrow';
 
-let proofsEnabled = true;
+let proofsEnabled = false;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -267,7 +267,7 @@ describe('GroupBasic', () => {
       initialBalanceAdmin + mintAmount.toBigInt()
     );
 
-    const userAmount = new UInt64(5000);
+    const userAmount = new UInt64(15000);
 
     // All user get fake stable
     for (let i = userStart; i <= userEnd; i++) {
@@ -580,14 +580,22 @@ describe('GroupBasic', () => {
   });
 
   it('Claim as auction winner', async () => {
+    // fetch token balance of the auction winner
+    const initialBalanceAuctionWinner = parseInt(
+      (await tokenApp.getBalanceOf(billy)).toString()
+    );
+    // Fetch the amoutn auction winner needs to pay
+
     let udStart = new GroupUserStorage(billy, group.deriveTokenId());
     let claimed = udStart.claimed.get().toBoolean();
+    let outstanding = parseInt(udStart.bidPayment.get().toString());
+    let itemPrice = parseInt(GROUP_SETTINGS.itemPrice.toString());
 
     // Assert it is unclaimed at the start
     expect(claimed).toEqual(false);
 
     const txn = await Mina.transaction(billy, async () => {
-      await group.userClaim();
+      await group.userClaim(GROUP_SETTINGS);
     });
 
     await txn.prove();
@@ -598,6 +606,19 @@ describe('GroupBasic', () => {
 
     // Assert it is claimed at the end
     expect(claimed).toEqual(true);
+
+    const endlBalanceAuctionWinner = parseInt(
+      (await tokenApp.getBalanceOf(billy)).toString()
+    );
+
+    // Log balances of the actuiin winner
+    console.log('Billy initial balance: ', initialBalanceAuctionWinner);
+    console.log('Billy end balance: ', endlBalanceAuctionWinner);
+
+    // Assert auction winner paid the correct amount
+    expect(endlBalanceAuctionWinner).toEqual(
+      initialBalanceAuctionWinner - outstanding * itemPrice
+    );
   });
 
   it('Claim as lottery winner', async () => {
@@ -617,7 +638,7 @@ describe('GroupBasic', () => {
     expect(claimed).toEqual(false);
 
     const txn = await Mina.transaction(lotteryWinnerAccount, async () => {
-      await group.userClaim();
+      await group.userClaim(GROUP_SETTINGS);
     });
 
     await txn.prove();

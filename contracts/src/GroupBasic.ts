@@ -215,7 +215,7 @@ export class GroupBasic extends TokenContract {
   }
 
   @method
-  async userClaim() {
+  async userClaim(_groupSettings: GroupSettings) {
     let senderAddr = this.sender.getAndRequireSignature();
     let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());
 
@@ -223,9 +223,21 @@ export class GroupBasic extends TokenContract {
     let compensationsBools: Bool = userStorage.canClaim.get();
     compensationsBools.assertEquals(true);
 
+    // Fetch amount required by the user to pay if the user won by bidding
+    let bidPayment = UInt64.fromFields([userStorage.bidPayment.get()]).mul(
+      new UInt64(_groupSettings.itemPrice)
+    );
+    const token = new FungibleToken(_groupSettings.tokenAddress);
+
+    // Pay the (potentially) outstanding amount
+    await token.transfer(
+      senderAddr,
+      this.escrow.getAndRequireEquals(),
+      bidPayment
+    );
+
     // Set claimed to true
     const claimUpdate = AccountUpdate.create(senderAddr, this.deriveTokenId());
-
     AccountUpdate.setValue(
       claimUpdate.body.update.appState[indexes.claimed],
       Bool(true).toField()
