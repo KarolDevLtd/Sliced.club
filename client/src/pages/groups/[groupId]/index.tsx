@@ -23,6 +23,7 @@ import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import { showModal } from '@/helpers/modal-helper';
 import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
+import Spinner from '@/app/_components/ui/Spinner';
 
 export default function Group() {
 	const router = useRouter();
@@ -169,9 +170,11 @@ export default function Group() {
 					<PageHeader
 						text={groupData?.group?.name ?? 'Group Name'}
 						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
+						customElement={isLoading ? <Spinner /> : null}
 						buttonText="Join group"
 						onClick={async () => {
 							try {
+								setIsLoading(true);
 								console.log('Joining group');
 								if (groupId && walletAddress && group && !isParticipant) {
 									console.log('add user ipfs values :\n', groupData.group);
@@ -198,6 +201,8 @@ export default function Group() {
 								}
 							} catch (error) {
 								console.log(error);
+							} finally {
+								setIsLoading(false);
 							}
 						}}
 					/>
