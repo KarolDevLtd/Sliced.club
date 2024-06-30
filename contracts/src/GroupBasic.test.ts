@@ -829,4 +829,31 @@ describe('GroupBasic', () => {
       })
     ).rejects.toThrow();
   });
+
+  it('Auction winner keeps paying', async () => {
+    const initialBalanceCharlie = (
+      await tokenApp.getBalanceOf(charlie)
+    ).toBigInt();
+    const initialBalanceEscrow = (
+      await tokenApp.getBalanceOf(escrowAddress)
+    ).toBigInt();
+    const txn = await Mina.transaction(charlie, async () => {
+      // AccountUpdate.fundNewAccount(charlie);
+      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, basePayment);
+    });
+
+    await txn.prove();
+    await txn.sign([charlie.key]).send();
+    expect((await tokenApp.getBalanceOf(charlie)).toBigInt()).toEqual(
+      initialBalanceCharlie - paymentAmount.mul(1).toBigint()
+    );
+    expect((await tokenApp.getBalanceOf(escrowAddress)).toBigInt()).toEqual(
+      initialBalanceEscrow + paymentAmount.mul(1).toBigint()
+    );
+
+    // User already won the bidwar so he is not elligible for the lottery
+    let actions: Entry[][] = await group.reducer.fetchActions();
+    let latestAction: Entry = actions[actions.length - 1][1];
+    expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
+  });
 });

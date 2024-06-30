@@ -72,6 +72,10 @@ export class Entry extends Struct({
     return Entry.toFields(this);
   }
 }
+
+const LOTTERY: Bool = Bool(true);
+const AUCTION: Bool = Bool(false);
+
 export class GroupSettings extends Struct({
   members: UInt32,
   itemPrice: UInt32,
@@ -128,6 +132,7 @@ export class GroupBasic extends TokenContract {
   @state(Field) groupSettingsHash = State<Field>();
   /** Also organiser. */
   @state(PublicKey) admin = State<PublicKey>();
+  /** Contract's token account used to store money. */
   @state(PublicKey) escrow = State<PublicKey>();
   /** Current index of the payment. */
   @state(UInt64) paymentRound = State<UInt64>();
@@ -164,7 +169,7 @@ export class GroupBasic extends TokenContract {
     this.account.permissions.set({
       ...Permissions.default(),
       // editState: Permissions.none(),
-      send: Permissions.none(),
+      send: Permissions.impossible(),
       incrementNonce: Permissions.proofOrSignature(),
     });
   }
@@ -220,8 +225,8 @@ export class GroupBasic extends TokenContract {
     let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());
 
     // Assert they can claim
-    let compensationsBools: Bool = userStorage.canClaim.get();
-    compensationsBools.assertEquals(true);
+    // let claim: Bool = userStorage.canClaim.get();
+    userStorage.canClaim.get().assertEquals(true);
 
     // Fetch amount required by the user to pay if the user won by bidding
     let bidPayment = UInt64.fromFields([userStorage.bidPayment.get()]).mul(
@@ -446,15 +451,22 @@ export class GroupBasic extends TokenContract {
     // Provable.log('totalPaymentsU64', totalPaymentsU64);
     // Provable.log('currentPaymentRound', currentPaymentRound);
 
+    // Can't paritcipate in lottery if they already won it
+    let pickedAlready: Bool = userStorage.canClaim.get();
+
     // Lottery action
     this.reducer.dispatch(
       new Entry(
         senderAddr,
         UInt64.zero,
         currentPaymentRound,
-        Bool(true), // Flag for lottery action
+        LOTTERY, // Flag for lottery action
         // Lottery entry only true, if total payment count equals this round (plus 1 as zero indexed)
-        totalPaymentsU64.equals(currentPaymentRound.add(UInt64.one))
+        // Would break if overpayment happend somehow
+        totalPaymentsU64
+          // TODO is wrong, needs to be set to equal or larger for those that won auction
+          .equals(currentPaymentRound.add(UInt64.one))
+          .and(pickedAlready.equals(false))
       )
     );
 
@@ -469,7 +481,7 @@ export class GroupBasic extends TokenContract {
         senderAddr,
         amountOfBids,
         currentPaymentRound,
-        Bool(false), // Flag for auction action
+        AUCTION, // Flag for auction action
         Bool(false)
       )
     );
@@ -568,7 +580,7 @@ export class GroupBasic extends TokenContract {
         let lotteryCondition = action.isLottery
           .and(action.paymentRound.equals(currentPaymentRound))
           .and(currentDistance.lessThan(distanceFromRandom))
-          .and(action.lotteryElligible); // User is not behind on payments
+          .and(action.lotteryElligible); // User is not behind on payments nor did they win already
 
         // Provable.log('Lottery condition: ', lotteryCondition);
 
