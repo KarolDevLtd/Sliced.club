@@ -25,7 +25,10 @@ import {
   assert,
 } from 'o1js';
 import { FungibleToken } from './token/FungibleToken';
-import { GroupUserStorage } from './GroupUserStorage';
+import {
+  GroupUserStorage,
+  groupStorageIndexes as indexes,
+} from './GroupUserStorage';
 import { PackedBoolFactory } from './lib/packed-types/PackedBool';
 import { Escrow } from './Escrow';
 
@@ -208,7 +211,7 @@ export class GroupBasic extends TokenContract {
     // Need to call the escrow to withdraw
     let escrow = new Escrow(this.escrow.getAndRequireEquals());
 
-    await escrow.withdrawOptimized(new UInt64(withdraw));
+    // await escrow.withdrawOptimized(new UInt64(withdraw));
   }
 
   @method
@@ -224,7 +227,7 @@ export class GroupBasic extends TokenContract {
     const claimUpdate = AccountUpdate.create(senderAddr, this.deriveTokenId());
 
     AccountUpdate.setValue(
-      claimUpdate.body.update.appState[5],
+      claimUpdate.body.update.appState[indexes.claimed],
       Bool(true).toField()
     );
   }
@@ -269,14 +272,8 @@ export class GroupBasic extends TokenContract {
 
     // Set for paritcipant
     AccountUpdate.setValue(
-      groupUserStorageUpdate.body.update.appState[3], // isParticipant
+      groupUserStorageUpdate.body.update.appState[indexes.isParticipant], // isParticipant
       Provable.if(adminCaller, Bool(false), Bool(true)).toField()
-    );
-
-    // Set for admin
-    AccountUpdate.setValue(
-      groupUserStorageUpdate.body.update.appState[6], // isAdmin
-      Provable.if(adminCaller, Bool(true), Bool(false)).toField()
     );
 
     groupUserStorageUpdate.requireSignature();
@@ -400,12 +397,12 @@ export class GroupBasic extends TokenContract {
     const update = AccountUpdate.create(senderAddr, this.deriveTokenId());
     this.approve(update);
     AccountUpdate.setValue(
-      update.body.update.appState[0],
+      update.body.update.appState[indexes.payments],
       Payments.fromBoolsField(paymentsBools)
       // Field(69)
     );
     AccountUpdate.setValue(
-      update.body.update.appState[1],
+      update.body.update.appState[indexes.compensations],
       Payments.fromBoolsField(compensationsBools)
     );
 
@@ -620,7 +617,7 @@ export class GroupBasic extends TokenContract {
       this.deriveTokenId()
     );
     AccountUpdate.setValue(
-      lotteryWinnerUpdate.body.update.appState[4],
+      lotteryWinnerUpdate.body.update.appState[indexes.canClaim],
       Provable.if(lotteryFound, Bool(true), dudValue).toField()
     );
 
@@ -629,8 +626,15 @@ export class GroupBasic extends TokenContract {
       this.deriveTokenId()
     );
     AccountUpdate.setValue(
-      auctionWinnerUpdate.body.update.appState[4],
+      auctionWinnerUpdate.body.update.appState[indexes.canClaim],
       Provable.if(lotteryFound, Bool(true), dudValue).toField()
+    );
+
+    // Set bidding amount
+    AccountUpdate.setValue(
+      auctionWinnerUpdate.body.update.appState[indexes.bidPayment],
+      // This might be wrong
+      Provable.if(lotteryFound, currentHighestBid.toFields()[0], Field.from(0))
     );
 
     // Emit

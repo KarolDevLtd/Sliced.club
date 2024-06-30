@@ -34,7 +34,7 @@ export class Escrow extends SmartContract {
   @method async setWithdawable(amount: UInt64) {
     let withdrawauth: PublicKey = this.withdrawauth.getAndRequireEquals();
     this.sender.getAndRequireSignature().assertEquals(withdrawauth);
-    let currentWithdrawable = this.withdrawable.get();
+    let currentWithdrawable = this.withdrawable.getAndRequireEquals();
     this.withdrawable.set(currentWithdrawable.add(amount));
   }
 
@@ -65,13 +65,13 @@ export class Escrow extends SmartContract {
     receiverAU.body.mayUseToken = AccountUpdate.MayUseToken.InheritFromParent;
   }
 
-  @method async withdrawOptimized() {
+  @method async withdrawOptimized(amount: UInt64) {
     let withdrawauth: PublicKey = this.withdrawauth.getAndRequireEquals();
     let adminAU = AccountUpdate.createSigned(withdrawauth, this.tokenId); // forces withdrawauth to sign
     adminAU.body.useFullCommitment = Bool(true); // withdrawauth signs full tx so that the signature can't be reused against them
 
     // Fetch what can be withdrawn
-    let amount = this.withdrawable.getAndRequireEquals();
+    // let amount = this.withdrawable.getAndRequireEquals();
 
     // withdraw the amount
     this.send({ to: adminAU, amount });

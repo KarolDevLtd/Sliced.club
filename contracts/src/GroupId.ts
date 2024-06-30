@@ -248,63 +248,16 @@ export class GroupId extends TokenContract {
       },
     };
 
-    // Set for paritcipant
+    // Set for group member
     AccountUpdate.setValue(
       groupUserStorageUpdate.body.update.appState[3], // isParticipant
       Provable.if(adminCaller, Bool(false), Bool(true)).toField()
-    );
-
-    // Set for admin
-    AccountUpdate.setValue(
-      groupUserStorageUpdate.body.update.appState[6], // isAdmin
-      Provable.if(adminCaller, Bool(true), Bool(false)).toField()
     );
 
     // Set the id veirifcation bool
     AccountUpdate.setValue(
       groupUserStorageUpdate.body.update.appState[7], // verified ID
       Provable.if(adminCaller, Bool(true), Bool(true)).toField()
-    );
-
-    groupUserStorageUpdate.requireSignature();
-  }
-
-  /** Called once at the start. User relinquishes ability to modify token account bu signing */
-  @method async addAdminTokenAccount(
-    _groupSettings: GroupSettings,
-    address: PublicKey,
-    vk: VerificationKey
-  ) {
-    const groupUserStorageUpdate = this.internal.mint({ address, amount: 1 });
-    this.approve(groupUserStorageUpdate); // TODO: check if this is needed
-
-    // Check for correct settings given
-    await this.assertGroupHash(_groupSettings);
-
-    // Ensure new addition doesn't exceed max allowed
-    let members = this.members.getAndRequireEquals();
-    members.assertLessThan(_groupSettings.members);
-
-    // Increment members
-    this.members.set(members.add(UInt32.one));
-
-    groupUserStorageUpdate.body.update.verificationKey = {
-      isSome: Bool(true),
-      value: vk,
-    };
-    groupUserStorageUpdate.body.update.permissions = {
-      isSome: Bool(true),
-      value: {
-        ...Permissions.default(),
-        // TODO test acc update for this with sig only
-        editState: Permissions.none(),
-        send: Permissions.none(), // we don't want to allow sending - soulbound
-      },
-    };
-
-    AccountUpdate.setValue(
-      groupUserStorageUpdate.body.update.appState[6], // isAdmin
-      Bool(true).toField()
     );
 
     groupUserStorageUpdate.requireSignature();

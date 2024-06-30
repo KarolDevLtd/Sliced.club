@@ -17,7 +17,7 @@ import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
 import { Escrow } from './Escrow';
 
-let proofsEnabled = false;
+let proofsEnabled = true;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
