@@ -188,13 +188,13 @@ export default function Group() {
 										// payment duration
 										parseInt(groupData.group.period)
 									);
-									// await groupParticipantToIPFS.mutateAsync({
-									// 	groupHash: groupId.toString(),
-									// 	creatorKey: group.creatorKey,
-									// 	userKey: walletAddress.toString(),
-									// 	status: 'approved',
-									// });
-									// setIsParticipant(true);
+									await groupParticipantToIPFS.mutateAsync({
+										groupHash: groupId.toString(),
+										creatorKey: group.creatorKey,
+										userKey: walletAddress.toString(),
+										status: 'approved',
+									});
+									setIsParticipant(true);
 								}
 							} catch (error) {
 								console.log(error);
