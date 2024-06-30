@@ -376,9 +376,9 @@ const functions = {
 		return JSON.stringify(paymentRound.toJSON());
 	},
 
-	getUserStorage: async (args: { userKey: PublicKey }) => {
-		const userKey = args.userKey;
-		const groupAddress = state.groupZkapp!.address;
+	getUserStorage: async (args: { userKey: string; groupAddress: string }) => {
+		const userKey = PublicKey.fromBase58(args.userKey);
+		const groupAddress = PublicKey.fromBase58(args.groupAddress);
 		const derivedTokenId = TokenId.derive(groupAddress);
 		await fetchAccount({
 			publicKey: userKey,

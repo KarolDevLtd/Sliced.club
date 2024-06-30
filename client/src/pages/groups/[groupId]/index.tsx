@@ -24,12 +24,13 @@ import { type UserState } from '~/stores/userStore';
 import { showModal } from '@/helpers/modal-helper';
 import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 import Spinner from '@/app/_components/ui/Spinner';
+import BasicButton from '@/app/_components/ui/BasicButton';
 
 export default function Group() {
 	const router = useRouter();
 	const [refreshPosts, setRefreshPosts] = useState(false);
 	const { walletAddress } = useWallet();
-	const { addUserToGroup, userPayment } = useMinaProvider();
+	const { addUserToGroup, getUserStorage } = useMinaProvider();
 
 	const groupId = router.query.groupId;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
@@ -248,6 +249,16 @@ export default function Group() {
 			</div>
 
 			<div className="flex-1">
+				<BasicButton
+					type={'primary'}
+					onClick={async () => {
+						console.log('group', group?.chainPubKey);
+						console.log('groupData', groupData.group.chainPubKey);
+						await getUserStorage(walletAddress?.toString(), group?.chainPubKey);
+					}}
+				>
+					Invoke user details
+				</BasicButton>
 				<div className="grid grid-cols-4 grid-rows-2 gap-2">
 					<div className="card card-side bg-base-100 col-span-4 items-center">
 						<figure className="min-w-[200px] h-32 bg-accent"></figure>

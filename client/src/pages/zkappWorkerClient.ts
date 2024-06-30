@@ -167,9 +167,10 @@ export default class ZkappWorkerClient {
 		return await this._call('getPaymentRound', {});
 	}
 
-	async getUserStorage(userKey: PublicKey) {
+	async getUserStorage(userKey: string, groupAddress: string) {
 		return await this._call('getUserStorage', {
 			userKey,
+			groupAddress,
 		});
 	}
 

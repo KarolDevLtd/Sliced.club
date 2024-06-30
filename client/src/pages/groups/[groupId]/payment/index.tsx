@@ -50,6 +50,7 @@ export default function GroupPayment() {
 				console.log(parseInt(group.participants));
 				console.log(parseInt(group.price));
 				console.log(parseInt(group.duration));
+				console.log(group.chainPubKey);
 				await userPayment(
 					group.chainPubKey,
 					// currentSelectedParticpant.metadata.keyvalues.userKey,

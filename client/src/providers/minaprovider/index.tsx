@@ -47,6 +47,7 @@ interface MinaContextType {
 		paymentDuration: number,
 		amountOfBids: number
 	) => Promise<void>;
+	getUserStorage: (userKey: string, groupAddress: string) => Promise<void>;
 	// groupPublicKey: string;
 }
 
@@ -519,6 +520,15 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		}
 	};
 
+	const getUserStorage = async (userKey: string, groupAddress: string) => {
+		if (zkappWorkerClient) {
+			const res = await zkappWorkerClient.fetchAccount({ publicKey: userKey });
+			console.log('res', res);
+
+			console.log(await zkappWorkerClient.getUserStorage(userKey, groupAddress));
+		}
+	};
+
 	// useEffect(() => {
 	// 	if (deployingGroup) {
 	// 		const deploy = async () => {
@@ -632,6 +642,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		deployGroup,
 		addUserToGroup,
 		userPayment,
+		getUserStorage,
 		// groupPublicKey,
 	};
 
