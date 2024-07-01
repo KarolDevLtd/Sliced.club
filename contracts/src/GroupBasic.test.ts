@@ -290,6 +290,9 @@ describe('GroupBasic', () => {
       '\ndetails.contractStateEnd size: ',
       details.contractStateEnd.actions.length
     );
+
+    // For the last entry of last action it must be stored as the group action state
+
     // At the start actions must be empty
     // expect(details.contractStateStart.actions.length).toEqual(0);
 

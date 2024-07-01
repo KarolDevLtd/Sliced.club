@@ -475,6 +475,8 @@ export class GroupBasic extends TokenContract {
       )
     );
 
+    // this.actionState.set(pendingActions.hash);
+
     // Encrypt bidding info
     // let adminPubKey = this.admin.getAndRequireEquals();
     // let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
@@ -510,8 +512,11 @@ export class GroupBasic extends TokenContract {
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
     // Provable.log('randomValue', randomValue);
     // get all actions
-    //TODO add latest action hash that was called, and start from next onwards
-    let actions = this.reducer.getActions();
+    // Reduce from the last round checkpoint
+    let actionState = this.actionState.getAndRequireEquals();
+    let actions = this.reducer.getActions({
+      fromActionState: actionState,
+    });
 
     // prove that we know the correct action state
     this.account.actionState.requireEquals(actions.hash);
