@@ -221,6 +221,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								placeholder="-- Please select a product --"
 								value={currentSelectedProduct?.metadata.name}
 								onChange={(e) => handleProductSelectChange(e)}
+								defaultValue=""
 								options={dropdownProducts}
 								required={true}
 								errors={errors}
