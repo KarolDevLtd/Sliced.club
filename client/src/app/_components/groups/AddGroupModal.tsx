@@ -219,10 +219,15 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								id="product"
 								name="product"
 								placeholder="-- Please select a product --"
-								defaultValue=""
 								value={currentSelectedProduct?.metadata.name}
 								onChange={(e) => handleProductSelectChange(e)}
 								options={dropdownProducts}
+								required={true}
+								errors={errors}
+								register={register}
+								validationSchema={{
+									required: 'Product is required',
+								}}
 							/>
 							<div className="flex flex-col">
 								<div className="flex flex-col">
@@ -259,10 +264,15 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 												id="period"
 												name="period"
 												placeholder="-- Please select a duration --"
-												defaultValue=""
 												value={period}
 												onChange={(e) => handlePeriodSelectChange(e)}
 												options={PeriodOptions}
+												required={true}
+												errors={errors}
+												register={register}
+												validationSchema={{
+													required: 'Period is required',
+												}}
 											/>
 										</div>
 									</div>

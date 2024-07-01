@@ -73,6 +73,12 @@ const SelectOption = ({
 		</option>
 	));
 
+	const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		if (onChange) {
+			onChange(e);
+		}
+	};
+
 	return (
 		<>
 			<label htmlFor={id} className="form-control w-full max-w-xs">
@@ -95,7 +101,12 @@ const SelectOption = ({
 					defaultValue={defaultValue}
 					value={value}
 					onChange={onChange}
-					{...register(name, validationSchema)}
+					{...register(name, {
+						...validationSchema,
+						onChange: (e) => {
+							handleChange(e);
+						},
+					})}
 				>
 					{placeholder ? (
 						<option value="" disabled>
