@@ -18,6 +18,7 @@ import { useWallet } from '@/providers/WalletProvider';
 import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 import { toast } from 'react-toastify';
 import { console_log } from 'o1js/dist/node/bindings/compiled/node_bindings/plonk_wasm.cjs';
+import Spinner from '@/app/_components/ui/Spinner';
 
 export default function GroupPayment() {
 	// const groupId = router.query.groupId;
@@ -27,7 +28,7 @@ export default function GroupPayment() {
 	const { walletAddress } = useWallet();
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
 	const [number, setNumber] = useState(0);
-	const { userPayment } = useMinaProvider();
+	const { userPayment, isMinaLoading } = useMinaProvider();
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [loading, setIsLoading] = useState<boolean>(false);
 
@@ -219,14 +220,16 @@ export default function GroupPayment() {
 										</div>
 									</div>
 									<div className="flex justify-center my-2">
-										<BasicButton type={'primary'} onClick={makePayment}>
-											{number > 0 ? 'Bid' : 'Pay'}
+										<BasicButton type={'primary'} onClick={makePayment} disabled={isMinaLoading}>
+											{number > 0 ? 'Bid' : 'Pay'}{' '}
+											{isMinaLoading ? (
+												<div className="p-2">
+													<Spinner size="sm" />
+												</div>
+											) : null}
 										</BasicButton>
 									</div>
 								</div>
-								{/* <div className="border-left:1px solid #000;height:500px"></div> */}
-
-								{/* </div> */}
 							</div>
 						</div>
 					</div>
