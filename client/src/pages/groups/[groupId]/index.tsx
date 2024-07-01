@@ -25,6 +25,8 @@ import { showModal } from '@/helpers/modal-helper';
 import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 import Spinner from '@/app/_components/ui/Spinner';
 import BasicButton from '@/app/_components/ui/BasicButton';
+import Carousel from '@/app/_components/ui/Carousel';
+import ZoomableImage from '@/app/_components/ui/ZoomableImage';
 
 export default function Group() {
 	const router = useRouter();
@@ -260,8 +262,34 @@ export default function Group() {
 					Invoke user details
 				</BasicButton>
 				<div className="grid grid-cols-4 grid-rows-2 gap-2">
-					<div className="card card-side bg-base-100 col-span-4 items-center">
-						<figure className="min-w-[200px] h-32 bg-accent"></figure>
+					<div className="card card-side bg-base-100 col-span-4 items-center p-2">
+						<figure className="h-48 bg-accent w-1/4">
+							<Carousel
+								slides={
+									hasImage
+										? imageData.map((hash) => ({
+												content: (
+													<div>
+														{hasImage ? (
+															<ZoomableImage
+																source={hash ?? null}
+																width={400}
+																height={400}
+																alt={'image'}
+															/>
+														) : (
+															[]
+														)}
+													</div>
+												),
+											}))
+										: []
+								}
+								options={{
+									visibleSlides: 1,
+								}}
+							/>
+						</figure>
 						<div className="card-body p-6">
 							<h2 className="card-title">{product?.name ?? 'Product Name'}</h2>
 							<div className="flex items-center gap-4">

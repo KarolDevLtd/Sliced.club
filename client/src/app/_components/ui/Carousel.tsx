@@ -21,17 +21,18 @@ const Carousel = ({ slides, options = { visibleSlides: 3 } }: CarouselProps) => 
 
 	return (
 		<div className="carousel carousel-center min-w-full space-x-4">
-			{slides.map((slide, index) => {
-				return (
-					<div
-						id={`item${index + 1}`}
-						key={`item${index + 1}`}
-						className={`carousel-item ${visibleSlidesMapping[options.visibleSlides]} rounded border border-neutral`}
-					>
-						{slide.content}
+			{slides.map((slide, index) => (
+				<div
+					id={`item${index + 1}`}
+					key={`item${index + 1}`}
+					className={`carousel-item ${visibleSlidesMapping[options.visibleSlides]} rounded border border-neutral relative`}
+				>
+					{slide.content}
+					<div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-75 p-1 rounded bg-brightwhite text-xs text-black">
+						{index + 1} of {slides.length}
 					</div>
-				);
-			})}
+				</div>
+			))}
 		</div>
 	);
 };

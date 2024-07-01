@@ -18,6 +18,8 @@ export default {
 			bigred: '#f6613c',
 			bellow: '#ffc83b',
 			verygreen: '#72c56d',
+			brightwhite: '#ffffff',
+			black: '#000000',
 		},
 		container: {
 			center: true,
