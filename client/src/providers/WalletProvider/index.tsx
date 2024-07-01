@@ -5,11 +5,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // providers/walletprovider.tsx
 'use client';
-import { ChainInfoArgs, ProviderError } from '@aurowallet/mina-provider';
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import MinaProvider, { ChainInfoArgs, ProviderError } from '@aurowallet/mina-provider';
+import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { sliceWalletAddress } from '~/helpers/user-helper';
 
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
+import { useMinaProvider } from '../minaprovider';
+import { useStartUpProvider } from '../start-up-provider';
 
 // Define the type for the context value
 interface WalletContextType {
@@ -51,32 +53,23 @@ interface WalletProviderProps {
 	children: ReactNode;
 }
 
-export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
+export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const LOCAL_STORAGE_KEY = 'MINA';
 
 	const { setUserWalletAddress } = useUserStore((state) => state);
+	const { startingUp, hasCompletedStartUp, setStartingUp } = useStartUpProvider();
+	const { spinUp } = useMinaProvider();
 
 	const [isConnected, setIsConnected] = useState(false);
 	const [walletAddress, setWalletAddress] = useState<string | null>(null);
 	const [walletDisplayAddress, setWalletDisplayAddress] = useState<string | null>(null);
 	const [chainType, setChainType] = useState('');
 
-	const { connectUserWallet } = useUserStore((state) => state);
-	const { disconnectUserWallet } = useUserStore((state) => state);
+	const { connectUserWallet, disconnectUserWallet } = useUserStore((state) => state);
 
 	const tryConnectWallet = async (onLoad: boolean) => {
-		//console.log('Attempting to connect');
 		try {
-			window.mina?.on('accountsChanged', async (accounts: string[]) => {
-				if (accounts.length != 0) {
-					await connectWallet();
-					return;
-				} else {
-					disconnectWallet();
-				}
-			});
 			if (onLoad) {
-				//on page load, get account info automatically
 				await window?.mina?.getAccounts();
 				return;
 			}
@@ -88,19 +81,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
 	const tryChainChange = async (chain: string) => {
 		try {
-			const switchResult: ChainInfoArgs | ProviderError = await window?.mina
-				?.switchChain({
-					chainId: chain,
-				})
-				.catch((err: ProviderError) => {
-					throw err;
-				});
-			if ((switchResult as ProviderError).message) {
+			const switchResult = await window?.mina?.switchChain({ chainId: chain }).catch((err) => {
+				throw err;
+			});
+			if (switchResult && 'message' in switchResult) {
 				console.log(switchResult);
 			} else {
 				setChainType(chain);
 			}
-			setChainType(chain);
 		} catch (err) {
 			console.log(err);
 		}
@@ -108,41 +96,36 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
 	const getCurrentChainType = async () => {
 		try {
-			// console.log('getCurrentChainType');
-			const chain = await window.mina?.requestNetwork().catch((err: ProviderError) => {
+			const chain = await window.mina?.requestNetwork().catch((err) => {
 				throw err;
 			});
-			// console.log(chain.chainId);
 			setChainType(chain.chainId);
 		} catch (err) {
 			console.log(err);
 		}
 	};
 
-	// Function to connect wallet
 	const connectWallet = async () => {
-		// console.log('connectWallet');
 		try {
 			const account = await window.mina.requestAccounts();
 			await getCurrentChainType();
+			console.log('con');
+
 			updateWalletUI(account);
 		} catch (err) {
-			throw err;
+			console.log(err);
 		}
 	};
 
-	// Function to disconnect wallet
 	const disconnectWallet = () => {
-		// console.log('disconnectWallet');
 		try {
-			// console.log('disconnectWallet');
+			console.log('dis');
 			updateWalletUI(null);
 		} catch (err) {
-			throw err;
+			console.log(err);
 		}
 	};
 
-	// Function to update wallet UI
 	const updateWalletUI = (account: string | null) => {
 		if (account?.[0]) {
 			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(account));
@@ -150,7 +133,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 			setIsConnected(true);
 			connectUserWallet();
 		} else {
-			// console.log('Disconneting wallet');
 			localStorage.removeItem(LOCAL_STORAGE_KEY);
 			setWalletDisplayAddress(null);
 			setIsConnected(false);
@@ -160,8 +142,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 		setUserWalletAddress(account ?? '');
 	};
 
-	//Function to get wallet address from local storage
-	//simply so user does not have to manually click wallet button to see if already connected
 	const getWalletAddress = (): string | null => {
 		try {
 			if (typeof window !== 'undefined') {
@@ -172,18 +152,54 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 			}
 			return null;
 		} catch (err) {
-			throw err;
+			console.log(err);
+			return null;
 		}
 	};
 
-	// useEffect to initialize wallet address
 	useEffect(() => {
 		const address = getWalletAddress();
-		setWalletAddress(address);
 		updateWalletUI(address);
-	}, [isConnected]);
+	}, []);
 
-	// Value to be provided by the context
+	useEffect(() => {
+		if (walletAddress) {
+			console.log('Checking startUp value:', startingUp);
+			setStartingUp(true);
+		}
+	}, [walletAddress]);
+
+	useEffect(() => {
+		if (startingUp) {
+			setStartingUp(false);
+			// console.log('Spinning up');
+			const performSpinUp = async () => {
+				console.log('Spinning up');
+				await spinUp();
+				// hasCompletedStartUp(true);
+			};
+			void performSpinUp();
+		}
+	}, [startingUp]);
+
+	useEffect(() => {
+		const handleAccountsChanged = async (accounts: string[]) => {
+			// console.log(accounts[0]);
+			if (accounts.length !== 0) {
+				await connectWallet();
+			} else {
+				disconnectWallet();
+			}
+		};
+
+		window.mina?.on('accountsChanged', handleAccountsChanged);
+
+		// Clean up the event listener on unmount or when dependencies change
+		return () => {
+			window.mina?.removeListener('accountsChanged', handleAccountsChanged);
+		};
+	}, []);
+
 	const value: WalletContextType = {
 		walletDisplayAddress,
 		walletAddress,

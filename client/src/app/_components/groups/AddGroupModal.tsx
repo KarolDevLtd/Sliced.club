@@ -27,6 +27,9 @@ import { closeModal } from '~/helpers/modal-helper';
 import { FaUserGroup } from 'react-icons/fa6';
 import TextArea from '../ui/TextArea';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
+import { useMinaProvider } from '@/providers/minaprovider';
+import Game from '../game/game';
+import { PeriodOptions } from '@/models/period-options';
 
 type AddGroupModalProps = {
 	onGroupSubmitted: () => void;
@@ -36,6 +39,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const { isConnected, walletAddress } = useWallet();
 	const [displayProductCount, setDisplayProductCount] = useState(20);
+
+	const { deployGroup, logFetchAccount, isMinaLoading, groupPublicKey } = useMinaProvider();
 
 	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
@@ -57,18 +62,25 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		// https://react-hook-form.com/docs/useform#resolver
 		// resolver: {}
 	});
-	const [participants, setParticipants] = useState(12);
-	const [duration, setDuration] = useState(6);
+	const [participants, setParticipants] = useState(0);
+	const [duration, setDuration] = useState(0);
+	const [period, setPeriod] = useState('');
 	const [instalments, setInstalments] = useState<number | null>();
 	const updateParticipantDuration = (sliderVal: number) => {
 		setDuration(sliderVal);
 		setParticipants(2 * sliderVal);
 	};
 	const [currentSelectedProduct, setCurrentSelectedProduct] = useState<IPFSSearchModel>();
-	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+	const handleProductSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		//TODO: This filter on name should be replaced with filter on id?
 		const selectedProduct = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
 		if (selectedProduct) setCurrentSelectedProduct(selectedProduct as IPFSSearchModel);
+	};
+	const handlePeriodSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+		//TODO: This filter on name should be replaced with filter on id?
+		// const selectedDuration = pinataProductData?.products.rows.find((p) => p.metadata.name === event.target.value)!;
+		// if (selectedProduct) setCurrentSelectedProduct(selectedProduct as IPFSSearchModel);
+		setPeriod(event.target.value);
 	};
 
 	const saveGroup = async (
@@ -76,12 +88,18 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		description: string,
 		price: string,
 		duration: string,
-		participants: string
+		participants: string,
+		chainPubKey: string,
+		period: string
 	) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
+			console.log('Saving group');
+			console.log(currentSelectedProduct);
 			if (!currentSelectedProduct) return;
+			// const userObjectHash = groupUsersToIPFS.mutateAsync({ creatorKey: walletAddress!.toString() });
+			// console.log(userObjectHash);
 			await groupToIPFS.mutateAsync({
 				name: name,
 				description: description,
@@ -94,6 +112,9 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				productPrice: currentSelectedProduct?.metadata.keyvalues.price,
 				creatorKey: walletAddress!.toString(),
 				dateTime: DateTime.now().toString(),
+				userObjectHash: null,
+				chainPubKey: chainPubKey,
+				period: period,
 			});
 		} catch (err) {
 			console.log(err);
@@ -108,17 +129,27 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create group')) return;
-			await saveGroup(
-				data['group-name'] as string,
-				data['group-description'] as string,
-				currentSelectedProduct?.metadata.keyvalues.price!,
-				duration.toString(),
-				participants.toString()
+			const gpk = await deployGroup(
+				participants,
+				parseInt(currentSelectedProduct?.metadata.keyvalues.price!),
+				duration,
+				3,
+				parseInt(period)
 			);
-			reset();
-			closeModal('add-group');
-			// refetchPosts();
-			toast.success('Posted successfully');
+			if (gpk) {
+				await saveGroup(
+					data['group-name'] as string,
+					data['group-description'] as string,
+					currentSelectedProduct?.metadata.keyvalues.price!,
+					duration.toString(),
+					participants.toString(),
+					gpk,
+					period
+				);
+				reset();
+				closeModal('add-group');
+				toast.success('Posted successfully');
+			} else console.log('group pub key', groupPublicKey);
 		} catch (err) {
 			console.log(err);
 		} finally {
@@ -142,7 +173,9 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	useEffect(() => {
 		//TO DO : fix this cast
 		setInstalments(
-			(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)
+			Math.round(
+				(((currentSelectedProduct?.metadata.keyvalues.price as unknown as number) * 2) / participants) * 100
+			) / 100
 		);
 	}, [participants, duration, currentSelectedProduct]);
 
@@ -188,20 +221,61 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								placeholder="-- Please select a product --"
 								defaultValue=""
 								value={currentSelectedProduct?.metadata.name}
-								onChange={(e) => handleSelectChange(e)}
+								onChange={(e) => handleProductSelectChange(e)}
 								options={dropdownProducts}
 							/>
-							<div>
-								<InstalmentSlider
-									participants={participants}
-									duration={duration}
-									onSlide={updateParticipantDuration}
-								/>
+							<div className="flex flex-col">
+								<div className="flex flex-col">
+									<div className="my-2 mx-1 w-1/2">Participants: {participants}</div>
+									<div className="flex">
+										<div className="my-2 mx-1 w-1/2">
+											<TextInput
+												label="Duration"
+												id={'duration'}
+												name={'duration'}
+												type={'number'}
+												placeholder="Duration"
+												required={true}
+												errors={errors}
+												register={register}
+												validationSchema={{
+													required: 'Duration is required',
+													max: {
+														value: 48,
+														message: 'Max value is 48',
+													},
+												}}
+												onChange={(e) => {
+													if (e.target.value > 48) {
+														e.target.value = 48;
+													}
+													setDuration(e.target.value);
+													setParticipants(e.target.value * 2);
+												}}
+											/>
+										</div>
+										<div className="my-2 mx-1 w-1/3">
+											<SelectOption
+												id="period"
+												name="period"
+												placeholder="-- Please select a duration --"
+												defaultValue=""
+												value={period}
+												onChange={(e) => handlePeriodSelectChange(e)}
+												options={PeriodOptions}
+											/>
+										</div>
+									</div>
+								</div>
 								<div>{`Product price ${currentSelectedProduct?.metadata.keyvalues.price}`}</div>
-								<div>{`Installment price per user ${(currentSelectedProduct?.metadata.keyvalues.price as unknown as number) / (participants * duration)}`}</div>
+								<div>{`Installment price per user ${instalments}`}</div>
 							</div>
 						</div>
 					) : (
+						//Dropdown for weekly, bi-weekly and months
+						//Textbox for duration of these
+						//Product Price
+						//Instalments
 						`No products`
 					)}
 					<TextArea
@@ -219,8 +293,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 								message: 'Group Description must be at least 20 characters',
 							},
 							maxLength: {
-								value: 250,
-								message: 'Group Description must be at less than 250 characters',
+								value: 1500,
+								message: 'Group Description must be at less than 1500 characters',
 							},
 						}}
 					/>
@@ -253,25 +327,38 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 					>
 						I agree to be contacted regarding my registration/eligibility and await to be contacted 
 					</CheckBox>
-					<div className="w-100 flex justify-end items-center gap-2">
-						<BasicButton
-							type="primary"
-							icon={isLoading ? <Spinner size="sm" /> : null}
-							disabled={isLoading}
-							submitForm={true}
-						>
-							Save
-						</BasicButton>
-						<BasicButton
-							type="secondary"
-							disabled={isLoading}
-							onClick={() => {
-								clearForm();
-								closeModal('add-group');
-							}}
-						>
-							Cancel
-						</BasicButton>
+					<div className="flex flex-col">
+						<div className="w-100 flex justify-end items-center gap-2">
+							{isMinaLoading ? (
+								<div className="flex w-full flex-col">
+									<div>
+										Preparing <Spinner />
+									</div>
+									<Game />
+								</div>
+							) : (
+								<div>
+									<BasicButton
+										type="primary"
+										icon={isLoading ? <Spinner size="sm" /> : null}
+										disabled={isLoading}
+										submitForm={true}
+									>
+										Save
+									</BasicButton>
+									<BasicButton
+										type="secondary"
+										disabled={isLoading}
+										onClick={() => {
+											clearForm();
+											closeModal('add-group');
+										}}
+									>
+										Cancel
+									</BasicButton>
+								</div>
+							)}
+						</div>
 					</div>
 				</form>
 			}

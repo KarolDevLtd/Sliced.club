@@ -1,19 +1,38 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import router from 'next/router';
+import { useRouter } from 'next/router';
 import { FaCreditCard } from 'react-icons/fa';
 import PaymentList from '~/app/_components/payments/PaymentList';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 import { PaymentBarChartData, productPayments } from '~/static-data';
 import { TbCalendarDollar } from 'react-icons/tb';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MdBarChart } from 'react-icons/md';
 import BasicBarChart from '~/app/_components/ui/BasicBarChart';
 import BasicButton from '~/app/_components/ui/BasicButton';
+import { useMinaProvider } from '@/providers/minaprovider';
+import { api } from '@/trpc/react';
+import { useWallet } from '@/providers/WalletProvider';
+import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
+import { toast } from 'react-toastify';
+import { console_log } from 'o1js/dist/node/bindings/compiled/node_bindings/plonk_wasm.cjs';
 
 export default function GroupPayment() {
+	// const groupId = router.query.groupId;
+	const router = useRouter();
+	const { query } = router;
+	// console.log(router.query);
+	const { walletAddress } = useWallet();
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
 	const [number, setNumber] = useState(0);
+	const { userPayment } = useMinaProvider();
+	const [group, setGroup] = useState<IPFSGroupModel>();
+	const [loading, setIsLoading] = useState<boolean>(false);
+
+	// console.log(query);
+
 	const handleBackClick = () => {
 		router.back();
 	};
@@ -21,6 +40,63 @@ export default function GroupPayment() {
 	const handleNumberChange = (input: number) => {
 		if (input > 0 || (input < 0 && number > 0)) setNumber(number + input);
 	};
+
+	const makePayment = async () => {
+		console.log('cock');
+		try {
+			if (group && walletAddress) {
+				// console.log('add user ipfs values :\n', groupData.group);
+				console.log(walletAddress.toString());
+				console.log(parseInt(group.participants));
+				console.log(parseInt(group.price));
+				console.log(parseInt(group.duration));
+				console.log(group.chainPubKey);
+				await userPayment(
+					group.chainPubKey,
+					// currentSelectedParticpant.metadata.keyvalues.userKey,
+					walletAddress.toString(),
+					parseInt(group.participants),
+					parseInt(group.price),
+					parseInt(group.duration),
+					// parseInt(groupData.group.missable) // TODO that's wrong
+					3, // missable
+					2592000, // payment duration
+					0
+				);
+				// await groupParticipantToIPFS.mutateAsync({
+				// 	groupHash: groupId.toString(),
+				// 	creatorKey: group.creatorKey,
+				// 	userKey: walletAddress.toString(),
+				// 	status: 'approved',
+				// });
+				// setIsParticipant(true);
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
+	const fetchInfo = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			if (groupData) {
+				const currGroup = groupData.group as IPFSGroupModel;
+				setGroup(currGroup);
+				console.log('group data');
+				// const z = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupId });
+				// console.log(z);
+			}
+		} catch (err) {
+			console.log(err);
+			toast.error('Error fetching group item info');
+		} finally {
+			setIsLoading(false);
+		}
+	}, [groupData]);
+
+	useEffect(() => {
+		void fetchInfo();
+	}, [fetchInfo, group]);
 
 	return (
 		<>
@@ -143,7 +219,9 @@ export default function GroupPayment() {
 										</div>
 									</div>
 									<div className="flex justify-center my-2">
-										<BasicButton type={'primary'}>{number > 0 ? 'Bid' : 'Pay'}</BasicButton>
+										<BasicButton type={'primary'} onClick={makePayment}>
+											{number > 0 ? 'Bid' : 'Pay'}
+										</BasicButton>
 									</div>
 								</div>
 								{/* <div className="border-left:1px solid #000;height:500px"></div> */}

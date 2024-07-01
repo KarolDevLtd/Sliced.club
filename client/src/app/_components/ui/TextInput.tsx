@@ -14,7 +14,7 @@ type TextInputProps = {
 	autoComplete?: string;
 	placeholder?: string;
 	icon?: ReactElement | null;
-	onChange?: (e: any) => any;
+	onChange?: (e: any) => void;
 	disabled?: boolean;
 	required?: boolean;
 	value?: string;
@@ -38,6 +38,10 @@ type TextInputProps = {
 			value?: number;
 			message?: string;
 		};
+		max?: {
+			value?: number;
+			message?: string;
+		};
 	};
 	register?: any;
 	errors?: any;
@@ -55,11 +59,16 @@ const TextInput = ({
 	disabled,
 	required = false,
 	value,
-	// React Hook Form Props
 	validationSchema,
 	register = () => [],
 	errors,
 }: TextInputProps) => {
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (onChange) {
+			onChange(e);
+		}
+	};
+
 	return (
 		<div>
 			<label htmlFor={id} className="input input-bordered flex items-center gap-2">
@@ -70,12 +79,17 @@ const TextInput = ({
 					type={type}
 					autoComplete={autoComplete}
 					placeholder={`${placeholder ? placeholder : ''}${required && placeholder && !label ? '*' : ''}`}
-					onChange={onChange}
+					onChange={handleChange}
 					disabled={disabled}
 					required={required}
 					value={value}
 					// React Hook Form
-					{...register(name, validationSchema)}
+					{...register(name, {
+						...validationSchema,
+						onChange: (e) => {
+							handleChange(e);
+						},
+					})}
 					className="grow"
 				/>
 				{required && <span className="badge badge-info">Required</span>}
@@ -92,6 +106,9 @@ const TextInput = ({
 				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 			)}
 			{errors && errors[name]?.type === 'min' && (
+				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
+			)}
+			{errors && errors[name]?.type === 'max' && (
 				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 			)}
 		</div>

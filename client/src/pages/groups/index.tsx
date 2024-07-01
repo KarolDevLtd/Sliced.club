@@ -19,6 +19,7 @@ import BasicSlider from '~/app/_components/ui/BasicSlider';
 import SelectOption from '~/app/_components/ui/SelectOption';
 import { ProductCategoryOptions } from '~/models/product-category-options';
 import Carousel from '~/app/_components/ui/Carousel';
+import { useMinaProvider } from '@/providers/minaprovider';
 
 export default function Groups() {
 	const groupId = '69';
@@ -33,9 +34,17 @@ export default function Groups() {
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
-	const showGroupModal = () => {
-		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
-		showModal('add-group');
+	const { compileContracts } = useMinaProvider();
+
+	const showGroupModal = async () => {
+		try {
+			if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
+			showModal('add-group');
+			await compileContracts('group');
+			// await setTokenNoDeploy();
+		} catch (err) {
+			console.log('showGroupModal', err);
+		}
 	};
 
 	const handleGroupSubmitted = () => {
@@ -51,13 +60,13 @@ export default function Groups() {
 		setSearchCategory(event.target.value);
 	};
 
-	useEffect(() => {
-		console.log(`max price ${searchMaximumPrice}`);
-	}, [searchMaximumPrice]);
+	// useEffect(() => {
+	// 	console.log(`max price ${searchMaximumPrice}`);
+	// }, [searchMaximumPrice]);
 
-	useEffect(() => {
-		console.log(`min price ${searchMinimumPrice}`);
-	}, [searchMinimumPrice]);
+	// useEffect(() => {
+	// 	console.log(`min price ${searchMinimumPrice}`);
+	// }, [searchMinimumPrice]);
 
 	return (
 		<>

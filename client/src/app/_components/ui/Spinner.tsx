@@ -25,7 +25,7 @@ const Spinner = ({ text, size = 'md' }: SpinnerProps) => {
 	return (
 		<div className="flex flex-col items-center gap-1 m-auto">
 			<span
-				className={`animate-spin ${spinnerSizeMap[size]} rounded-[50%] border-b-orange ${borderSizeMap[size]} border-white`}
+				className={`animate-spin ${spinnerSizeMap[size]} rounded-[50%] border-b-bigred ${borderSizeMap[size]} border-white`}
 			></span>
 			{text ? <p className={`${textSizeMap[size]}`}>{text}</p> : null}
 		</div>

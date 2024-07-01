@@ -79,7 +79,7 @@ export default class ZkappWorkerClient {
 
 	initTokenInstance(publicKey: PublicKey) {
 		return this._call('initTokenInstance', {
-			publicKey58: publicKey,
+			publicKey: publicKey,
 		});
 	}
 
@@ -90,9 +90,14 @@ export default class ZkappWorkerClient {
 	compileGroupContract() {
 		return this._call('compileGroupContract', {});
 	}
-	initGroupInstance(publicKey: PublicKey) {
+
+	areContractsCompiled() {
+		return this._call('areContractsCompiled', {});
+	}
+
+	initGroupInstance(publicKey: string) {
 		return this._call('initGroupInstance', {
-			publicKey58: publicKey,
+			publicKey: publicKey,
 		});
 	}
 	async deployGroup(
@@ -102,7 +107,7 @@ export default class ZkappWorkerClient {
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration?: number,
+		paymentDuration: number,
 		deployer?: PublicKey
 	) {
 		return await this._call('deployGroup', {
@@ -112,28 +117,31 @@ export default class ZkappWorkerClient {
 			itemPrice,
 			groupDuration,
 			missable,
-			payemntDuration,
+			paymentDuration,
 			deployer,
 		});
 	}
 	async addUserToGroup(
-		userKey: PublicKey,
+		// admin: string,
+		userKey: string,
 		maxMembers: number,
 		itemPrice: number,
 		groupDuration: number,
 		missable: number,
-		payemntDuration?: number
+		paymentDuration: number
 	) {
 		return await this._call('addUserToGroup', {
+			// admin,
 			userKey,
 			maxMembers,
 			itemPrice,
 			groupDuration,
 			missable,
-			payemntDuration,
+			paymentDuration,
 		});
 	}
 	async roundPayment(
+		userKey: string,
 		maxMembers: number,
 		itemPrice: number,
 		groupDuration: number,
@@ -141,7 +149,9 @@ export default class ZkappWorkerClient {
 		paymentDuration: number,
 		amountOfBids: number
 	) {
+		console.log('roundPayment');
 		return await this._call('roundPayment', {
+			userKey,
 			maxMembers,
 			itemPrice,
 			groupDuration,
@@ -157,9 +167,10 @@ export default class ZkappWorkerClient {
 		return await this._call('getPaymentRound', {});
 	}
 
-	async getUserStorage(userKey: PublicKey) {
+	async getUserStorage(userKey: string, groupAddress: string) {
 		return await this._call('getUserStorage', {
 			userKey,
+			groupAddress,
 		});
 	}
 
@@ -177,13 +188,13 @@ export default class ZkappWorkerClient {
 		});
 	}
 
-	async createTransferTransaction(fromKey: PublicKey, toKey: PublicKey, amount: number) {
-		return await this._call('createTransferTransaction', {
-			fromKey,
-			toKey,
-			amount,
-		});
-	}
+	// async createTransferTransaction(fromKey: PublicKey, toKey: PublicKey, amount: number) {
+	// 	return await this._call('createTransferTransaction', {
+	// 		fromKey,
+	// 		toKey,
+	// 		amount,
+	// 	});
+	// }
 	async getTokenSupply() {
 		return await this._call('getTokenSupply', {});
 		// return UInt64.fromJSON(JSON.parse(result as string));

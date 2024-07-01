@@ -39,6 +39,7 @@ const state = {
 	tokenZkapp: null as null | FungibleToken,
 	groupZkapp: null as null | GroupBasic,
 	groupVerificationKey: null as null | VerificationKey,
+	tokenVerificationKey: null as null | VerificationKey,
 	transaction: null as null | Transaction,
 };
 
@@ -165,9 +166,10 @@ const functions = {
 		state.GroupUserStorage = GroupUserStorage;
 	},
 	compileContracts: async (args: {}) => {
-		await state.FungibleToken!.compile();
-		const { verificationKey: vk } = await state.GroupBasic!.compile();
-		state.groupVerificationKey = vk;
+		const { verificationKey: vkToken } = await state.FungibleToken!.compile();
+		const { verificationKey: vkGroup } = await state.GroupBasic!.compile();
+		state.tokenVerificationKey = vkToken;
+		state.groupVerificationKey = vkGroup;
 	},
 	initContractsInstance: async (args: { groupAddress: PublicKey; tokenAddress: PublicKey }) => {
 		// const groupAddress = PublicKey.fromBase58(args.groupAddress);
@@ -183,12 +185,16 @@ const functions = {
 		state.FungibleToken = FungibleToken;
 	},
 	compileTokenContract: async (args: {}) => {
-		await state.FungibleToken!.compile();
+		const { verificationKey: vkToken } = await state.FungibleToken!.compile();
+		state.tokenVerificationKey = vkToken;
 	},
 	initTokenInstance: async (args: { publicKey: PublicKey }) => {
 		// const publicKey = PublicKey.fromBase58(args.publicKey58);
 		// console.log('initTokenInstance', publicKey.toBase58());
-		state.tokenZkapp = new state.FungibleToken!(args.publicKey);
+
+		const publicKey = PublicKey.fromBase58('B62qict1jWXuU1BhTSwbhyrtTa2yxNB27aZ4PuyShepnQzzp3HoFGuT');
+		state.tokenZkapp = new state.FungibleToken!(publicKey);
+		// state.tokenZkapp = new state.FungibleToken!(args.publicKey);
 	},
 
 	/** 
@@ -202,9 +208,18 @@ const functions = {
 		const { verificationKey: vk } = await state.GroupBasic!.compile();
 		state.groupVerificationKey = vk;
 	},
-	initGroupInstance: async (args: { publicKey: PublicKey }) => {
-		// const publicKey = PublicKey.fromBase58(args.publicKey58);
-		state.groupZkapp = new state.GroupBasic!(args.publicKey);
+	initGroupInstance: async (args: { publicKey: string }) => {
+		state.GroupBasic = GroupBasic;
+		console.log('initGroupInstance', args.publicKey);
+		const publicKey = PublicKey.fromBase58(args.publicKey);
+		state.groupZkapp = new state.GroupBasic(publicKey);
+	},
+
+	areContractsCompiled: async (args: {}) => {
+		return JSON.stringify({
+			token: state.tokenVerificationKey !== null,
+			group: state.groupVerificationKey !== null,
+		});
 	},
 
 	/** 
@@ -217,7 +232,7 @@ const functions = {
 		itemPrice: number;
 		groupDuration: number;
 		missable: number; // number of payment that can be missed
-		payemntDuration?: number;
+		paymentDuration: number;
 		deployer?: PublicKey;
 	}) => {
 		const admin = PublicKey.fromBase58(args.adminPublicKey);
@@ -229,79 +244,122 @@ const functions = {
 		const groupDuration = UInt32.from(args.groupDuration);
 		const tokenAddress = state.tokenZkapp!.address;
 		const missable = UInt32.from(args.missable);
-		const payemntDuration = args.payemntDuration ? UInt64.from(args.payemntDuration) : UInt64.from(0);
+		const paymentDuration = UInt64.from(args.paymentDuration);
+		console.log('maxMembers:', maxMembers.toBigint().toString());
+		console.log('itemPrice:', itemPrice.toBigint().toString());
+		console.log('groupDuration:', groupDuration.toBigint().toString());
+		console.log('tokenAddress:', tokenAddress.toBase58());
+		console.log('missable:', missable.toBigint().toString());
+		console.log('paymentDuration:', paymentDuration.toBigInt().toString());
 		const groupSettings = new GroupSettings(
 			maxMembers,
 			itemPrice,
 			groupDuration,
 			tokenAddress,
 			missable,
-			payemntDuration
+			paymentDuration
 		);
-		const transaction = await Mina.transaction(deployer, async () => {
+		const transaction = await Mina.transaction({ sender: deployer, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(deployer);
 			await instance.deploy({ admin, groupSettings });
 		});
 		transaction.sign([groupPrivKey]);
 		state.groupZkapp = instance;
+		console.log('stateAddr set to ', state.groupZkapp.address.toBase58());
 		state.transaction = transaction;
 	},
 	addUserToGroup: async (args: {
-		userKey: PublicKey;
+		// admin: string;
+		userKey: string;
 		maxMembers: number;
 		itemPrice: number;
 		groupDuration: number;
 		missable: number;
-		payemntDuration?: number;
+		paymentDuration: number;
 	}) => {
-		const userKey = args.userKey;
+		// const admin = PublicKey.fromBase58(args.admin);
+		const userKey = PublicKey.fromBase58(args.userKey);
 		const vk = state.groupVerificationKey!;
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
 		const groupDuration = UInt32.from(args.groupDuration);
 		const tokenAddress = state.tokenZkapp!.address;
 		const missable = UInt32.from(args.missable);
-		const payemntDuration = args.payemntDuration ? UInt64.from(args.payemntDuration) : UInt64.from(0);
+		const paymentDuration = UInt64.from(args.paymentDuration);
 		const groupSettings = new GroupSettings(
 			maxMembers,
 			itemPrice,
 			groupDuration,
 			tokenAddress,
 			missable,
-			payemntDuration
+			paymentDuration
 		);
-		const transaction = await Mina.transaction(async () => {
+		console.log('s');
+		console.log('maxMembers:', maxMembers.toBigint().toString());
+		console.log('itemPrice:', itemPrice.toBigint().toString());
+		console.log('groupDuration:', groupDuration.toBigint().toString());
+		console.log('tokenAddress:', tokenAddress.toBase58());
+		console.log('missable:', missable.toBigint().toString());
+		console.log('paymentDuration:', paymentDuration.toBigInt().toString());
+		console.log('params ready');
+		console.log('userKey', userKey.toBase58());
+		console.log('tokenAddress', tokenAddress.toBase58());
+		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
+		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(userKey);
 			await state.groupZkapp!.addUserToGroup(groupSettings, userKey, vk);
 		});
 		state.transaction = transaction;
 	},
 	roundPayment: async (args: {
+		userKey: string;
 		maxMembers: number;
 		itemPrice: number;
 		groupDuration: number;
 		missable: number;
-		payemntDuration?: number;
+		paymentDuration: number;
 		amountOfBids: number;
 	}) => {
+		console.log('in roundPayment');
+		console.log('s');
+		console.log('maxMembers:', args.maxMembers);
+		console.log('itemPrice:', args.itemPrice);
+		console.log('groupDuration:', args.groupDuration);
+		console.log('missable:', args.missable);
+		console.log('paymentDuration:', args.paymentDuration);
+		console.log('params ready');
+		console.log('userKey', args.userKey);
+		const userKey = PublicKey.fromBase58(args.userKey);
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
 		const groupDuration = UInt32.from(args.groupDuration);
 		const tokenAddress = state.tokenZkapp!.address;
 		const missable = UInt32.from(args.missable);
-		const payemntDuration = args.payemntDuration ? UInt64.from(args.payemntDuration) : UInt64.from(0);
+		const paymentDuration = UInt64.from(args.paymentDuration);
 		const groupSettings = new GroupSettings(
 			maxMembers,
 			itemPrice,
 			groupDuration,
 			tokenAddress,
 			missable,
-			payemntDuration
+			paymentDuration
 		);
+		console.log('s');
+		console.log('maxMembers:', maxMembers.toBigint().toString());
+		console.log('itemPrice:', itemPrice.toBigint().toString());
+		console.log('groupDuration:', groupDuration.toBigint().toString());
+		console.log('tokenAddress:', tokenAddress.toBase58());
+		console.log('missable:', missable.toBigint().toString());
+		console.log('paymentDuration:', paymentDuration.toBigInt().toString());
+		console.log('userKey', userKey.toBase58());
+		console.log('tokenAddress', tokenAddress.toBase58());
+		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
 		const amountOfBids = UInt64.from(args.amountOfBids);
-		const transaction = await Mina.transaction(async () => {
+		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
 			//gonna have to fund group with token first
+			// AccountUpdate.fundNewAccount(userKey);
 			await state.groupZkapp!.roundPayment(groupSettings, amountOfBids, UInt32.from(1));
+			// amountOfPayments reffers to when you have to catchup with payments,if u always on schedule it's just '1'
 		});
 		state.transaction = transaction;
 	},
@@ -318,9 +376,9 @@ const functions = {
 		return JSON.stringify(paymentRound.toJSON());
 	},
 
-	getUserStorage: async (args: { userKey: PublicKey }) => {
-		const userKey = args.userKey;
-		const groupAddress = state.groupZkapp!.address;
+	getUserStorage: async (args: { userKey: string; groupAddress: string }) => {
+		const userKey = PublicKey.fromBase58(args.userKey);
+		const groupAddress = PublicKey.fromBase58(args.groupAddress);
 		const derivedTokenId = TokenId.derive(groupAddress);
 		await fetchAccount({
 			publicKey: userKey,
@@ -330,8 +388,8 @@ const functions = {
 		return JSON.stringify({
 			payments: userStorage.payments.get(),
 			overpayments: userStorage.overpayments.get(),
-			compensations: userStorage.compensations.get(),
-			isParticipant: userStorage.isParticipant.get(),
+			compensations: userStorage.compensations.get().toString(),
+			isParticipant: userStorage.isParticipant.get().toBoolean(),
 		});
 	},
 
@@ -355,12 +413,12 @@ const functions = {
 		// const zkAppPrivateKey = PrivateKey.random();
 		const instance = new FungibleToken(zkAppPrivateKey.toPublicKey());
 		console.log('acutal token key', zkAppPrivateKey.toPublicKey().toBase58());
-		const deployTokenTx = await Mina.transaction(admin, async () => {
+		const deployTokenTx = await Mina.transaction({ sender: admin, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(admin); //todo ?!?!
 			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });
 			await instance.deploy({
 				owner: admin,
-				supply: UInt64.from(10_000_000_000_000),
+				supply: UInt64.from(100000000 * 1e9),
 				symbol: 'mUSD',
 				src: 'source code link',
 			});
@@ -374,12 +432,7 @@ const functions = {
 		const toKey = PublicKey.fromBase58(args.toKey);
 		const admin = PublicKey.fromBase58(args.admin);
 		const amount = UInt64.from(args.amount);
-		console.log('is correct token?', state.tokenZkapp!.address.toBase58());
-		console.log('admin', admin.toBase58());
-		const instance = new FungibleToken(state.tokenZkapp!.address);
-		// console.log('is correct admin?', state.tokenZkapp!.owner.get().toBase58()
-		// const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
-		const transaction = await Mina.transaction(admin, async () => {
+		const transaction = await Mina.transaction({ sender: admin, fee: 0.01 * 1e9 }, async () => {
 			// if (!target.account) {
 			AccountUpdate.fundNewAccount(admin);
 			// }
@@ -389,19 +442,19 @@ const functions = {
 		state.transaction = transaction;
 	},
 
-	createTransferTransaction: async (args: { fromKey: PublicKey; toKey: PublicKey; amount: number }) => {
-		const fromKey = args.fromKey;
-		const toKey = args.toKey;
-		const amount = UInt64.from(args.amount);
-		const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
-		const transaction = await Mina.transaction(async () => {
-			if (!target.account) {
-				AccountUpdate.fundNewAccount(fromKey);
-			}
-			await state.tokenZkapp!.transfer(fromKey, toKey, amount);
-		});
-		state.transaction = transaction;
-	},
+	// createTransferTransaction: async (args: { fromKey: PublicKey; toKey: PublicKey; amount: number }) => {
+	// 	const fromKey = args.fromKey;
+	// 	const toKey = args.toKey;
+	// 	const amount = UInt64.from(args.amount);
+	// 	const target = await fetchAccount({ publicKey: toKey, tokenId: state.tokenZkapp!.deriveTokenId() }); //TODO check
+	// 	const transaction = await Mina.transaction(async () => {
+	// 		if (!target.account) {
+	// 			AccountUpdate.fundNewAccount(fromKey);
+	// 		}
+	// 		await state.tokenZkapp!.transfer(fromKey, toKey, amount);
+	// 	});
+	// 	state.transaction = transaction;
+	// },
 
 	/** 
 	Token get functions
