@@ -348,13 +348,13 @@ export class GroupBasic extends TokenContract {
     for (let i = 0; i < MAX_PAYMENTS; i++) {
       // If either is true, then valid
       let roundPaid: Bool = paymentsBools[i].or(compensationsBools[i]);
-      let iter = new UInt64(i);
-      let pastMonth: Bool = iter.lessThan(currentPaymentRound);
-      let currentMonth: Bool = iter.equals(currentPaymentRound);
+      let iterIndex = new UInt64(i);
+      let pastMonth: Bool = iterIndex.lessThan(currentPaymentRound);
+      let currentMonth: Bool = iterIndex.equals(currentPaymentRound);
 
       // If it is not future month and there is money left mark canPayCurrentRound as true
       let canPayCurrentRound: Bool = Provable.if(
-        iter
+        iterIndex
           .lessThanOrEqual(currentPaymentRound)
           .and(paymentBatch.greaterThan(UInt32.zero)),
         Bool(true),
@@ -606,6 +606,7 @@ export class GroupBasic extends TokenContract {
       }
       innerIter.assertAtEnd();
     }
+    iter.jumpToEnd();
     iter.assertAtEnd();
 
     // State to be kept as is in case of missing auction or lottery winner
