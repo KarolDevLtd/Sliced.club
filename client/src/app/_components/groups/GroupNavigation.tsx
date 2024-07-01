@@ -36,25 +36,25 @@ const GroupNavigation = ({ groupHash, group, product }: GroupNavigationProps) =>
 	// console.log(product);
 	return (
 		<div className="col-span-4 grid gap-4 grid-cols-4">
-			<div className="card h-44 bg-accent" onClick={(e) => handleCardClick(e, 'payment')}>
+			<div className="card h-44 bg-accent cursor-pointer " onClick={(e) => handleCardClick(e, 'payment')}>
 				<figure></figure>
 				<div className="card-body justify-end">
 					<h2 className="card-title">Payment</h2>
 				</div>
 			</div>
-			<div className="card h-44 bg-accent" onClick={(e) => handleCardClick(e, 'offer')}>
+			<div className="card h-44 bg-accent cursor-pointer" onClick={(e) => handleCardClick(e, 'offer')}>
 				<figure></figure>
 				<div className="card-body justify-end">
 					<h2 className="card-title">Offer Details</h2>
 				</div>
 			</div>
-			<div className="card h-44 bg-accent" onClick={(e) => handleCardClick(e, 'product')}>
+			<div className="card h-44 bg-accent cursor-pointer" onClick={(e) => handleCardClick(e, 'product')}>
 				<figure></figure>
 				<div className="card-body justify-end">
 					<h2 className="card-title">Product Details</h2>
 				</div>
 			</div>
-			<div className="card h-44 bg-accent" onClick={(e) => handleCardClick(e, 'organiser')}>
+			<div className="card h-44 bg-accent cursor-pointer" onClick={(e) => handleCardClick(e, 'organiser')}>
 				<figure></figure>
 				<div className="card-body justify-end">
 					<h2 className="card-title">About GO</h2>
