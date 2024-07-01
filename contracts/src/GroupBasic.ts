@@ -130,6 +130,8 @@ const MAX_ACTIONS_PER_UPDATE = 2;
 export class GroupBasic extends TokenContract {
   /** Settings specified by the organiser. */
   @state(Field) groupSettingsHash = State<Field>();
+  /** Where we starting looper from. */
+  @state(Field) actionState = State<Field>();
   /** Also organiser. */
   @state(PublicKey) admin = State<PublicKey>();
   /** Contract's token account used to store money. */
@@ -164,6 +166,9 @@ export class GroupBasic extends TokenContract {
     // Set group hash
     this.groupSettingsHash.set(args.groupSettings.hash());
     this.paymentRound.set(UInt64.zero);
+
+    // Set to 0th merkle entry
+    this.actionState.set(Reducer.initialActionState);
 
     // It does do something
     this.account.permissions.set({
@@ -606,8 +611,11 @@ export class GroupBasic extends TokenContract {
       }
       innerIter.assertAtEnd();
     }
-    iter.jumpToEnd();
-    iter.assertAtEnd();
+    iter.jumpToStart();
+    iter.assertAtStart();
+
+    // iter.jumpToStart();
+    // iter.assertAtStart();
 
     // State to be kept as is in case of missing auction or lottery winner
     let dudStorage = new GroupUserStorage(firstAddress, this.deriveTokenId());

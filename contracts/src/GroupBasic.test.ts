@@ -24,6 +24,48 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+interface userState {
+  compensations: number;
+  payments: number;
+  bids: number;
+  claimed: boolean;
+  canClaim: boolean;
+}
+
+interface contractsState {
+  stablecoinBalance: number;
+  actions: Entry[][];
+}
+
+class userStateTransition {
+  constructor(
+    public userStateStart: userState,
+    public userStateEnd: userState,
+    public currentPayment: boolean,
+    public amountCompensations: number,
+    public amountBids: number
+  ) {}
+
+  fetchTotalPayments() {
+    return this.currentPayment ? 1 : 0 + this.amountCompensations;
+  }
+}
+
+class contractStateTransition {
+  constructor(
+    public contractStateStart: contractsState,
+    public contractStateEnd: contractsState,
+    public usersStateTransitions: userStateTransition[],
+    public submittedPayment: number
+  ) {}
+}
+
+class user {
+  totalPayments = 0;
+  totalCompensations = 0;
+  constructor(public key: TestPublicKey) {}
+}
+
 describe('GroupBasic', () => {
   let testAccounts: TestPublicKey[],
     deployer: TestPublicKey,
@@ -56,6 +98,9 @@ describe('GroupBasic', () => {
   let basePayment = UInt32.from(1);
   let lotteryWinner: PublicKey;
   let roundMembers: Mina.TestPublicKey[] = [];
+
+  // Array of users
+  let users: user[] = [];
 
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(members), // members
@@ -126,6 +171,11 @@ describe('GroupBasic', () => {
 
     roundMembers = testAccounts.slice(2, 10);
 
+    // Populate users with group members
+    for (let i = 0; i < roundMembers.length; i++) {
+      users.push(new user(roundMembers[i]));
+    }
+
     // Create a subset of round members
 
     group = new GroupBasic(groupAddress);
@@ -178,6 +228,97 @@ describe('GroupBasic', () => {
     let payments: Field = ud.compensations.get();
     return extract(payments, `Compensations ${userName}`);
   }
+
+  // Need to reset bids somehow? TODO check
+  function fetchUserState(user: PublicKey): Promise<userState> {
+    let ud = new GroupUserStorage(user, group.deriveTokenId());
+    return Promise.resolve({
+      compensations: fetchCompensation(user),
+      payments: fetchPaid(user),
+      bids: parseInt(ud.bidPayment.get().toString()),
+      claimed: ud.claimed.get().toBoolean(),
+      canClaim: ud.canClaim.get().toBoolean(),
+    });
+  }
+
+  async function fetchContractsState(): Promise<contractsState> {
+    return {
+      stablecoinBalance: parseInt(
+        (await tokenApp.getBalanceOf(escrowAddress)).toString()
+      ),
+      actions: await group.reducer.fetchActions(),
+    };
+  }
+
+  // Assert valid user state transition
+  function assertUserStateTransition(details: userStateTransition) {
+    // Assert payments are incremented
+    expect(details.userStateEnd.payments).toEqual(
+      details.userStateStart.payments + (details.currentPayment ? 1 : 0)
+    );
+    // Assert compensations are not incremented
+    expect(details.userStateEnd.compensations).toEqual(
+      details.userStateStart.compensations + details.amountCompensations
+    );
+    // Assert bids are not incremented
+    expect(details.userStateEnd.bids).toEqual(
+      details.userStateStart.bids + details.amountBids
+    );
+  }
+
+  function assertContractsStateTransition(details: contractStateTransition) {
+    // console.log(
+    //   'details.contractStateStart.actions: ',
+    //   details.contractStateStart.actions
+    // );
+
+    // console.log(
+    //   'details.contractStateStart.actions.length: ',
+    //   details.contractStateStart.actions.length
+    // );
+
+    // console.log(
+    //   'details.contractStateStart.actions[0].length: ',
+    //   details.contractStateStart.actions[0].length
+    // );
+
+    console.log(
+      '\ndetails.contractStateStart size: ',
+      details.contractStateStart.actions.length
+    );
+    console.log(
+      '\ndetails.contractStateEnd size: ',
+      details.contractStateEnd.actions.length
+    );
+    // At the start actions must be empty
+    // expect(details.contractStateStart.actions.length).toEqual(0);
+
+    // console.log(
+    //   'details.contractStateEnd.actions[0].length: ',
+    //   details.contractStateEnd.actions[0].length
+    // );
+
+    // // Assert distinct payers matches the length of the entry actions array
+    // expect(details.submittedPayment).toEqual(
+    //   details.contractStateEnd.actions.length
+    // );
+
+    // Fetch all the amounts users have paid
+
+    // Assert stablecoin balance is incremented
+    // expect(details.contractStateEnd.stablecoinBalance).toEqual(
+    //   details.contractStateStart.stablecoinBalance
+    // );
+    // // Assert actions are incremented
+    // expect(details.contractStateEnd.actions.length).toEqual(
+    //   details.contractStateStart.actions.length + 1
+    // );
+    // // Assert user state transitions
+    // for (let i = 0; i < details.usersStateTransitions.length; i++) {
+    //   assertUserStateTransition(details.usersStateTransitions[i]);
+    // }
+  }
+
   async function setPaymentRound(roundIndex: UInt64) {
     const txn = await Mina.transaction(admin, async () => {
       await group.roundUpdate(roundIndex);
@@ -243,12 +384,8 @@ describe('GroupBasic', () => {
   }
 
   // Submit paymen function
-  async function payRound(
-    payer: TestPublicKey,
-    bids: number,
-    payments: number
-  ) {
-    const txn = await Mina.transaction(payer, async () => {
+  async function payRound(payer: user, bids: number, payments: number) {
+    const txn = await Mina.transaction(payer.key, async () => {
       await group.roundPayment(
         GROUP_SETTINGS,
         UInt64.from(bids),
@@ -257,7 +394,7 @@ describe('GroupBasic', () => {
     });
 
     await txn.prove();
-    await txn.sign([payer.key]).send();
+    await txn.sign([payer.key.key]).send();
   }
 
   // Need three functions to assert correctness of:
@@ -277,12 +414,6 @@ describe('GroupBasic', () => {
     // });
     // await tx0.sign([deployer.key, escrowPrivateKey]).prove();
     // await tx0.send();
-
-    console.log('hello timmy');
-
-    for (let a = 0; a < 10; a++) {
-      console.log('loop: ', a, createWinners());
-    }
   });
 
   // it('Generates and deploys the `GroupBasic` smart contract', async () => {
@@ -451,11 +582,38 @@ describe('GroupBasic', () => {
   it('Run where each member pays each month once', async () => {
     // Loop over number of rounds
     let winners: number[] = createWinners();
+    let totalPayments = 0;
+    let usersStateTransitions: userStateTransition[] = [];
     for (let r = 0; r < groupRounds; r++) {
       console.log(`\nRound: ${r}`);
+
+      // Fetch end contracts state
+      let contractStateStart = await fetchContractsState();
+
       for (let m = 0; m < roundMembers.length; m++) {
+        // Get user state at the start
+        let userStateStart = await fetchUserState(roundMembers[m]);
+
         console.log(` Paying as member ${m}`);
-        await payRound(roundMembers[m], 0, 1);
+        await payRound(users[m], 0, 1);
+
+        // Get user state at the end
+        let userStateEnd = await fetchUserState(roundMembers[m]);
+
+        let ust = new userStateTransition(
+          userStateStart,
+          userStateEnd,
+          true,
+          0,
+          0
+        );
+
+        // Check for correct state transitions
+        assertUserStateTransition(ust);
+
+        // Add to user state transitions
+        usersStateTransitions.push(ust);
+        totalPayments += 1;
       }
 
       // Pick a number in the range 0-groupSize
@@ -465,6 +623,16 @@ describe('GroupBasic', () => {
 
       // Advance round as the organiser
       await getResults(winner);
+
+      // Fetch end contracts state
+      let contractStateEnd = await fetchContractsState();
+
+      assertContractsStateTransition({
+        contractStateStart,
+        contractStateEnd,
+        usersStateTransitions,
+        submittedPayment: totalPayments,
+      });
 
       console.log(`End of round ${r}`);
     }
