@@ -77,7 +77,7 @@ const GroupList = ({
 					className={
 						isHomeScreen
 							? 'overflow-y-scroll flex flex-col m-4 h-60'
-							: 'overflow-y-scroll flex flex-col m-4 h-96'
+							: 'overflow-y-scroll flex flex-col m-4 h-fit'
 					}
 				>
 					{groups.map((group, index) => (
