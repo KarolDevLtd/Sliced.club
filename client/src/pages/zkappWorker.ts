@@ -265,10 +265,13 @@ const functions = {
 			missable,
 			paymentDuration
 		);
+		const derivedTokenId = TokenId.derive(tokenAddress);
 		console.log('groupSettingHash:', Poseidon.hash(GroupSettings.toFields(groupSettings)).toString());
 		const transaction = await Mina.transaction({ sender: deployer, fee: 0.01 * 1e9 }, async () => {
-			AccountUpdate.fundNewAccount(deployer);
+			AccountUpdate.fundNewAccount(deployer, 2);
 			await instance.deploy({ admin, groupSettings });
+			const groupTokenAcc = AccountUpdate.create(groupPrivKey.toPublicKey(), derivedTokenId);
+			await state.tokenZkapp?.approveAccountUpdate(groupTokenAcc);
 		});
 		transaction.sign([groupPrivKey]);
 		state.groupZkapp = instance;

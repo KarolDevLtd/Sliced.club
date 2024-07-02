@@ -41,6 +41,7 @@ export default function Groups() {
 			if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
 			showModal('add-group');
 			await compileContracts('group');
+			await compileContracts('token');
 			// await setTokenNoDeploy();
 		} catch (err) {
 			console.log('showGroupModal', err);
