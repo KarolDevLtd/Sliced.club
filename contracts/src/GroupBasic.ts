@@ -475,8 +475,6 @@ export class GroupBasic extends TokenContract {
       )
     );
 
-    // this.actionState.set(pendingActions.hash);
-
     // Encrypt bidding info
     // let adminPubKey = this.admin.getAndRequireEquals();
     // let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
@@ -520,6 +518,9 @@ export class GroupBasic extends TokenContract {
 
     // prove that we know the correct action state
     this.account.actionState.requireEquals(actions.hash);
+
+    // this.actionState.set(pendingActions.hash);
+
     let currentHighestBid = UInt64.zero;
     let auctionWinner: PublicKey = PublicKey.empty();
     let secondAuctionWinner: PublicKey = PublicKey.empty();
@@ -687,6 +688,9 @@ export class GroupBasic extends TokenContract {
 
     // Is this needed here?
     this.paymentRound.set(currentPaymentRound.add(advanceRound));
+
+    // Will start from here
+    this.actionState.set(actions.hash);
   }
 
   private getPaymentAmount(groupSettings: GroupSettings): UInt64 {

@@ -34,6 +34,7 @@ interface userState {
 
 interface contractsState {
   stablecoinBalance: number;
+  actionHash: Field;
   actions: Entry[][];
 }
 
@@ -55,7 +56,7 @@ class contractStateTransition {
   constructor(
     public contractStateStart: contractsState,
     public contractStateEnd: contractsState,
-    public usersStateTransitions: userStateTransition[],
+    public usersStateTransitions: userStateTransition,
     public submittedPayment: number
   ) {}
 }
@@ -98,18 +99,21 @@ describe('GroupBasic', () => {
   let basePayment = UInt32.from(1);
   let lotteryWinner: PublicKey;
   let roundMembers: Mina.TestPublicKey[] = [];
+  let itemPrice = 3000;
 
   // Array of users
   let users: user[] = [];
 
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(members), // members
-    new UInt32(3000), // itemPrice
+    new UInt32(itemPrice), // itemPrice
     new UInt32(groupRounds), // groupDuration
     tokenAddress,
     new UInt32(missable), // can be missed
     new UInt64(0)
   ); // 500 monthly
+
+  const singlePayment = (itemPrice * 2) / members;
 
   const emptyKey = PublicKey.fromBase58(
     'B62qqaYPT5oVGCntFRfsownCzTBEP297BzLiBXgoq8bSSJB1pYZ53CN'
@@ -246,6 +250,7 @@ describe('GroupBasic', () => {
       stablecoinBalance: parseInt(
         (await tokenApp.getBalanceOf(escrowAddress)).toString()
       ),
+      actionHash: await group.actionState.get(),
       actions: await group.reducer.fetchActions(),
     };
   }
@@ -266,60 +271,24 @@ describe('GroupBasic', () => {
     );
   }
 
-  function assertContractsStateTransition(details: contractStateTransition) {
-    // console.log(
-    //   'details.contractStateStart.actions: ',
-    //   details.contractStateStart.actions
-    // );
-
-    // console.log(
-    //   'details.contractStateStart.actions.length: ',
-    //   details.contractStateStart.actions.length
-    // );
-
-    // console.log(
-    //   'details.contractStateStart.actions[0].length: ',
-    //   details.contractStateStart.actions[0].length
-    // );
-
-    console.log(
-      '\ndetails.contractStateStart size: ',
-      details.contractStateStart.actions.length
-    );
-    console.log(
-      '\ndetails.contractStateEnd size: ',
+  function assertContractsStateTransitionPayment(
+    details: contractStateTransition
+  ) {
+    // By paying user emits an action
+    expect(details.contractStateStart.actions.length + 1).toEqual(
       details.contractStateEnd.actions.length
     );
 
-    // For the last entry of last action it must be stored as the group action state
+    // Escrow contract must increase by the amount paid by this user
+    expect(details.contractStateEnd.stablecoinBalance).toEqual(
+      details.contractStateStart.stablecoinBalance +
+        details.submittedPayment * singlePayment
+    );
 
-    // At the start actions must be empty
-    // expect(details.contractStateStart.actions.length).toEqual(0);
-
-    // console.log(
-    //   'details.contractStateEnd.actions[0].length: ',
-    //   details.contractStateEnd.actions[0].length
-    // );
-
-    // // Assert distinct payers matches the length of the entry actions array
-    // expect(details.submittedPayment).toEqual(
-    //   details.contractStateEnd.actions.length
-    // );
-
-    // Fetch all the amounts users have paid
-
-    // Assert stablecoin balance is incremented
-    // expect(details.contractStateEnd.stablecoinBalance).toEqual(
-    //   details.contractStateStart.stablecoinBalance
-    // );
-    // // Assert actions are incremented
-    // expect(details.contractStateEnd.actions.length).toEqual(
-    //   details.contractStateStart.actions.length + 1
-    // );
-    // // Assert user state transitions
-    // for (let i = 0; i < details.usersStateTransitions.length; i++) {
-    //   assertUserStateTransition(details.usersStateTransitions[i]);
-    // }
+    // No change in the action hash after payment
+    expect(details.contractStateEnd.actionHash).toEqual(
+      details.contractStateStart.actionHash
+    );
   }
 
   async function setPaymentRound(roundIndex: UInt64) {
@@ -531,14 +500,6 @@ describe('GroupBasic', () => {
     console.log('Alexa token address: ', alexaTokenAddress.address.toBase58());
   });
 
-  // // it('Fails without all members being added', async () => {
-  // //   await expect(
-  // //     Mina.transaction(alexa, async () => {
-  // //       await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), UInt32.one);
-  // //     })
-  // //   ).rejects.toThrow();
-  // // });
-
   it('Adds remaining users to the group', async () => {
     // console.log('Adding remaining users to the group', userStart, userEnd);
     for (let i = userStart + 1; i <= userEnd; i++) {
@@ -586,19 +547,28 @@ describe('GroupBasic', () => {
     // Loop over number of rounds
     let winners: number[] = createWinners();
     let totalPayments = 0;
-    let usersStateTransitions: userStateTransition[] = [];
+
     for (let r = 0; r < groupRounds; r++) {
       console.log(`\nRound: ${r}`);
 
-      // Fetch end contracts state
-      let contractStateStart = await fetchContractsState();
-
       for (let m = 0; m < roundMembers.length; m++) {
+        // Fetch end contracts state
+        let contractStateStart = await fetchContractsState();
+
         // Get user state at the start
         let userStateStart = await fetchUserState(roundMembers[m]);
 
         console.log(` Paying as member ${m}`);
-        await payRound(users[m], 0, 1);
+
+        let paymentAmounts = 1;
+        let compensationAmounts = 0;
+        let submittingTx = false;
+        if (paymentAmounts > 0) {
+          submittingTx = true;
+          totalPayments += 1;
+          totalPayments += compensationAmounts;
+        }
+        await payRound(users[m], compensationAmounts, paymentAmounts);
 
         // Get user state at the end
         let userStateEnd = await fetchUserState(roundMembers[m]);
@@ -606,7 +576,7 @@ describe('GroupBasic', () => {
         let ust = new userStateTransition(
           userStateStart,
           userStateEnd,
-          true,
+          submittingTx,
           0,
           0
         );
@@ -614,9 +584,15 @@ describe('GroupBasic', () => {
         // Check for correct state transitions
         assertUserStateTransition(ust);
 
-        // Add to user state transitions
-        usersStateTransitions.push(ust);
-        totalPayments += 1;
+        // Fetch end contracts state
+        let contractStateEnd = await fetchContractsState();
+
+        assertContractsStateTransitionPayment({
+          contractStateStart,
+          contractStateEnd,
+          usersStateTransitions: ust,
+          submittedPayment: paymentAmounts,
+        });
       }
 
       // Pick a number in the range 0-groupSize
@@ -626,16 +602,6 @@ describe('GroupBasic', () => {
 
       // Advance round as the organiser
       await getResults(winner);
-
-      // Fetch end contracts state
-      let contractStateEnd = await fetchContractsState();
-
-      assertContractsStateTransition({
-        contractStateStart,
-        contractStateEnd,
-        usersStateTransitions,
-        submittedPayment: totalPayments,
-      });
 
       console.log(`End of round ${r}`);
     }
