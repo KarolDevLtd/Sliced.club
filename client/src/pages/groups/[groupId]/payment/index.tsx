@@ -43,7 +43,6 @@ export default function GroupPayment() {
 	};
 
 	const makePayment = async () => {
-		console.log('cock');
 		try {
 			if (group && walletAddress) {
 				// console.log('add user ipfs values :\n', groupData.group);
@@ -61,16 +60,9 @@ export default function GroupPayment() {
 					parseInt(group.duration),
 					// parseInt(groupData.group.missable) // TODO that's wrong
 					3, // missable
-					2592000, // payment duration
+					parseInt(group.period),
 					0
 				);
-				// await groupParticipantToIPFS.mutateAsync({
-				// 	groupHash: groupId.toString(),
-				// 	creatorKey: group.creatorKey,
-				// 	userKey: walletAddress.toString(),
-				// 	status: 'approved',
-				// });
-				// setIsParticipant(true);
 			}
 		} catch (err) {
 			console.log(err);
