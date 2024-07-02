@@ -212,15 +212,6 @@ describe('GroupBasic', () => {
     return total;
   }
 
-  // async function extendTestAccounts(additinal: number) {
-  //   // Create a keypair and set to an instance of TestPublicKey
-  //   for (let i = 0; i < additinal; i++) {
-  //     // let keypair: PrivateKey = PrivateKey.random();
-  //     let newAccount = TestPublicKey.random();
-  //     testAccounts.push(newAccount);
-  //   }
-  // }
-
   function fetchPaid(user: PublicKey, userName = '') {
     let ud = new GroupUserStorage(user, group.deriveTokenId());
     let payments: Field = ud.payments.get();
@@ -261,18 +252,19 @@ describe('GroupBasic', () => {
     expect(details.userStateEnd.payments).toEqual(
       details.userStateStart.payments + (details.currentPayment ? 1 : 0)
     );
-    // Assert compensations are not incremented
+    // Assert compensations are or are not incremented
     expect(details.userStateEnd.compensations).toEqual(
       details.userStateStart.compensations + details.amountCompensations
     );
-    // Assert bids are not incremented
+    // Assert bids are or are not incremented
     expect(details.userStateEnd.bids).toEqual(
       details.userStateStart.bids + details.amountBids
     );
   }
 
   function assertContractsStateTransitionPayment(
-    details: contractStateTransition
+    details: contractStateTransition,
+    round: number
   ) {
     // By paying user emits an action
     expect(details.contractStateStart.actions.length + 1).toEqual(
@@ -289,6 +281,15 @@ describe('GroupBasic', () => {
     expect(details.contractStateEnd.actionHash).toEqual(
       details.contractStateStart.actionHash
     );
+
+    // Emmited action needs to have the correct round
+    expect(
+      parseInt(
+        details.contractStateEnd.actions[
+          details.contractStateEnd.actions.length - 1
+        ][0].paymentRound.toString()
+      )
+    ).toEqual(round);
   }
 
   async function setPaymentRound(roundIndex: UInt64) {
@@ -367,6 +368,14 @@ describe('GroupBasic', () => {
 
     await txn.prove();
     await txn.sign([payer.key.key]).send();
+  }
+
+  async function claim(claimer: user) {
+    const txn = await Mina.transaction(claimer.key, async () => {
+      await group.userClaim(GROUP_SETTINGS);
+    });
+    await txn.prove();
+    await txn.sign([claimer.key.key]).send();
   }
 
   // Need three functions to assert correctness of:
@@ -551,6 +560,9 @@ describe('GroupBasic', () => {
     for (let r = 0; r < groupRounds; r++) {
       console.log(`\nRound: ${r}`);
 
+      // Fetch the action hash
+      let actionHashStart = await group.actionState.get();
+
       for (let m = 0; m < roundMembers.length; m++) {
         // Fetch end contracts state
         let contractStateStart = await fetchContractsState();
@@ -587,22 +599,42 @@ describe('GroupBasic', () => {
         // Fetch end contracts state
         let contractStateEnd = await fetchContractsState();
 
-        assertContractsStateTransitionPayment({
-          contractStateStart,
-          contractStateEnd,
-          usersStateTransitions: ust,
-          submittedPayment: paymentAmounts,
-        });
+        assertContractsStateTransitionPayment(
+          {
+            contractStateStart,
+            contractStateEnd,
+            usersStateTransitions: ust,
+            submittedPayment: paymentAmounts,
+          },
+          r
+        );
       }
 
       // Pick a number in the range 0-groupSize
-      let winner: number = winners.pop()!;
+      let winnerNumber: number = winners.pop()!;
 
-      console.log(`Member indexed ${winner} wins round ${r}`);
+      console.log(`Member indexed ${winnerNumber} wins round ${r}`);
 
       // Advance round as the organiser
-      await getResults(winner);
+      await getResults(winnerNumber);
 
+      // Assert hash swaped after calling results
+      let actionHashEnd = await group.actionState.get();
+      expect(actionHashStart).not.toEqual(actionHashEnd);
+
+      let winner = users[winnerNumber];
+      let winnerState = await fetchUserState(winner.key);
+
+      // Assert winning user is marked as winner in the token account
+      expect(winnerState.canClaim).toEqual(true);
+
+      // Claims as the winner
+      await claim(winner);
+
+      // Assert user is marked as claimed
+      expect((await fetchUserState(winner.key)).claimed).toEqual(true);
+
+      // Need to add tests for auction winner paying
       console.log(`End of round ${r}`);
     }
 

@@ -229,8 +229,7 @@ export class GroupBasic extends TokenContract {
     let senderAddr = this.sender.getAndRequireSignature();
     let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());
 
-    // Assert they can claim
-    // let claim: Bool = userStorage.canClaim.get();
+    // Assert user can claim
     userStorage.canClaim.get().assertEquals(true);
 
     // Fetch amount required by the user to pay if the user won by bidding
@@ -501,11 +500,9 @@ export class GroupBasic extends TokenContract {
     adminPrivKey: PrivateKey,
     randomValue: Field // it has to be constraint to max updates 0-100
   ) {
-    // let groupSettingsHash = this.groupSettingsHash.getAndRequireEquals();
-    // groupSettingsHash.assertEquals(_groupSettings.hash());
     await this.assertGroupHash(_groupSettings);
-    // let adminPubKey = this.admin.getAndRequireEquals();
-    // adminPubKey.assertEquals(adminPrivKey.toPublicKey());
+    let adminPubKey = this.admin.getAndRequireEquals();
+    adminPubKey.assertEquals(adminPrivKey.toPublicKey());
 
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
     // Provable.log('randomValue', randomValue);
@@ -518,8 +515,6 @@ export class GroupBasic extends TokenContract {
 
     // prove that we know the correct action state
     this.account.actionState.requireEquals(actions.hash);
-
-    // this.actionState.set(pendingActions.hash);
 
     let currentHighestBid = UInt64.zero;
     let auctionWinner: PublicKey = PublicKey.empty();
@@ -594,7 +589,6 @@ export class GroupBasic extends TokenContract {
           .and(action.lotteryElligible); // User is not behind on payments nor did they win already
 
         // Provable.log('Lottery condition: ', lotteryCondition);
-
         secondAuctionWinner = Provable.if(
           lotteryCondition,
           lotteryWinner,
@@ -619,9 +613,6 @@ export class GroupBasic extends TokenContract {
     }
     iter.jumpToStart();
     iter.assertAtStart();
-
-    // iter.jumpToStart();
-    // iter.assertAtStart();
 
     // State to be kept as is in case of missing auction or lottery winner
     let dudStorage = new GroupUserStorage(firstAddress, this.deriveTokenId());
@@ -706,7 +697,7 @@ export class GroupBasic extends TokenContract {
     groupSettingsHash.assertEquals(groupSettings.hash());
   }
 
-  // Testign helpers
+  // Testing helpers (not actually used)
   //**********************************************************************
 
   /** Function for testing only. Sets round to the provided number. */
