@@ -23,3 +23,6 @@ zk lightnet start
 ## License
 
 [Apache-2.0](LICENSE)
+
+make empty acc update for prefunding the group with stable ?
+ensure user cannot pay again if he already paid for this paymentRound

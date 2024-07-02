@@ -498,7 +498,8 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 					console.log('Compiling token contract for transfer...');
 					await zkappWorkerClient.compileTokenContract();
 				}
-
+				const res = await zkappWorkerClient.fetchAccount({ publicKey: _groupPubKey });
+				console.log('res', res);
 				console.log('participantKey:', participantKey);
 				console.log('maxMembers:', maxMembers);
 				console.log('itemPrice:', itemPrice);
@@ -537,11 +538,15 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 	};
 
 	const getUserStorage = async (userKey: string, groupAddress: string) => {
-		if (zkappWorkerClient) {
-			const res = await zkappWorkerClient.fetchAccount({ publicKey: userKey });
-			console.log('res', res);
+		try {
+			if (zkappWorkerClient) {
+				const res = await zkappWorkerClient.fetchAccount({ publicKey: userKey });
+				console.log('res', res);
 
-			console.log(await zkappWorkerClient.getUserStorage(userKey, groupAddress));
+				console.log(await zkappWorkerClient.getUserStorage(userKey, groupAddress));
+			}
+		} catch (error) {
+			console.error(error);
 		}
 	};
 

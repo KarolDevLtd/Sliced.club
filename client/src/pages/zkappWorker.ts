@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
@@ -18,6 +19,7 @@ import {
 	TokenId,
 	PrivateKey,
 	checkZkappTransaction,
+	Poseidon,
 } from 'o1js';
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
@@ -29,7 +31,7 @@ type VerificationKey = {
 // ---------------------------------------------------------------------------------------
 // import { GroupBasic, GroupSettings } from '../../../contracts/src/GroupBasic';
 // import { FungibleToken } from '../../../contracts/src/token/FungibleToken';
-// import { GroupUserStorage } from '../../../contracts/src/GroupUserStorage';
+import { Payments } from '../../../contracts/build/src/GroupBasic';
 import { FungibleToken, GroupBasic, GroupUserStorage, GroupSettings } from 'sliced-contracts';
 
 const state = {
@@ -251,6 +253,10 @@ const functions = {
 		console.log('tokenAddress:', tokenAddress.toBase58());
 		console.log('missable:', missable.toBigint().toString());
 		console.log('paymentDuration:', paymentDuration.toBigInt().toString());
+		// console.log('userKey', userKey.toBase58());
+		console.log('tokenAddress', tokenAddress.toBase58());
+		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
+		// const amountOfBids = UInt64.from(args.amountOfBids);
 		const groupSettings = new GroupSettings(
 			maxMembers,
 			itemPrice,
@@ -259,6 +265,7 @@ const functions = {
 			missable,
 			paymentDuration
 		);
+		console.log('groupSettingHash:', Poseidon.hash(GroupSettings.toFields(groupSettings)).toString());
 		const transaction = await Mina.transaction({ sender: deployer, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(deployer);
 			await instance.deploy({ admin, groupSettings });
@@ -295,6 +302,7 @@ const functions = {
 			paymentDuration
 		);
 		console.log('s');
+		console.log('groupSettingHash:', Poseidon.hash(GroupSettings.toFields(groupSettings)).toString());
 		console.log('maxMembers:', maxMembers.toBigint().toString());
 		console.log('itemPrice:', itemPrice.toBigint().toString());
 		console.log('groupDuration:', groupDuration.toBigint().toString());
@@ -320,15 +328,15 @@ const functions = {
 		paymentDuration: number;
 		amountOfBids: number;
 	}) => {
-		console.log('in roundPayment');
-		console.log('s');
-		console.log('maxMembers:', args.maxMembers);
-		console.log('itemPrice:', args.itemPrice);
-		console.log('groupDuration:', args.groupDuration);
-		console.log('missable:', args.missable);
-		console.log('paymentDuration:', args.paymentDuration);
-		console.log('params ready');
-		console.log('userKey', args.userKey);
+		// console.log('in roundPayment');
+		// console.log('s');
+		// console.log('maxMembers:', args.maxMembers);
+		// console.log('itemPrice:', args.itemPrice);
+		// console.log('groupDuration:', args.groupDuration);
+		// console.log('missable:', args.missable);
+		// console.log('paymentDuration:', args.paymentDuration);
+		// console.log('params ready');
+		// console.log('userKey', args.userKey);
 		const userKey = PublicKey.fromBase58(args.userKey);
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
@@ -355,6 +363,7 @@ const functions = {
 		console.log('tokenAddress', tokenAddress.toBase58());
 		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
 		const amountOfBids = UInt64.from(args.amountOfBids);
+		console.log('groupSettingsHash:', Poseidon.hash(GroupSettings.toFields(groupSettings)).toString());
 		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
 			//gonna have to fund group with token first
 			// AccountUpdate.fundNewAccount(userKey);
@@ -385,8 +394,26 @@ const functions = {
 			tokenId: derivedTokenId,
 		});
 		const userStorage = new GroupUserStorage(userKey, derivedTokenId);
+		function extract(ticks: Field, set = '') {
+			const ticksBool = Payments.unpack(ticks);
+
+			let total = 0;
+			// Create a js array of bolls for logggign
+			const boolArr = ticksBool.map((item) => {
+				return item.toBoolean();
+			});
+
+			console.log(`${set}; ${boolArr}`);
+
+			for (const tickBool of ticksBool) {
+				if (tickBool.toBoolean()) {
+					total += 1;
+				}
+			}
+			return total;
+		}
 		return JSON.stringify({
-			payments: userStorage.payments.get(),
+			payments: extract(userStorage.payments.get(), 'payments'),
 			overpayments: userStorage.overpayments.get(),
 			compensations: userStorage.compensations.get().toString(),
 			isParticipant: userStorage.isParticipant.get().toBoolean(),
