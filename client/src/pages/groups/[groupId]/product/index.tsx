@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
+import CCarousel from '@/app/_components/ui/CCarousel';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -48,14 +49,6 @@ export default function GroupProductDetails() {
 		void fetchAndDisplayImages();
 	}, [fetchAndDisplayImages, productData]);
 
-	useEffect(() => {
-		console.log(productData);
-	}, [productData]);
-
-	useEffect(() => {
-		console.log(groupData);
-	}, [groupData]);
-
 	return (
 		<>
 			<div className="flex flex-col justify-between items-start">
@@ -67,31 +60,30 @@ export default function GroupProductDetails() {
 					onClick={handleBackClick}
 				/>
 			</div>
-			<div className="grid grid-cols-2 gap-4 w-full h-full">
-				<div className="grid grid-rows-2 gap-4 h-full">
-					<div className="bg-accent">
-						<div className="col-span-1 flex flex-col justify-center">
-							{hasImage ? (
-								<ZoomableImage source={imageData[0] ?? null} width={275} height={275} alt={'image'} />
-							) : null}
-						</div>
+			<div className="grid grid-cols-9 gap-8 w-full h-full rounded-xl border border-accent p-5">
+				<div className="grid gap-8 col-span-3">
+					<div className="row-span-1">
+						<CCarousel images={imageData} />
 					</div>
-					<div className="bg-accent">
+					<div className="row-span-4 px-8">
 						{productData?.product.productAttributes.map((key, i) =>
 							key.propertyName != null && key.propertyName != '' ? (
 								<div key={i} className="flex justify-between">
 									<div>{key.propertyName}</div>
-									<div>{key.propertyValue}</div>
+									<strong>{key.propertyValue}</strong>
 								</div>
 							) : null
 						)}
 					</div>
 				</div>
-				<div className="bg-accent">
-					<div>{productData?.product.name}</div>
+				<div className="col-5 col-span-6 gap-8">
+					<div className="text-3xl">{productData?.product.name}</div>
+					<br />
 					<div>{groupData?.group.description}</div>
 				</div>
 			</div>
+			<GroupNavigation groupHash={query.groupId} group={groupData.group} product={productData.product} />
+
 			{/* <GroupNavigation/> */}
 		</>
 	);
