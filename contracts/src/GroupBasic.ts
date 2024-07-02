@@ -117,6 +117,27 @@ export class GroupSettings extends Struct({
   }
 }
 
+export class PaymentEvent extends Struct({
+  paymentRound: UInt64,
+  paymentAmount: UInt64,
+  userPubKey: PublicKey,
+  timestamp: UInt64,
+}) {
+  constructor(
+    paymentRound: UInt64,
+    paymentAmount: UInt64,
+    userPubKey: PublicKey,
+    timestamp: UInt64
+  ) {
+    super({
+      paymentRound,
+      paymentAmount,
+      userPubKey,
+      timestamp,
+    });
+  }
+}
+
 // TODO add validation for group settings
 const MAX_PAYMENTS = 200;
 const MAX_UPDATES_WITH_ACTIONS = 20;
@@ -134,6 +155,7 @@ export class GroupBasic extends TokenContract {
   events = {
     'lottery-winner': PublicKey,
     'auction-winner': PublicKey,
+    'payment-made': PaymentEvent,
   };
 
   @method
@@ -353,6 +375,15 @@ export class GroupBasic extends TokenContract {
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
     // adminPubKey;
 
+    this.emitEvent(
+      'payment-made',
+      new PaymentEvent(
+        currentPaymentRound,
+        totalPay,
+        senderAddr,
+        this.network.timestamp.getAndRequireEquals()
+      )
+    );
     update.requireSignature();
   }
   //TODO are we saving last action's hash and using it everyy
