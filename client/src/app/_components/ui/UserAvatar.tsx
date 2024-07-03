@@ -7,16 +7,17 @@ import useStore from '~/stores/utils/useStore';
 
 export type UserAvatarProps = {
 	walletAddress?: string;
+	size?: number;
 };
 
-const UserAvatar = ({ walletAddress }: UserAvatarProps) => {
+const UserAvatar = ({ walletAddress, size }: UserAvatarProps) => {
 	const userWalletAddress = useStore(useUserStore, (state: UserState) => state.userWalletAddress);
 
 	return (
 		<div className="avatar">
-			<div className="rounded-sm h-[2.25rem] w-[2.25rem]">
+			<div className="rounded-sm">
 				<Avatar
-					size={40}
+					size={size ?? 40}
 					name={(walletAddress ?? userWalletAddress)?.toString()}
 					variant="pixel"
 					colors={['#FFFFFF', '#FF603B', '#193646', '#6b7280', '#121A24']}

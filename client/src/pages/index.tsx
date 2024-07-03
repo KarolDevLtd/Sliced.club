@@ -38,7 +38,7 @@ export default function Dashboard() {
 		<>
 			<DashboardHeader />
 			<div className="grid grid-rows-5 gap-4 min-h-full flex-1">
-				<div className="row-span-1 grid grid-cols-3 gap-4">
+				{/* <div className="row-span-1 grid grid-cols-3 gap-4">
 					{/* <div className="col-span-2">
 						<Carousel
 							slides={[
@@ -70,8 +70,8 @@ export default function Dashboard() {
 								height: 150,
 							}}
 						></Carousel>
-					</div> */}
-				</div>
+					</div>
+				</div> */}
 				<div className="row-span-3 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
 						{walletConnected ? (
@@ -80,7 +80,14 @@ export default function Dashboard() {
 							'Log in to see all your products'
 						)}
 						{walletConnected ? (
-							<GroupList heading="My Groups" isHomeScreen={true} />
+							<GroupList
+								heading="My Groups"
+								isHomeScreen={true}
+								searchValue={null}
+								searchCategory={null}
+								searchMaxPrice={null}
+								searchMinPrice={null}
+							/>
 						) : (
 							'Log in to see all your groups'
 						)}

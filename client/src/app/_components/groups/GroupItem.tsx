@@ -72,11 +72,11 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 	return (
 		<>
 			{isLoading ? (
-				'Loading...'
+				'.'
 			) : (
 				//TODO - BUG here, should be able to zoom image without triggering parent onClick
 				<div
-					className="grid grid-cols-10 gap-2 p-2 m-2 bg-light-grey min-w-full min-h-[120px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer overflow-hidden"
+					className="grid bg-itemfade border border-accent grid-cols-10 gap-2 p-2 my-2 min-w-full min-h-[120px] rounded-md hover:border-black hover:cursor-pointer overflow-hidden"
 					// @ts-ignore
 					// onClick={(e) => handleClick(e)}
 				>
