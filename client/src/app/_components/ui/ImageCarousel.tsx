@@ -7,7 +7,7 @@ type CCarouselProps = {
 	images: string[];
 };
 
-const CCarousel = ({ images }: CCarouselProps) => {
+const ImageCarousel = ({ images }: CCarouselProps) => {
 	const [currentIndex, setCurrentIndex] = useState<number>(0);
 
 	const handlePrev = () => {
@@ -58,4 +58,4 @@ const CCarousel = ({ images }: CCarouselProps) => {
 	);
 };
 
-export default CCarousel;
+export default ImageCarousel;
