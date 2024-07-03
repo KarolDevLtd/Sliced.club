@@ -261,9 +261,9 @@ export default function Group() {
 				>
 					Invoke user details
 				</BasicButton>
-				<div className="grid grid-cols-4 grid-rows-2 gap-2">
-					<div className="card card-side bg-base-100 col-span-4 items-center p-2">
-						<figure className="h-48 bg-accent w-1/4">
+				<div className="grid grid-cols-4 grid-rows-2 gap-2 h-auto">
+					<div className="card card-side bg-base-100 col-span-4 items-center p-2 grid grid-cols-4">
+						<figure className="h-48 bg-accent col-span-1 w-88">
 							<Carousel
 								slides={
 									hasImage
@@ -290,13 +290,13 @@ export default function Group() {
 								}}
 							/>
 						</figure>
-						<div className="card-body p-6">
+						<div className="card-body col-span-3 h-60 flex">
 							<h2 className="card-title">{product?.name ?? 'Product Name'}</h2>
 							<div className="flex items-center gap-4">
 								<span>Price: ${product?.price ?? '420.00'}</span>
 								<span>Installment: ${group?.instalments}</span>
 							</div>
-							<p>
+							<p className="overflow-y-auto">
 								{groupData?.group?.description ??
 									'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sodales neque lacus, quis volutpat lorem faucibus a. Interdum et malesuada fames ac ante ipsum primis in faucibus. Aliquam sit amet augue rutrum, eleifend dui et, sodales orci. Duis eu sodales risus. Vivamus gravida fringilla nibh in venenatis. Proin sit amet leo dapibus, efficitur diam a, viverra leo. Donec metus ante, ornare in blandit eu, elementum id enim. Fusce augue leo, sollicitudin eu dolor vitae.'}
 							</p>
@@ -306,7 +306,7 @@ export default function Group() {
 					<GroupNavigation groupHash={groupId?.toString() ?? ''} group={group} product={product} />
 				</div>
 
-				<div className="flex-1 mt-6 grid grid-cols-8 gap-4">
+				<div className="flex-1 grid grid-cols-8 gap-4">
 					<div className="col-span-5">
 						<GroupPosts groupId={groupId} refetchPosts={handlePostSubmission} />
 					</div>

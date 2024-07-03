@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import CCarousel from '@/app/_components/ui/CCarousel';
+import ImageCarousel from '@/app/_components/ui/ImageCarousel';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -63,7 +63,7 @@ export default function GroupProductDetails() {
 			<div className="grid grid-cols-9 gap-8 w-full h-full rounded-xl border border-accent p-5">
 				<div className="grid gap-8 col-span-3">
 					<div className="row-span-1">
-						<CCarousel images={imageData} />
+						<ImageCarousel images={imageData} />
 					</div>
 					<div className="row-span-4 px-8">
 						{productData?.product.productAttributes.map((key, i) =>

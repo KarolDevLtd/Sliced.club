@@ -35,7 +35,7 @@ const GroupNavigation = ({ groupHash, group, product }: GroupNavigationProps) =>
 	// console.log(group);
 	// console.log(product);
 	return (
-		<div className="col-span-4 grid gap-4 grid-cols-4">
+		<div className="col-span-4 grid gap-4 grid-cols-4 h-auto">
 			<div
 				className="card h-44 bg-accent cursor-pointer bg-paymentbtnfade"
 				onClick={(e) => handleCardClick(e, 'payment')}
