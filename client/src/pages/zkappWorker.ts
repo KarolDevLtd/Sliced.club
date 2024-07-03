@@ -90,14 +90,7 @@ const functions = {
 	*/
 	// Worker code
 	fetchAccount: async (args: { publicKey: string; tokenId?: string }) => {
-		if (!args?.publicKey) {
-			throw new Error('Invalid arguments: publicKey is required');
-		}
-
 		const publicKey = PublicKey.fromBase58(args.publicKey);
-		// console.log('Received args:', args);
-		// console.log('Converted publicKey:', publicKey.toBase58());
-		// console.log(await fetchLastBlock());
 		try {
 			if (args.tokenId === undefined) {
 				const result = await fetchAccount({ publicKey: args.publicKey });
@@ -111,7 +104,6 @@ const functions = {
 			}
 		} catch (error) {
 			console.error('Error in fetchAccount:', error);
-			// throw error;
 		}
 	},
 	proveTransaction: async (args: {}) => {
@@ -196,7 +188,6 @@ const functions = {
 
 		const publicKey = PublicKey.fromBase58('B62qict1jWXuU1BhTSwbhyrtTa2yxNB27aZ4PuyShepnQzzp3HoFGuT');
 		state.tokenZkapp = new state.FungibleToken!(publicKey);
-		// state.tokenZkapp = new state.FungibleToken!(args.publicKey);
 	},
 
 	/** 
@@ -265,10 +256,13 @@ const functions = {
 			missable,
 			paymentDuration
 		);
+		const derivedTokenId = TokenId.derive(tokenAddress);
 		console.log('groupSettingHash:', Poseidon.hash(GroupSettings.toFields(groupSettings)).toString());
 		const transaction = await Mina.transaction({ sender: deployer, fee: 0.01 * 1e9 }, async () => {
-			AccountUpdate.fundNewAccount(deployer);
+			AccountUpdate.fundNewAccount(deployer, 2);
 			await instance.deploy({ admin, groupSettings });
+			const groupTokenAcc = AccountUpdate.create(groupPrivKey.toPublicKey(), derivedTokenId);
+			await state.tokenZkapp?.approveAccountUpdate(groupTokenAcc);
 		});
 		transaction.sign([groupPrivKey]);
 		state.groupZkapp = instance;
@@ -394,29 +388,14 @@ const functions = {
 			tokenId: derivedTokenId,
 		});
 		const userStorage = new GroupUserStorage(userKey, derivedTokenId);
-		function extract(ticks: Field, set = '') {
-			const ticksBool = Payments.unpack(ticks);
-
-			let total = 0;
-			// Create a js array of bolls for logggign
-			const boolArr = ticksBool.map((item) => {
-				return item.toBoolean();
-			});
-
-			console.log(`${set}; ${boolArr}`);
-
-			for (const tickBool of ticksBool) {
-				if (tickBool.toBoolean()) {
-					total += 1;
-				}
-			}
-			return total;
-		}
+		const extract = (ticks: Field): number => {
+			return Payments.unpack(ticks).reduce((total, tickBool) => total + (tickBool.toBoolean() ? 1 : 0), 0);
+		};
 		return JSON.stringify({
-			payments: extract(userStorage.payments.get(), 'payments'),
-			overpayments: userStorage.overpayments.get(),
-			compensations: userStorage.compensations.get().toString(),
 			isParticipant: userStorage.isParticipant.get().toBoolean(),
+			paymentsTotal: extract(userStorage.payments.get()),
+			overpayments: userStorage.overpayments.get(),
+			compensations: userStorage.compensations.get(),
 		});
 	},
 
@@ -425,24 +404,12 @@ const functions = {
 	*/
 
 	deployToken: async (args: { adminPublicKey: string; zkAppPrivateKey: string }) => {
-		// console.log('args', args);
-		// const Network = Mina.Network({
-		// 	networkId: 'testnet',
-		// 	mina: 'http://localhost:8080/graphql',
-		// 	archive: 'http://localhost:8282',
-		// 	lightnetAccountManager: 'http://localhost:8181',
-		// });
-		// console.log('Lightnet network instance configured.');
-		// Mina.setActiveInstance(Network);
-		// const admin = PublicKey.fromBase58('B62qmGtQ7kn6zbw4tAYomBJJri1gZSThfQZJaMG6eR3tyNP3RiCcEQZ');
 		const admin = PublicKey.fromBase58(args.adminPublicKey);
 		const zkAppPrivateKey = PrivateKey.fromBase58(args.zkAppPrivateKey);
-		// const zkAppPrivateKey = PrivateKey.random();
 		const instance = new FungibleToken(zkAppPrivateKey.toPublicKey());
-		console.log('acutal token key', zkAppPrivateKey.toPublicKey().toBase58());
+		console.log('actual token key', zkAppPrivateKey.toPublicKey().toBase58());
 		const deployTokenTx = await Mina.transaction({ sender: admin, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(admin); //todo ?!?!
-			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });
 			await instance.deploy({
 				owner: admin,
 				supply: UInt64.from(100000000 * 1e9),
@@ -465,7 +432,6 @@ const functions = {
 			// }
 			await state.tokenZkapp!.mint(toKey, amount);
 		});
-		console.log('minting transaction', transaction.toPretty());
 		state.transaction = transaction;
 	},
 
@@ -502,20 +468,6 @@ const functions = {
 // let accountIsNew = update.account.isNew.getAndRequireEquals();
 // if the account is new, we have to fund its creation
 
-// const target = await fetchAccount({ publicKey: targetPublicKey, tokenId });
-// const tx = await Mina.transaction(
-//  {
-//  sender: feePayer,
-//  fee: txFee,
-//  memo: '',
-//  },
-//  () => {
-//  if (!target.account) {
-//  AccountUpdate.fundNewAccount(feePayer);
-//  }
-//  transfer
-//  }
-// );
 // ---------------------------------------------------------------------------------------
 
 export type WorkerFunctions = keyof typeof functions;

@@ -34,14 +34,13 @@ export default function Groups() {
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
-	const { compileContracts } = useMinaProvider();
+	const { compileContractsOnly } = useMinaProvider();
 
 	const showGroupModal = async () => {
 		try {
 			if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
 			showModal('add-group');
-			await compileContracts('group');
-			// await setTokenNoDeploy();
+			await compileContractsOnly();
 		} catch (err) {
 			console.log('showGroupModal', err);
 		}
