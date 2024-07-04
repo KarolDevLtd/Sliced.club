@@ -152,7 +152,7 @@ export default function Group() {
 					<div className="w-full">
 						<PageHeader
 							text={groupData?.group?.name ?? 'Group Name'}
-							subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
+							subtext={group?.creatorKey ?? 'Group Organiser'}
 							buttonText="Admit user"
 							onClick={() => showAdmitModal()}
 						/>
@@ -160,7 +160,7 @@ export default function Group() {
 				) : isParticipant ? (
 					<PageHeader
 						text={groupData?.group?.name ?? 'Group Name'}
-						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
+						subtext={group?.creatorKey ?? 'Group Organiser'}
 						customElement={
 							<div className="px-4">
 								<strong className=" flex border border-bellow rounded-3xl px-5 text-bellow">
@@ -172,7 +172,7 @@ export default function Group() {
 				) : (
 					<PageHeader
 						text={groupData?.group?.name ?? 'Group Name'}
-						subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
+						subtext={group?.creatorKey ?? 'Group Organiser'}
 						customElement={isLoading ? <Spinner /> : null}
 						buttonText="Join group"
 						onClick={async () => {
