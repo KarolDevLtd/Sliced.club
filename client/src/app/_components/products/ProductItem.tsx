@@ -62,32 +62,32 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 	return (
 		// <div>{currentProduct}</div>
 		<>
-			{isLoading ? (
+			{/* {isLoading ? (
 				'Loading...'
-			) : (
-				//TODO - BUG here, should be able to zoom image without triggering parent onClick
-				<div
-					className="grid grid-cols-10 gap-4 p-2 m-2 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer overflow-hidden"
-					// @ts-ignore
-					onClick={(e) => handleClick(e)}
-				>
-					<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded">
-						{hasImage ? (
-							<ZoomableImage source={imageData[0] ?? null} width={100} height={100} alt={'image'} />
-						) : null}
-					</div>
-					<div className="col-span-2 flex flex-col justify-center">
-						<p className="font-bold">{product?.name}</p>
-						{/* <p className="text-sm text-dark-grey">{product?.groupOrganiser}</p> */}
-					</div>
-					<div className="col-span-2 flex items-center">
-						<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
-					</div>
-					{/* <div className="col-span-1 flex items-center gap-1">
+			) : ( */}
+			{/* //TODO - BUG here, should be able to zoom image without triggering parent onClick */}
+			<div
+				className="grid grid-cols-10 gap-4 p-2 m-2 bg-light-grey min-w-full min-h-[90px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer overflow-hidden"
+				// @ts-ignore
+				onClick={(e) => handleClick(e)}
+			>
+				<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded">
+					{hasImage ? (
+						<ZoomableImage source={imageData[0] ?? null} width={100} height={100} alt={'image'} />
+					) : null}
+				</div>
+				<div className="col-span-2 flex flex-col justify-center">
+					<p className="font-bold">{product?.name}</p>
+					{/* <p className="text-sm text-dark-grey">{product?.groupOrganiser}</p> */}
+				</div>
+				<div className="col-span-2 flex items-center">
+					<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
+				</div>
+				{/* <div className="col-span-1 flex items-center gap-1">
 					<FaUserGroup />
 					<p>{product?.groupMembers}</p>
 				</div> */}
-					{/* <div className="col-span-1 flex items-center">
+				{/* <div className="col-span-1 flex items-center">
 					{product?.itemsReceived ? (
 						<div>
 							<p>{completedPercentage()}</p>
@@ -95,27 +95,27 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 						</div>
 					) : null}
 				</div> */}
-					{/* <div className="col-span-2 flex items-center">
+				{/* <div className="col-span-2 flex items-center">
 					<BasicButton type="secondary" onClick={(e) => handleClick(e)}>
 						View details
 					</BasicButton>
 				</div> */}
-					<BasicModal
-						id="product-item"
-						header="Item Details"
-						content={
-							<div>
-								<div className="flex items-center gap-1">
-									<strong>Product name:</strong> <p>{product?.name}</p>
-								</div>
-								{/* <div className="flex items-center gap-1">
+				<BasicModal
+					id="product-item"
+					header="Item Details"
+					content={
+						<div>
+							<div className="flex items-center gap-1">
+								<strong>Product name:</strong> <p>{product?.name}</p>
+							</div>
+							{/* <div className="flex items-center gap-1">
 									<strong>Group Organiser:</strong> <p>{product.groupOrganiser}</p>
 								</div> */}
-								<div className="flex items-center gap-1">
-									{/* <strong>Price:</strong> <p>{formatCurrency(product?.price)}</p> */}
-									<strong>Price:</strong> <p>{product?.price}</p>
-								</div>
-								{/* <div className="flex items-center gap-1">
+							<div className="flex items-center gap-1">
+								{/* <strong>Price:</strong> <p>{formatCurrency(product?.price)}</p> */}
+								<strong>Price:</strong> <p>{product?.price}</p>
+							</div>
+							{/* <div className="flex items-center gap-1">
 									<strong>Group members:</strong> <p>{product.groupMembers}</p>
 								</div>
 								{product.itemsReceived ? (
@@ -123,11 +123,11 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 										<strong>Items received:</strong> <p>{product.itemsReceived}</p>
 									</div>
 								) : null} */}
-							</div>
-						}
-					/>
-				</div>
-			)}
+						</div>
+					}
+				/>
+			</div>
+			{/* )} */}
 		</>
 	);
 };
