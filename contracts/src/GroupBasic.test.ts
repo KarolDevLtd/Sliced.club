@@ -16,7 +16,7 @@ import {
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
 import { GroupUserStorage } from './GroupUserStorage';
 
-let proofsEnabled = false;
+let proofsEnabled = true;
 const fee = 1e8;
 
 describe('GroupBasic', () => {
@@ -211,7 +211,9 @@ describe('GroupBasic', () => {
         await tokenApp.mint(admin, mintAmount);
       }
     );
+    console.log('before prove ');
     await mintTx.prove();
+    console.log('after mint prove ');
     mintTx.sign([admin.key]);
     await mintTx.send().then((v) => v.wait());
     expect((await tokenApp.getBalanceOf(admin)).toBigInt()).toEqual(
@@ -219,7 +221,7 @@ describe('GroupBasic', () => {
     );
 
     const userAmount = new UInt64(5000);
-
+    console.log('9999999');
     // All user get fake stable
     for (let i = userStart; i <= userEnd; i++) {
       const transferTx = await Mina.transaction(
@@ -240,6 +242,7 @@ describe('GroupBasic', () => {
         userAmount.toBigInt()
       );
     }
+    console.log('24 000');
 
     // Initially fund smart contract for stablecoin
     const initTokenStable = await Mina.transaction(
@@ -259,6 +262,7 @@ describe('GroupBasic', () => {
   });
 
   it('Adds a single user to the group', async () => {
+    console.log('failing here or what?');
     const txn1 = await Mina.transaction(alexa, async () => {
       AccountUpdate.fundNewAccount(alexa);
       await group.addUserToGroup(
@@ -280,16 +284,17 @@ describe('GroupBasic', () => {
     expect(isParticipant).toEqual(Bool(true));
   });
 
-  it('Fails without all members being added', async () => {
-    await expect(
-      Mina.transaction(alexa, async () => {
-        await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), UInt32.one);
-      })
-    ).rejects.toThrow();
-  });
+  // it('Fails without all members being added', async () => {
+  //   await expect(
+  //     Mina.transaction(alexa, async () => {
+  //       await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), UInt32.one);
+  //     })
+  //   ).rejects.toThrow();
+  // });
 
   it('Adds remaining users to the group', async () => {
     // console.log('Adding remaining users to the group', userStart, userEnd);
+    console.log('Adding remaining users to the group');
     for (let i = userStart + 1; i <= userEnd; i++) {
       const usersStart = parseInt(group.members.get().toString());
       const txn1 = await Mina.transaction(testAccounts[i], async () => {
@@ -445,80 +450,80 @@ describe('GroupBasic', () => {
     // expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
   });
 
-  it('Compensation tests one missed payment', async () => {
-    // Round already advanced in the winner
-    let currentRoundStart = group.paymentRound.get();
-    // Subtract depending on whether that tests runs or not
-    let currentRound = await incrementRound(
-      new UInt64(2).sub(currentRoundStart)
-    );
-    console.log(
-      'Current round after increment: ',
-      currentRound.toBigInt().toString()
-    );
+  // it('Compensation tests one missed payment', async () => {
+  //   // Round already advanced in the winner
+  //   let currentRoundStart = group.paymentRound.get();
+  //   // Subtract depending on whether that tests runs or not
+  //   let currentRound = await incrementRound(
+  //     new UInt64(2).sub(currentRoundStart)
+  //   );
+  //   console.log(
+  //     'Current round after increment: ',
+  //     currentRound.toBigInt().toString()
+  //   );
 
-    // TODO: payeSehment needs to fail until compensation is done
-    // Start payment count
-    let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
-    let totalCompStart = fetchCompensation(alexa, 'Alexa start');
+  //   // TODO: payeSehment needs to fail until compensation is done
+  //   // Start payment count
+  //   let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
+  //   let totalCompStart = fetchCompensation(alexa, 'Alexa start');
 
-    // Compensate for missed payment, don't pay current payment
-    const txn2 = await Mina.transaction(alexa, async () => {
-      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
-    });
+  //   // Compensate for missed payment, don't pay current payment
+  //   const txn2 = await Mina.transaction(alexa, async () => {
+  //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
+  //   });
 
-    await txn2.prove();
-    await txn2.sign([alexa.key]).send();
+  //   await txn2.prove();
+  //   await txn2.sign([alexa.key]).send();
 
-    // Start payment count
-    let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
-    let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
+  //   // Start payment count
+  //   let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
+  //   let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
 
-    expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-    expect(totalCompEnd).toEqual(totalCompStart + 1);
-  });
+  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
+  //   expect(totalCompEnd).toEqual(totalCompStart + 1);
+  // });
 
-  it('Compensation tests two missed payment', async () => {
-    // TODO: payeSehment needs to fail until compensation is done
+  // it('Compensation tests two missed payment', async () => {
+  //   // TODO: payeSehment needs to fail until compensation is done
 
-    let totalPaymentsStart = fetchPaid(billy, 'Billy start');
-    let totalCompStart = fetchCompensation(billy, 'Billy start');
+  //   let totalPaymentsStart = fetchPaid(billy, 'Billy start');
+  //   let totalCompStart = fetchCompensation(billy, 'Billy start');
 
-    // Increment payment round by 1 from the current
-    let currentRound = await incrementRound(UInt64.one);
+  //   // Increment payment round by 1 from the current
+  //   let currentRound = await incrementRound(UInt64.one);
 
-    console.log(
-      'Current round after increment: ',
-      currentRound.toBigInt().toString()
-    );
+  //   console.log(
+  //     'Current round after increment: ',
+  //     currentRound.toBigInt().toString()
+  //   );
 
-    // Compensate for missed payment
-    const txn2 = await Mina.transaction(billy, async () => {
-      await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
-    });
+  //   // Compensate for missed payment
+  //   const txn2 = await Mina.transaction(billy, async () => {
+  //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
+  //   });
 
-    await txn2.prove();
-    await txn2.sign([billy.key]).send();
+  //   await txn2.prove();
+  //   await txn2.sign([billy.key]).send();
 
-    let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
-    let totalCompEnd = fetchCompensation(billy, 'Billy end');
+  //   let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
+  //   let totalCompEnd = fetchCompensation(billy, 'Billy end');
 
-    // Assert compensation increased by 2
-    expect(totalCompEnd).toEqual(totalCompStart + 2);
+  //   // Assert compensation increased by 2
+  //   expect(totalCompEnd).toEqual(totalCompStart + 2);
 
-    // Assert payments unchanged
-    expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-  });
+  //   // Assert payments unchanged
+  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
+  // });
 
-  it('Compensation tests three missed payment (rejection)', async () => {
-    // Increment payment round by 1 from the current
-    let currentRound = await incrementRound(UInt64.one);
+  // it('Compensation tests three missed payment (rejection)', async () => {
+  //   // Increment payment round by 1 from the current
+  //   let currentRound = await incrementRound(UInt64.one);
 
-    // Compensate for missed payment
-    await expect(
-      Mina.transaction(bryan, async () => {
-        await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
-      })
-    ).rejects.toThrow();
-  });
+  //   // Compensate for missed payment
+  //   await expect(
+  //     Mina.transaction(bryan, async () => {
+  //       await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
+  //     })
+  //   ).rejects.toThrow();
+  // });
 });

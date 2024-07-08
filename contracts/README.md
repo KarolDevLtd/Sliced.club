@@ -25,4 +25,3 @@ zk lightnet start
 [Apache-2.0](LICENSE)
 
 ensure user cannot pay again if he already paid for this paymentRound
-add events for roundPayment

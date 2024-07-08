@@ -173,6 +173,10 @@ export default class ZkappWorkerClient {
 		});
 	}
 
+	async fetchGroupEvents() {
+		return await this._call('fetchGroupEvents', {});
+	}
+
 	async deployToken(adminPublicKey: string, zkAppPrivateKey: string) {
 		return await this._call('deployToken', {
 			adminPublicKey,

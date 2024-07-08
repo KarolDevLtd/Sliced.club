@@ -20,6 +20,7 @@ import {
 	PrivateKey,
 	checkZkappTransaction,
 	Poseidon,
+	fetchEvents,
 } from 'o1js';
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
@@ -397,6 +398,11 @@ const functions = {
 			overpayments: userStorage.overpayments.get(),
 			compensations: userStorage.compensations.get(),
 		});
+	},
+	fetchGroupEvents: async () => {
+		const res = await state.groupZkapp?.fetchEvents();
+		console.log('res', res);
+		return JSON.stringify(res);
 	},
 
 	/** 

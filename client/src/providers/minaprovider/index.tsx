@@ -197,6 +197,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		}
 		setIsMinaLoading(true);
 		await zkappWorkerClient.proveTransaction();
+		console.log('proved transaction');
 		const { hash } = await window.mina.sendTransaction({
 			transaction: await zkappWorkerClient.getTransactionJSON(),
 			feePayer: {
@@ -347,6 +348,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 					paymentDuration,
 					amountOfBids
 				);
+				console.log('are we here?');
 				await proveSendWaitTx('round payment');
 				console.log('User paid');
 			}
@@ -363,11 +365,8 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			if (zkappWorkerClient) {
 				await logFetchAccount(userKey);
 				console.log(await zkappWorkerClient.getUserStorage(userKey, groupAddress));
-
-				const allEvents = await fetchEvents(
-					{ publicKey: groupAddress, tokenId: fungibleTokenId },
-					'http://localhost:8282'
-				);
+				await zkappWorkerClient.initGroupInstance(groupAddress);
+				const allEvents = await zkappWorkerClient.fetchGroupEvents();
 				console.log('log the events', allEvents);
 			}
 		} catch (error) {
@@ -387,7 +386,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 				console.log('here 0', result);
 				const res = await logFetchAccount(tokenPubKey.toBase58());
 
-				if ('balance' in res!) {
+				if (res && 'balance' in res) {
 					console.log('Token already exists');
 				} else {
 					await compileContracts('token');
