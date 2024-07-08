@@ -20,11 +20,7 @@ import { Escrow } from './Escrow';
 let proofsEnabled = false;
 const fee = 1e8;
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-interface userState {
+interface UserState {
   compensations: number;
   payments: number;
   bids: number;
@@ -32,16 +28,16 @@ interface userState {
   canClaim: boolean;
 }
 
-interface contractsState {
+interface ContractsState {
   stablecoinBalance: number;
   actionHash: Field;
   actions: Entry[][];
 }
 
-class userStateTransition {
+class UserStateTransition {
   constructor(
-    public userStateStart: userState,
-    public userStateEnd: userState,
+    public userStateStart: UserState,
+    public userStateEnd: UserState,
     public currentPayment: boolean,
     public amountCompensations: number,
     public amountBids: number
@@ -52,19 +48,13 @@ class userStateTransition {
   }
 }
 
-class contractStateTransition {
+class ContractStateTransition {
   constructor(
-    public contractStateStart: contractsState,
-    public contractStateEnd: contractsState,
-    public usersStateTransitions: userStateTransition,
+    public contractStateStart: ContractsState,
+    public contractStateEnd: ContractsState,
+    public usersStateTransitions: UserStateTransition,
     public submittedPayment: number
   ) {}
-}
-
-class user {
-  totalPayments = 0;
-  totalCompensations = 0;
-  constructor(public key: TestPublicKey) {}
 }
 
 describe('GroupBasic', () => {
@@ -100,9 +90,13 @@ describe('GroupBasic', () => {
   let lotteryWinner: PublicKey;
   let roundMembers: Mina.TestPublicKey[] = [];
   let itemPrice = 3000;
-
+  class User {
+    totalPayments = 0;
+    totalCompensations = 0;
+    constructor(public key: TestPublicKey) {}
+  }
   // Array of users
-  let users: user[] = [];
+  let users: User[] = [];
 
   const GROUP_SETTINGS = new GroupSettings(
     new UInt32(members), // members
@@ -177,7 +171,7 @@ describe('GroupBasic', () => {
 
     // Populate users with group members
     for (let i = 0; i < roundMembers.length; i++) {
-      users.push(new user(roundMembers[i]));
+      users.push(new User(roundMembers[i]));
     }
 
     // Create a subset of round members
@@ -225,7 +219,7 @@ describe('GroupBasic', () => {
   }
 
   // Need to reset bids somehow? TODO check
-  function fetchUserState(user: PublicKey): Promise<userState> {
+  function fetchUserState(user: PublicKey): Promise<UserState> {
     let ud = new GroupUserStorage(user, group.deriveTokenId());
     return Promise.resolve({
       compensations: fetchCompensation(user),
@@ -236,18 +230,18 @@ describe('GroupBasic', () => {
     });
   }
 
-  async function fetchContractsState(): Promise<contractsState> {
+  async function fetchContractsState(): Promise<ContractsState> {
     return {
       stablecoinBalance: parseInt(
         (await tokenApp.getBalanceOf(escrowAddress)).toString()
       ),
-      actionHash: await group.actionState.get(),
+      actionHash: group.latestActionState.get(),
       actions: await group.reducer.fetchActions(),
     };
   }
 
   // Assert valid user state transition
-  function assertUserStateTransition(details: userStateTransition) {
+  function assertUserStateTransition(details: UserStateTransition) {
     // Assert payments are incremented
     expect(details.userStateEnd.payments).toEqual(
       details.userStateStart.payments + (details.currentPayment ? 1 : 0)
@@ -263,7 +257,7 @@ describe('GroupBasic', () => {
   }
 
   function assertContractsStateTransitionPayment(
-    details: contractStateTransition,
+    details: ContractStateTransition,
     round: number
   ) {
     // By paying user emits an action
@@ -357,7 +351,7 @@ describe('GroupBasic', () => {
   }
 
   // Submit paymen function
-  async function payRound(payer: user, bids: number, payments: number) {
+  async function payRound(payer: User, bids: number, payments: number) {
     const txn = await Mina.transaction(payer.key, async () => {
       await group.roundPayment(
         GROUP_SETTINGS,
@@ -370,41 +364,13 @@ describe('GroupBasic', () => {
     await txn.sign([payer.key.key]).send();
   }
 
-  async function claim(claimer: user) {
+  async function claim(claimer: User) {
     const txn = await Mina.transaction(claimer.key, async () => {
       await group.userClaim(GROUP_SETTINGS);
     });
     await txn.prove();
     await txn.sign([claimer.key.key]).send();
   }
-
-  // Need three functions to assert correctness of:
-  // - contract state and escrow token balances
-  // - user state and token balances
-  // They'd need to be called after each payment and after calling getResults()
-
-  // Works by itself
-  it('Escrow transfer', async () => {
-    // let tx0 = await Mina.transaction(deployer, async () => {
-    //   AccountUpdate.fundNewAccount(deployer, 1);
-    //   let groupToken = AccountUpdate.create(
-    //     groupAddress,
-    //     tokenApp.deriveTokenId()
-    //   );
-    //   await tokenApp.approveAccountUpdates([groupToken, escrow.self]);
-    // });
-    // await tx0.sign([deployer.key, escrowPrivateKey]).prove();
-    // await tx0.send();
-  });
-
-  // it('Generates and deploys the `GroupBasic` smart contract', async () => {
-  //   // const groupToken = group.tokenAddress.get();
-  //   // expect(groupToken).toEqual(tokenAddress);
-  //   const groupAdmin = group.admin.get();
-  //   // console.log(group.paymentRound.get().toBigInt());
-  //   // console.log(groupAdmin.toBase58());
-  //   expect(groupAdmin.toBase58()).toEqual(admin.toBase58());
-  // });
 
   it('Mints and distributes tokens ', async () => {
     const mintAmount = new UInt64(1_000_000_000);
@@ -430,8 +396,14 @@ describe('GroupBasic', () => {
     const userAmount = new UInt64(15000);
 
     // All user get fake stable
+    // TODO batch this
+    // for (let i = userStart; i <= userEnd; i + 2) {
     for (let i = userStart; i <= userEnd; i++) {
       console.log(`Minting for user[${i}]: `, testAccounts[i].toBase58());
+      // console.log(
+      //   `Minting for user[${i + 2}]: `,
+      //   testAccounts[i + 2].toBase58()
+      // );
       const transferTx = await Mina.transaction(
         {
           sender: admin,
@@ -440,6 +412,7 @@ describe('GroupBasic', () => {
         async () => {
           AccountUpdate.fundNewAccount(admin);
           await tokenApp.transfer(admin, testAccounts[i], userAmount);
+          // await tokenApp.transfer(admin, testAccounts[i + 1], userAmount);
         }
       );
 
@@ -452,29 +425,7 @@ describe('GroupBasic', () => {
     }
 
     console.log('Created all of the token accounts');
-
-    // Initially fund smart contract for stablecoin
-    // console.log('Trying to fund group contract with stable');
-    // Account already created
-    // const initTokenStable = await Mina.transaction(
-    //   {
-    //     sender: admin,
-    //     fee,
-    //   },
-    //   async () => {
-    //     // AccountUpdate.fundNewAccount(admin);
-    //     await tokenApp.transfer(admin, groupAddress, new UInt64(1));
-    //   }
-    // );
-
-    // await initTokenStable.prove();
-    // initTokenStable.sign([admin.key]);
-    // await initTokenStable.send().then((v) => v.wait());
-
-    // console.log('Funded smart contract with stablecount');
   });
-
-  // // // it('Sets group contract as the withdraw auth of the escrow ', async () => {});
 
   it('Adds a single user to the group', async () => {
     const txn1 = await Mina.transaction(alexa, async () => {
@@ -539,7 +490,7 @@ describe('GroupBasic', () => {
     }
   });
 
-  it('Prept', async () => {
+  it('Create empty account for escrow to recive tokens and ', async () => {
     let tx3 = await Mina.transaction(alexa, async () => {
       AccountUpdate.fundNewAccount(alexa);
       AccountUpdate.create(escrowAddress, tokenApp.tokenId);
@@ -561,7 +512,7 @@ describe('GroupBasic', () => {
       console.log(`\nRound: ${r}`);
 
       // Fetch the action hash
-      let actionHashStart = await group.actionState.get();
+      let actionHashStart = group.latestActionState.get();
 
       for (let m = 0; m < roundMembers.length; m++) {
         // Fetch end contracts state
@@ -585,7 +536,7 @@ describe('GroupBasic', () => {
         // Get user state at the end
         let userStateEnd = await fetchUserState(roundMembers[m]);
 
-        let ust = new userStateTransition(
+        let ust = new UserStateTransition(
           userStateStart,
           userStateEnd,
           submittingTx,
@@ -619,7 +570,7 @@ describe('GroupBasic', () => {
       await getResults(winnerNumber);
 
       // Assert hash swaped after calling results
-      let actionHashEnd = await group.actionState.get();
+      let actionHashEnd = group.latestActionState.get();
       expect(actionHashStart).not.toEqual(actionHashEnd);
 
       let winner = users[winnerNumber];
@@ -640,452 +591,4 @@ describe('GroupBasic', () => {
 
     //   console.log('run a single payment');
   });
-  // it('Direct payment', async () => {
-  //   let tx3 = await Mina.transaction(alexa, async () => {
-  //     AccountUpdate.fundNewAccount(alexa);
-  //     AccountUpdate.create(escrowAddress, tokenApp.tokenId);
-  //     await tokenApp.transfer(alexa, escrowAddress, UInt64.from(50));
-  //   })
-  //     .sign([alexa.key])
-  //     .prove()
-  //     .send();
-  // });
-
-  // it('Correctly makes a test payment to escrow', async () => {
-  //   // Fetch balance of the scrow at the start
-  //   const initialBalanceEscrow = (
-  //     await tokenApp.getBalanceOf(escrowAddress)
-  //   ).toBigInt();
-
-  //   console.log('Initial balance escrow: ', initialBalanceEscrow);
-
-  //   const txn = await Mina.transaction(alexa, async () => {
-  //     // await tokenApp.approveAccountUpdate(escrow.self);
-  //     await group.testPayment(GROUP_SETTINGS);
-  //   });
-  //   await txn.prove();
-  //   await txn.sign([alexa.key]).send();
-
-  //   const endBalanceEscrow = (
-  //     await tokenApp.getBalanceOf(escrowAddress)
-  //   ).toBigInt();
-
-  //   console.log('End balance escrow: ', endBalanceEscrow);
-  // });
-
-  // it('Correctly makes a payment, without bids', async () => {
-  //   // Start payment count
-  //   let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
-  //   let totalCompStart = fetchCompensation(alexa, 'Alexa start');
-
-  //   // Check that it has not been ticked off
-  //   const paymentsBoolStart: Bool[] = Payments.unpack(
-  //     new GroupUserStorage(
-  //       alexa.key.toPublicKey(),
-  //       derivedTokenId
-  //     ).payments.get()
-  //   );
-  //   expect(
-  //     paymentsBoolStart[parseInt(group.paymentRound.get().toString())]
-  //   ).toEqual(Bool(false));
-  //   const initialBalanceAlexa = (await tokenApp.getBalanceOf(alexa)).toBigInt();
-  //   const initialBalanceEscrow = (
-  //     await tokenApp.getBalanceOf(escrowAddress)
-  //   ).toBigInt();
-  //   const txn = await Mina.transaction(alexa, async () => {
-  //     // AccountUpdate.fundNewAccount(alexa);
-  //     // await tokenApp.approveAccountUpdate(escrow.self);
-  //     await group.roundPayment(GROUP_SETTINGS, UInt64.from(0), basePayment);
-  //   });
-
-  //   await txn.prove();
-  //   await txn.sign([alexa.key]).send();
-  //   expect((await tokenApp.getBalanceOf(alexa)).toBigInt()).toEqual(
-  //     initialBalanceAlexa - paymentAmount.toBigint()
-  //   );
-  //   expect((await tokenApp.getBalanceOf(escrowAddress)).toBigInt()).toEqual(
-  //     initialBalanceEscrow + paymentAmount.toBigint()
-  //   );
-
-  //   // Payment has been marked
-  //   let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
-  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
-
-  //   // No comp marked
-  //   let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
-  //   expect(totalCompEnd).toEqual(totalCompStart);
-
-  //   // User did  pay current month, hence ellgible for the lottery
-  //   let actions: Entry[][] = await group.reducer.fetchActions();
-  //   let latestAction: Entry = actions[actions.length - 1][1];
-  //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(true);
-  // });
-
-  // it('1st user correctly joins the auction', async () => {
-  //   const billyBid = UInt64.from(2);
-  //   const initialBalanceBilly = (await tokenApp.getBalanceOf(billy)).toBigInt();
-  //   const initialBalanceEscrow = (
-  //     await tokenApp.getBalanceOf(escrowAddress)
-  //   ).toBigInt();
-  //   const txn = await Mina.transaction(billy, async () => {
-  //     // AccountUpdate.fundNewAccount(billy);
-  //     await group.roundPayment(GROUP_SETTINGS, billyBid, basePayment);
-  //   });
-  //   await txn.prove();
-
-  //   await txn.sign([billy.key]).send();
-  //   expect((await tokenApp.getBalanceOf(billy)).toBigInt()).toEqual(
-  //     initialBalanceBilly - paymentAmount.mul(2).toBigint()
-  //   );
-  //   expect((await tokenApp.getBalanceOf(escrowAddress)).toBigInt()).toEqual(
-  //     initialBalanceEscrow + paymentAmount.mul(2).toBigint()
-  //   );
-  // });
-
-  // it('2nd user (higher bidder) correctly joins the auction', async () => {
-  //   const charlieBid = UInt64.from(3);
-  //   const initialBalanceCharlie = (
-  //     await tokenApp.getBalanceOf(charlie)
-  //   ).toBigInt();
-  //   const initialBalanceEscrow = (
-  //     await tokenApp.getBalanceOf(escrowAddress)
-  //   ).toBigInt();
-  //   const txn = await Mina.transaction(charlie, async () => {
-  //     // AccountUpdate.fundNewAccount(charlie);
-  //     await group.roundPayment(GROUP_SETTINGS, charlieBid, basePayment);
-  //   });
-
-  //   await txn.prove();
-  //   await txn.sign([charlie.key]).send();
-  //   expect((await tokenApp.getBalanceOf(charlie)).toBigInt()).toEqual(
-  //     initialBalanceCharlie - paymentAmount.mul(2).toBigint()
-  //   );
-  //   expect((await tokenApp.getBalanceOf(escrowAddress)).toBigInt()).toEqual(
-  //     initialBalanceEscrow + paymentAmount.mul(2).toBigint()
-  //   );
-
-  //   // User did  pay current month, hence ellgible for the lottery
-  //   let actions: Entry[][] = await group.reducer.fetchActions();
-  //   let latestAction: Entry = actions[actions.length - 1][1];
-  //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(true);
-  // });
-
-  // it('Correctly chooses the winners', async () => {
-  //   const txn = await Mina.transaction(admin, async () => {
-  //     // AccountUpdate.fundNewAccount(admin);
-  //     // Keeping it at 10 makes both winners the same
-  //     await group.getResults(GROUP_SETTINGS, admin.key, Field.from(10));
-  //   });
-  //   await txn.prove();
-  //   await txn.sign([admin.key]).send();
-
-  //   //
-  //   let events = await group.fetchEvents();
-  //   for (const event of await group.fetchEvents()) {
-  //     console.log(event.type, JSON.stringify(event.event.data));
-  //   }
-
-  //   let lotteryWinnerKey = JSON.stringify(events[1].event.data).slice(1, -1);
-  //   let auctionWinnerKey = JSON.stringify(events[0].event.data).slice(1, -1);
-
-  //   // Need to assert that the emmited winner is not base publickey
-  //   expect(lotteryWinnerKey).not.toEqual(PublicKey.empty().toBase58());
-
-  //   console.log('Lottery winner key: ', lotteryWinnerKey);
-  //   console.log('Auction Winner key: ', auctionWinnerKey);
-  //   console.log('Empty          key', PublicKey.empty().toBase58());
-
-  //   // Need to assert that the emmited winner is not base publickey
-  //   // as there is at least one bidder
-  //   expect(auctionWinnerKey).not.toEqual(PublicKey.empty().toBase58());
-
-  //   // Assert lottery and auction winners are different accounts
-  //   expect(lotteryWinnerKey).not.toEqual(auctionWinnerKey);
-  //   lotteryWinner = PublicKey.fromBase58(lotteryWinnerKey);
-
-  //   const newPaymentRound = group.paymentRound.get();
-  //   // expect(newPaymentRound.toBigInt()).toEqual(paymentRound.add(1).toBigInt());
-
-  //   // Fetch actions
-  //   let actions: Entry[][] = await group.reducer.fetchActions();
-  //   console.log('Actions sizze: ', actions.length);
-  // });
-
-  // it('Claim as auction winner', async () => {
-  //   // fetch token balance of the auction winner
-  //   const initialBalanceAuctionWinner = parseInt(
-  //     (await tokenApp.getBalanceOf(billy)).toString()
-  //   );
-  //   // Fetch the amoutn auction winner needs to pay
-
-  //   let udStart = new GroupUserStorage(billy, group.deriveTokenId());
-  //   let claimed = udStart.claimed.get().toBoolean();
-  //   let outstanding = parseInt(udStart.bidPayment.get().toString());
-  //   let itemPrice = parseInt(GROUP_SETTINGS.itemPrice.toString());
-
-  //   // Assert it is unclaimed at the start
-  //   expect(claimed).toEqual(false);
-
-  //   const txn = await Mina.transaction(billy, async () => {
-  //     await group.userClaim(GROUP_SETTINGS);
-  //   });
-
-  //   await txn.prove();
-  //   await txn.sign([billy.key]).send();
-
-  //   let udEnd = new GroupUserStorage(billy, group.deriveTokenId());
-  //   claimed = udEnd.claimed.get().toBoolean();
-
-  //   // Assert it is claimed at the end
-  //   expect(claimed).toEqual(true);
-
-  //   const endlBalanceAuctionWinner = parseInt(
-  //     (await tokenApp.getBalanceOf(billy)).toString()
-  //   );
-
-  //   // Log balances of the actuiin winner
-  //   console.log('Billy initial balance: ', initialBalanceAuctionWinner);
-  //   console.log('Billy end balance: ', endlBalanceAuctionWinner);
-
-  //   // Assert auction winner paid the correct amount
-  //   expect(endlBalanceAuctionWinner).toEqual(
-  //     initialBalanceAuctionWinner - outstanding * itemPrice
-  //   );
-  // });
-
-  // it('Claim as lottery winner', async () => {
-  //   // Fetch lottery winner from test accounts based on stored winner account
-  //   let lotteryWinnerAccount = testAccounts.find(
-  //     (account) =>
-  //       account.key.toPublicKey().toBase58() === lotteryWinner.toBase58()
-  //   );
-
-  //   let udStart = new GroupUserStorage(
-  //     lotteryWinnerAccount!,
-  //     group.deriveTokenId()
-  //   );
-  //   let claimed = udStart.claimed.get().toBoolean();
-
-  //   // Assert it is unclaimed at the start
-  //   expect(claimed).toEqual(false);
-
-  //   const txn = await Mina.transaction(lotteryWinnerAccount, async () => {
-  //     await group.userClaim(GROUP_SETTINGS);
-  //   });
-
-  //   await txn.prove();
-  //   await txn.sign([lotteryWinnerAccount!.key]).send();
-
-  //   let udEnd = new GroupUserStorage(
-  //     lotteryWinnerAccount!,
-  //     group.deriveTokenId()
-  //   );
-  //   claimed = udEnd.claimed.get().toBoolean();
-
-  //   // Assert it is claimed at the end
-  //   expect(claimed).toEqual(true);
-  // });
-
-  // it("Admin can't withdraw arbitrary number", async () => {
-  //   await expect(
-  //     Mina.transaction(admin, async () => {
-  //       await group.organiserWithdraw(GROUP_SETTINGS, UInt32.from(777));
-  //     })
-  //   ).rejects.toThrow();
-  // });
-
-  // it('Admin withdraws', async () => {
-  //   // Log contract token balance at the start
-  //   const initialBalanceAdmin = (
-  //     await tokenApp.getBalanceOf(group.admin.get())
-  //   ).toBigInt();
-  //   const initialBalanceContract = (
-  //     await tokenApp.getBalanceOf(group.address)
-  //   ).toBigInt();
-  //   console.log(
-  //     'Initial balance contract: ',
-  //     initialBalanceContract,
-  //     '\n',
-  //     'Initial balance admin: ',
-  //     initialBalanceAdmin
-  //   );
-
-  //   const txn = await Mina.transaction(admin, async () => {
-  //     await tokenApp.approveAccountUpdate(escrow.self);
-  //     await group.organiserWithdraw(
-  //       GROUP_SETTINGS,
-  //       UInt32.from(GROUP_SETTINGS.itemPrice.toBigint())
-  //     );
-  //     // await tokenApp.approveAccountUpdate(group.self);
-  //   });
-  //   await txn.prove();
-  //   await txn.sign([admin.key]).send();
-  //   console.log('Withdrawn', txn.toPretty());
-
-  //   const endlBalanceAdmin = (
-  //     await tokenApp.getBalanceOf(group.admin.get())
-  //   ).toBigInt();
-
-  //   const endBalanceContract = (
-  //     await tokenApp.getBalanceOf(group.address)
-  //   ).toBigInt();
-  //   console.log(
-  //     'End balance contract: ',
-  //     endBalanceContract,
-  //     '\n',
-  //     'End balance admin: ',
-  //     endlBalanceAdmin
-  //   );
-
-  //   // Assertion for difference being taken away
-  //   expect(parseInt(endlBalanceAdmin.toString())).toEqual(
-  //     parseInt(initialBalanceAdmin.toString()) + 3000
-  //   );
-  //   expect(parseInt(endBalanceContract.toString())).toEqual(
-  //     parseInt(initialBalanceContract.toString()) - 3000
-  //   );
-  // });
-
-  // it('Compensation tests one missed payment, but no current', async () => {
-  //   console.log('Round at the start: ', group.paymentRound.get().toString());
-
-  //   // Round already advanced in the winner
-  //   let currentRoundStart = group.paymentRound.get();
-  //   // Subtract depending on whether that tests runs or not
-  //   let currentRound = await incrementRound(new UInt64(1));
-  //   console.log(
-  //     'Current round after increment: ',
-  //     currentRound.toBigInt().toString()
-  //   );
-
-  //   console.log('Round at the end: ', group.paymentRound.get().toString());
-
-  //   // TODO: payeSehment needs to fail until compensation is done
-  //   // Start payment count
-  //   let totalPaymentsStart = fetchPaid(alexa, 'Alexa start');
-  //   let totalCompStart = fetchCompensation(alexa, 'Alexa start');
-
-  //   // Compensate for missed payment, don't pay current payment
-  //   const txn2 = await Mina.transaction(alexa, async () => {
-  //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, UInt32.one);
-  //   });
-
-  //   await txn2.prove();
-  //   await txn2.sign([alexa.key]).send();
-
-  //   // Start payment count
-  //   let totalPaymentsEnd = fetchPaid(alexa, 'Alexa end');
-  //   let totalCompEnd = fetchCompensation(alexa, 'Alexa end');
-
-  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-  //   expect(totalCompEnd).toEqual(totalCompStart + 1);
-
-  //   // User did not pay current month, hence inellgible for the lottery
-  //   let actions: Entry[][] = await group.reducer.fetchActions();
-  //   let latestAction: Entry = actions[actions.length - 1][1];
-  //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
-  // });
-
-  // it('Compensation tests two missed payment, plus current month', async () => {
-  //   console.log('Round at the start: ', group.paymentRound.get().toString());
-
-  //   let totalPaymentsStart = fetchPaid(timmy, 'Alexa start');
-  //   let totalCompStart = fetchCompensation(timmy, 'Alexa start');
-
-  //   // Compensate for two missed payments, pay current payment
-  //   const txn2 = await Mina.transaction(timmy, async () => {
-  //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
-  //   });
-
-  //   await txn2.prove();
-  //   await txn2.sign([timmy.key]).send();
-
-  //   // Start payment count
-  //   let totalPaymentsEnd = fetchPaid(timmy, 'timmy end');
-  //   let totalCompEnd = fetchCompensation(timmy, 'timmy end');
-
-  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart + 1);
-  //   expect(totalCompEnd).toEqual(totalCompStart + 2);
-
-  //   // User did not pay current month, hence inellgible for the lottery
-  //   let actions: Entry[][] = await group.reducer.fetchActions();
-  //   let latestAction: Entry = actions[actions.length - 1][1];
-  //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(true);
-  // });
-
-  // it('Compensation tests two missed payment, no current', async () => {
-  //   // TODO: payeSehment needs to fail until compensation is done
-
-  //   let totalPaymentsStart = fetchPaid(billy, 'Billy start');
-  //   let totalCompStart = fetchCompensation(billy, 'Billy start');
-
-  //   // Increment payment round by 1 from the current
-  //   let currentRound = await incrementRound(UInt64.one);
-
-  //   console.log(
-  //     'Current round after increment: ',
-  //     currentRound.toBigInt().toString()
-  //   );
-
-  //   // Compensate for missed payment
-  //   const txn2 = await Mina.transaction(billy, async () => {
-  //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(2));
-  //   });
-
-  //   await txn2.prove();
-  //   await txn2.sign([billy.key]).send();
-
-  //   let totalPaymentsEnd = fetchPaid(billy, 'Billy end');
-  //   let totalCompEnd = fetchCompensation(billy, 'Billy end');
-
-  //   // Assert compensation increased by 2
-  //   expect(totalCompEnd).toEqual(totalCompStart + 2);
-
-  //   // Assert payments unchanged
-  //   expect(totalPaymentsEnd).toEqual(totalPaymentsStart);
-
-  //   // User did not pay current month, hence inellgible for the lottery
-  //   let actions: Entry[][] = await group.reducer.fetchActions();
-  //   let latestAction: Entry = actions[actions.length - 1][1];
-  //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
-  // });
-
-  // it('Compensation tests three missed payment (rejection)', async () => {
-  //   // Increment payment round by 1 from the current
-  //   let currentRound = await incrementRound(UInt64.one);
-
-  //   // Compensate for missed payment
-  //   await expect(
-  //     Mina.transaction(bryan, async () => {
-  //       await group.roundPayment(GROUP_SETTINGS, UInt64.zero, new UInt32(3));
-  //     })
-  //   ).rejects.toThrow();
-  // });
-
-  // it('Auction winner keeps paying', async () => {
-  //   const initialBalanceCharlie = (
-  //     await tokenApp.getBalanceOf(charlie)
-  //   ).toBigInt();
-  //   const initialBalanceEscrow = (
-  //     await tokenApp.getBalanceOf(escrowAddress)
-  //   ).toBigInt();
-  //   const txn = await Mina.transaction(charlie, async () => {
-  //     // AccountUpdate.fundNewAccount(charlie);
-  //     await group.roundPayment(GROUP_SETTINGS, UInt64.zero, basePayment);
-  //   });
-
-  //   await txn.prove();
-  //   await txn.sign([charlie.key]).send();
-  //   expect((await tokenApp.getBalanceOf(charlie)).toBigInt()).toEqual(
-  //     initialBalanceCharlie - paymentAmount.mul(1).toBigint()
-  //   );
-  //   expect((await tokenApp.getBalanceOf(escrowAddress)).toBigInt()).toEqual(
-  //     initialBalanceEscrow + paymentAmount.mul(1).toBigint()
-  //   );
-
-  //   // User already won the bidwar so he is not elligible for the lottery
-  //   let actions: Entry[][] = await group.reducer.fetchActions();
-  //   let latestAction: Entry = actions[actions.length - 1][1];
-  //   expect(latestAction.lotteryElligible.toBoolean()).toEqual(false);
-  // });
 });

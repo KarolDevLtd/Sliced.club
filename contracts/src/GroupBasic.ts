@@ -122,7 +122,26 @@ export class GroupSettings extends Struct({
     ) as any;
   }
 }
-
+export class PaymentEvent extends Struct({
+  paymentRound: UInt64,
+  paymentAmount: UInt64,
+  userPubKey: PublicKey,
+  timestamp: UInt32,
+}) {
+  constructor(
+    paymentRound: UInt64,
+    paymentAmount: UInt64,
+    userPubKey: PublicKey,
+    timestamp: UInt32
+  ) {
+    super({
+      paymentRound,
+      paymentAmount,
+      userPubKey,
+      timestamp,
+    });
+  }
+}
 // Max payments capped by the proof size
 const MAX_PAYMENTS = 200;
 const MAX_UPDATES_WITH_ACTIONS = 20;
@@ -131,7 +150,7 @@ export class GroupBasic extends TokenContract {
   /** Settings specified by the organiser. */
   @state(Field) groupSettingsHash = State<Field>();
   /** Where we starting looper from. */
-  @state(Field) actionState = State<Field>();
+  @state(Field) latestActionState = State<Field>();
   /** Also organiser. */
   @state(PublicKey) admin = State<PublicKey>();
   /** Contract's token account used to store money. */
@@ -145,6 +164,7 @@ export class GroupBasic extends TokenContract {
   events = {
     'lottery-winner': PublicKey,
     'auction-winner': PublicKey,
+    'payment-made': PaymentEvent,
   };
 
   @method
@@ -168,7 +188,7 @@ export class GroupBasic extends TokenContract {
     this.paymentRound.set(UInt64.zero);
 
     // Set to 0th merkle entry
-    this.actionState.set(Reducer.initialActionState);
+    this.latestActionState.set(Reducer.initialActionState);
 
     // It does do something
     this.account.permissions.set({
@@ -489,10 +509,19 @@ export class GroupBasic extends TokenContract {
         Bool(false)
       )
     );
+
+    const paymentEvent = new PaymentEvent(
+      currentPaymentRound,
+      totalPay,
+      senderAddr,
+      this.network.globalSlotSinceGenesis.getAndRequireEquals()
+    );
+    // Provable.log('paymentEvent', paymentEvent);
+    this.emitEvent('payment-made', paymentEvent);
+
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
   }
-  //TODO are we saving last action's hash and using it everyy
-  // mitigate the 'latest' most likley to win in underpaid group (eg 15/20 paid, rnd = 18 (15th has 5/20 chance))
+  //TODO  mitigate the 'latest' most likley to win in underpaid group (eg 15/20 paid, rnd = 18 (15th has 5/20 chance))
   //^ iterate from last ? and flip Bools
   @method
   async getResults(
@@ -508,9 +537,9 @@ export class GroupBasic extends TokenContract {
     // Provable.log('randomValue', randomValue);
     // get all actions
     // Reduce from the last round checkpoint
-    let actionState = this.actionState.getAndRequireEquals();
+    let latestActionState = this.latestActionState.getAndRequireEquals();
     let actions = this.reducer.getActions({
-      fromActionState: actionState,
+      fromActionState: latestActionState,
     });
 
     // prove that we know the correct action state
@@ -681,7 +710,7 @@ export class GroupBasic extends TokenContract {
     this.paymentRound.set(currentPaymentRound.add(advanceRound));
 
     // Will start from here
-    this.actionState.set(actions.hash);
+    this.latestActionState.set(actions.hash);
   }
 
   private getPaymentAmount(groupSettings: GroupSettings): UInt64 {
