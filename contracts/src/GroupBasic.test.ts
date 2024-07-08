@@ -396,14 +396,9 @@ describe('GroupBasic', () => {
     const userAmount = new UInt64(15000);
 
     // All user get fake stable
-    // TODO batch this
-    // for (let i = userStart; i <= userEnd; i + 2) {
-    for (let i = userStart; i <= userEnd; i++) {
-      console.log(`Minting for user[${i}]: `, testAccounts[i].toBase58());
-      // console.log(
-      //   `Minting for user[${i + 2}]: `,
-      //   testAccounts[i + 2].toBase58()
-      // );
+    for (let i = 0; i < users.length; i++) {
+      console.log(`Minting for user[${i}]: `, users[i].key.toBase58());
+
       const transferTx = await Mina.transaction(
         {
           sender: admin,
@@ -411,15 +406,14 @@ describe('GroupBasic', () => {
         },
         async () => {
           AccountUpdate.fundNewAccount(admin);
-          await tokenApp.transfer(admin, testAccounts[i], userAmount);
-          // await tokenApp.transfer(admin, testAccounts[i + 1], userAmount);
+          await tokenApp.transfer(admin, users[i].key, userAmount);
         }
       );
 
       await transferTx.prove();
       transferTx.sign([admin.key]);
       await transferTx.send().then((v) => v.wait());
-      expect((await tokenApp.getBalanceOf(testAccounts[i])).toBigInt()).toEqual(
+      expect((await tokenApp.getBalanceOf(users[i].key)).toBigInt()).toEqual(
         userAmount.toBigInt()
       );
     }
@@ -490,13 +484,16 @@ describe('GroupBasic', () => {
     }
   });
 
-  it('Create empty account for escrow to recive tokens and ', async () => {
-    let tx3 = await Mina.transaction(alexa, async () => {
-      AccountUpdate.fundNewAccount(alexa);
-      AccountUpdate.create(escrowAddress, tokenApp.tokenId);
-      await tokenApp.transfer(alexa, escrowAddress, UInt64.from(50));
+  it('Create empty account for escrow to recive tokens ', async () => {
+    await Mina.transaction(admin, async () => {
+      AccountUpdate.fundNewAccount(admin);
+      const groupTokenAcc = AccountUpdate.create(
+        escrowAddress,
+        TokenId.derive(tokenAddress)
+      );
+      await tokenApp.approveAccountUpdate(groupTokenAcc);
     })
-      .sign([alexa.key])
+      .sign([admin.key])
       .prove()
       .send();
   });
@@ -588,7 +585,5 @@ describe('GroupBasic', () => {
       // Need to add tests for auction winner paying
       console.log(`End of round ${r}`);
     }
-
-    //   console.log('run a single payment');
   });
 });

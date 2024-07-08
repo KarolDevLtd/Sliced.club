@@ -488,7 +488,6 @@ export class GroupBasic extends TokenContract {
         // Lottery entry only true, if total payment count equals this round (plus 1 as zero indexed)
         // Would break if overpayment happend somehow
         totalPaymentsU64
-          // TODO is wrong, needs to be set to equal or larger for those that won auction
           .equals(currentPaymentRound.add(UInt64.one))
           .and(pickedAlready.equals(false))
       )
