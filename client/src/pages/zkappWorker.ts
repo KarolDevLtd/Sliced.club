@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
@@ -18,6 +19,8 @@ import {
 	TokenId,
 	PrivateKey,
 	checkZkappTransaction,
+	Poseidon,
+	fetchEvents,
 } from 'o1js';
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
@@ -29,7 +32,7 @@ type VerificationKey = {
 // ---------------------------------------------------------------------------------------
 // import { GroupBasic, GroupSettings } from '../../../contracts/src/GroupBasic';
 // import { FungibleToken } from '../../../contracts/src/token/FungibleToken';
-// import { GroupUserStorage } from '../../../contracts/src/GroupUserStorage';
+import { Payments } from '../../../contracts/build/src/GroupBasic';
 import { FungibleToken, GroupBasic, GroupUserStorage, GroupSettings } from 'sliced-contracts';
 
 const state = {
@@ -88,14 +91,7 @@ const functions = {
 	*/
 	// Worker code
 	fetchAccount: async (args: { publicKey: string; tokenId?: string }) => {
-		if (!args?.publicKey) {
-			throw new Error('Invalid arguments: publicKey is required');
-		}
-
 		const publicKey = PublicKey.fromBase58(args.publicKey);
-		// console.log('Received args:', args);
-		// console.log('Converted publicKey:', publicKey.toBase58());
-		// console.log(await fetchLastBlock());
 		try {
 			if (args.tokenId === undefined) {
 				const result = await fetchAccount({ publicKey: args.publicKey });
@@ -109,7 +105,6 @@ const functions = {
 			}
 		} catch (error) {
 			console.error('Error in fetchAccount:', error);
-			// throw error;
 		}
 	},
 	proveTransaction: async (args: {}) => {
@@ -194,7 +189,6 @@ const functions = {
 
 		const publicKey = PublicKey.fromBase58('B62qict1jWXuU1BhTSwbhyrtTa2yxNB27aZ4PuyShepnQzzp3HoFGuT');
 		state.tokenZkapp = new state.FungibleToken!(publicKey);
-		// state.tokenZkapp = new state.FungibleToken!(args.publicKey);
 	},
 
 	/** 
@@ -251,6 +245,10 @@ const functions = {
 		console.log('tokenAddress:', tokenAddress.toBase58());
 		console.log('missable:', missable.toBigint().toString());
 		console.log('paymentDuration:', paymentDuration.toBigInt().toString());
+		// console.log('userKey', userKey.toBase58());
+		console.log('tokenAddress', tokenAddress.toBase58());
+		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
+		// const amountOfBids = UInt64.from(args.amountOfBids);
 		const groupSettings = new GroupSettings(
 			maxMembers,
 			itemPrice,
@@ -259,9 +257,13 @@ const functions = {
 			missable,
 			paymentDuration
 		);
+		const derivedTokenId = TokenId.derive(tokenAddress);
+		console.log('groupSettingHash:', Poseidon.hash(GroupSettings.toFields(groupSettings)).toString());
 		const transaction = await Mina.transaction({ sender: deployer, fee: 0.01 * 1e9 }, async () => {
-			AccountUpdate.fundNewAccount(deployer);
+			AccountUpdate.fundNewAccount(deployer, 2);
 			await instance.deploy({ admin, groupSettings });
+			const groupTokenAcc = AccountUpdate.create(groupPrivKey.toPublicKey(), derivedTokenId);
+			await state.tokenZkapp?.approveAccountUpdate(groupTokenAcc);
 		});
 		transaction.sign([groupPrivKey]);
 		state.groupZkapp = instance;
@@ -295,6 +297,7 @@ const functions = {
 			paymentDuration
 		);
 		console.log('s');
+		console.log('groupSettingHash:', Poseidon.hash(GroupSettings.toFields(groupSettings)).toString());
 		console.log('maxMembers:', maxMembers.toBigint().toString());
 		console.log('itemPrice:', itemPrice.toBigint().toString());
 		console.log('groupDuration:', groupDuration.toBigint().toString());
@@ -320,15 +323,15 @@ const functions = {
 		paymentDuration: number;
 		amountOfBids: number;
 	}) => {
-		console.log('in roundPayment');
-		console.log('s');
-		console.log('maxMembers:', args.maxMembers);
-		console.log('itemPrice:', args.itemPrice);
-		console.log('groupDuration:', args.groupDuration);
-		console.log('missable:', args.missable);
-		console.log('paymentDuration:', args.paymentDuration);
-		console.log('params ready');
-		console.log('userKey', args.userKey);
+		// console.log('in roundPayment');
+		// console.log('s');
+		// console.log('maxMembers:', args.maxMembers);
+		// console.log('itemPrice:', args.itemPrice);
+		// console.log('groupDuration:', args.groupDuration);
+		// console.log('missable:', args.missable);
+		// console.log('paymentDuration:', args.paymentDuration);
+		// console.log('params ready');
+		// console.log('userKey', args.userKey);
 		const userKey = PublicKey.fromBase58(args.userKey);
 		const maxMembers = UInt32.from(args.maxMembers);
 		const itemPrice = UInt32.from(args.itemPrice);
@@ -355,6 +358,7 @@ const functions = {
 		console.log('tokenAddress', tokenAddress.toBase58());
 		console.log('groupkkEyyy', state.groupZkapp!.address.toBase58());
 		const amountOfBids = UInt64.from(args.amountOfBids);
+		console.log('groupSettingsHash:', Poseidon.hash(GroupSettings.toFields(groupSettings)).toString());
 		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
 			//gonna have to fund group with token first
 			// AccountUpdate.fundNewAccount(userKey);
@@ -385,12 +389,20 @@ const functions = {
 			tokenId: derivedTokenId,
 		});
 		const userStorage = new GroupUserStorage(userKey, derivedTokenId);
+		const extract = (ticks: Field): number => {
+			return Payments.unpack(ticks).reduce((total, tickBool) => total + (tickBool.toBoolean() ? 1 : 0), 0);
+		};
 		return JSON.stringify({
-			payments: userStorage.payments.get(),
-			overpayments: userStorage.overpayments.get(),
-			compensations: userStorage.compensations.get().toString(),
 			isParticipant: userStorage.isParticipant.get().toBoolean(),
+			paymentsTotal: extract(userStorage.payments.get()),
+			overpayments: userStorage.overpayments.get(),
+			compensations: userStorage.compensations.get(),
 		});
+	},
+	fetchGroupEvents: async () => {
+		const res = await state.groupZkapp?.fetchEvents();
+		console.log('res', res);
+		return JSON.stringify(res);
 	},
 
 	/** 
@@ -398,24 +410,12 @@ const functions = {
 	*/
 
 	deployToken: async (args: { adminPublicKey: string; zkAppPrivateKey: string }) => {
-		// console.log('args', args);
-		// const Network = Mina.Network({
-		// 	networkId: 'testnet',
-		// 	mina: 'http://localhost:8080/graphql',
-		// 	archive: 'http://localhost:8282',
-		// 	lightnetAccountManager: 'http://localhost:8181',
-		// });
-		// console.log('Lightnet network instance configured.');
-		// Mina.setActiveInstance(Network);
-		// const admin = PublicKey.fromBase58('B62qmGtQ7kn6zbw4tAYomBJJri1gZSThfQZJaMG6eR3tyNP3RiCcEQZ');
 		const admin = PublicKey.fromBase58(args.adminPublicKey);
 		const zkAppPrivateKey = PrivateKey.fromBase58(args.zkAppPrivateKey);
-		// const zkAppPrivateKey = PrivateKey.random();
 		const instance = new FungibleToken(zkAppPrivateKey.toPublicKey());
-		console.log('acutal token key', zkAppPrivateKey.toPublicKey().toBase58());
+		console.log('actual token key', zkAppPrivateKey.toPublicKey().toBase58());
 		const deployTokenTx = await Mina.transaction({ sender: admin, fee: 0.01 * 1e9 }, async () => {
 			AccountUpdate.fundNewAccount(admin); //todo ?!?!
-			// AccountUpdate.create(admin).send({ to: zkAppPrivateKey.toPublicKey(), amount: 1 });
 			await instance.deploy({
 				owner: admin,
 				supply: UInt64.from(100000000 * 1e9),
@@ -438,7 +438,6 @@ const functions = {
 			// }
 			await state.tokenZkapp!.mint(toKey, amount);
 		});
-		console.log('minting transaction', transaction.toPretty());
 		state.transaction = transaction;
 	},
 
@@ -475,20 +474,6 @@ const functions = {
 // let accountIsNew = update.account.isNew.getAndRequireEquals();
 // if the account is new, we have to fund its creation
 
-// const target = await fetchAccount({ publicKey: targetPublicKey, tokenId });
-// const tx = await Mina.transaction(
-//  {
-//  sender: feePayer,
-//  fee: txFee,
-//  memo: '',
-//  },
-//  () => {
-//  if (!target.account) {
-//  AccountUpdate.fundNewAccount(feePayer);
-//  }
-//  transfer
-//  }
-// );
 // ---------------------------------------------------------------------------------------
 
 export type WorkerFunctions = keyof typeof functions;

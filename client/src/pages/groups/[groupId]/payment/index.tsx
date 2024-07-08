@@ -18,6 +18,7 @@ import { useWallet } from '@/providers/WalletProvider';
 import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 import { toast } from 'react-toastify';
 import { console_log } from 'o1js/dist/node/bindings/compiled/node_bindings/plonk_wasm.cjs';
+import Spinner from '@/app/_components/ui/Spinner';
 
 export default function GroupPayment() {
 	// const groupId = router.query.groupId;
@@ -27,7 +28,7 @@ export default function GroupPayment() {
 	const { walletAddress } = useWallet();
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
 	const [number, setNumber] = useState(0);
-	const { userPayment } = useMinaProvider();
+	const { userPayment, isMinaLoading } = useMinaProvider();
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [loading, setIsLoading] = useState<boolean>(false);
 
@@ -42,7 +43,6 @@ export default function GroupPayment() {
 	};
 
 	const makePayment = async () => {
-		console.log('cock');
 		try {
 			if (group && walletAddress) {
 				// console.log('add user ipfs values :\n', groupData.group);
@@ -60,16 +60,9 @@ export default function GroupPayment() {
 					parseInt(group.duration),
 					// parseInt(groupData.group.missable) // TODO that's wrong
 					3, // missable
-					2592000, // payment duration
+					parseInt(group.period),
 					0
 				);
-				// await groupParticipantToIPFS.mutateAsync({
-				// 	groupHash: groupId.toString(),
-				// 	creatorKey: group.creatorKey,
-				// 	userKey: walletAddress.toString(),
-				// 	status: 'approved',
-				// });
-				// setIsParticipant(true);
 			}
 		} catch (err) {
 			console.log(err);
@@ -194,12 +187,14 @@ export default function GroupPayment() {
 					</div>
 					<div className="col-span-1 border border-accent rounded-xl bg-auctionsfade flex flex-col grid grid-rows-3 m-1">
 						{/* <div className=""> */}
-						<div className="flex flex-col align-center row-span-2 justify-end mb-8">
+						<div className="flex flex-col align-center row-span-2 justify-end mb-8 items-center">
+							{group?.creatorKey == walletAddress?.toString() && (
+								<BasicButton type={'secondary'}>Get Winner</BasicButton>
+							)}
 							<div className="flex justify-center text-3xl my-2">Payment</div>
 							<div className="flex justify-center ">Time left</div>
 							<strong className="flex justify-center ">2d 13h 43min</strong>
 						</div>
-
 						<div className="flex items-center justify-cente place-content-evenly">
 							{/* <div className="flex align-center">
 								<BasicButton type={'primary'}>Pay</BasicButton>
@@ -219,14 +214,16 @@ export default function GroupPayment() {
 										</div>
 									</div>
 									<div className="flex justify-center my-2">
-										<BasicButton type={'primary'} onClick={makePayment}>
+										<BasicButton type={'primary'} onClick={makePayment} disabled={isMinaLoading}>
 											{number > 0 ? 'Bid' : 'Pay'}
+											{isMinaLoading ? (
+												<div className="p-2">
+													<Spinner size="sm" />
+												</div>
+											) : null}
 										</BasicButton>
 									</div>
 								</div>
-								{/* <div className="border-left:1px solid #000;height:500px"></div> */}
-
-								{/* </div> */}
 							</div>
 						</div>
 					</div>

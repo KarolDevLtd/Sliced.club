@@ -71,44 +71,44 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 
 	return (
 		<>
-			{isLoading ? (
-				'Loading...'
-			) : (
-				//TODO - BUG here, should be able to zoom image without triggering parent onClick
-				<div
-					className="grid grid-cols-10 gap-2 p-2 m-2 bg-light-grey min-w-full min-h-[120px] rounded-md border border-[transparent] hover:border-black hover:cursor-pointer overflow-hidden"
-					// @ts-ignore
-					// onClick={(e) => handleClick(e)}
-				>
-					<div className="col-span-1 flex flex-col justify-center">
-						{hasImage ? (
-							<ZoomableImage source={imageData[0] ?? null} width={100} height={100} alt={'image'} />
-						) : null}
-					</div>
-					<div className="flex flex-col col-span-3 items-center justify-center">
-						<strong>{group?.name}</strong>
-						<strong>{product?.name}</strong>
-						<strong>{product?.price}</strong>
-					</div>
-					<div className="flex flex-col col-span-2 items-center justify-center">
-						<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
-					</div>
+			{/* {isLoading ? (
+				'.'
+			) : ( */}
+			{/* //TODO - BUG here, should be able to zoom image without triggering parent onClick */}
+			<div
+				className="grid bg-itemfade border border-accent grid-cols-10 gap-2 p-2 my-2 min-w-full min-h-[120px] rounded-md hover:border-black hover:cursor-pointer overflow-hidden"
+				// @ts-ignore
+				// onClick={(e) => handleClick(e)}
+			>
+				<div className="col-span-1 flex flex-col justify-center">
+					{hasImage ? (
+						<ZoomableImage source={imageData[0] ?? null} width={100} height={100} alt={'image'} />
+					) : null}
+				</div>
+				<div className="flex flex-col col-span-3 items-center justify-center">
+					<strong>{group?.name}</strong>
+					<strong>{product?.name}</strong>
+					<strong>{product?.price}</strong>
+				</div>
+				<div className="flex flex-col col-span-2 items-center justify-center">
+					<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
+				</div>
 
-					<div className="flex flex-row col-span-2 items-center justify-center">
-						<IoPeople />
-						<p>{group?.participants}</p>
-					</div>
+				<div className="flex flex-row col-span-2 items-center justify-center">
+					<IoPeople />
+					<p>{group?.participants}</p>
+				</div>
 
-					<div className="flex flex-col col-span-2 items-center justify-center">
-						<BasicButton type={'secondary'} onClick={(e) => handleClick(e)}>
-							View Details
-						</BasicButton>
-					</div>
-					{/* <div className="col-span-1 flex items-center gap-1">
+				<div className="flex flex-col col-span-2 items-center justify-center">
+					<BasicButton type={'secondary'} onClick={(e) => handleClick(e)}>
+						View Details
+					</BasicButton>
+				</div>
+				{/* <div className="col-span-1 flex items-center gap-1">
 					<FaUserGroup />
 					<p>{product?.groupMembers}</p>
 				</div> */}
-					{/* <div className="col-span-1 flex items-center">
+				{/* <div className="col-span-1 flex items-center">
 					{product?.itemsReceived ? (
 						<div>
 							<p>{completedPercentage()}</p>
@@ -116,35 +116,35 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 						</div>
 					) : null}
 				</div> */}
-					{/* <div className="col-span-2 flex items-center">
+				{/* <div className="col-span-2 flex items-center">
 					<BasicButton type="secondary" onClick={(e) => handleClick(e)}>
 						View details
 					</BasicButton>
 				</div> */}
-					<BasicModal
-						id="group-item"
-						header="Group Details"
-						content={
-							<div>
-								<div className="flex items-center gap-1">
-									<strong>Group name:</strong> <p>{group?.name}</p>
-								</div>
-								<div className="flex items-center gap-1">
-									<strong>Organiser:</strong> <p>{groupData?.group?.creatorId}</p>
-									<strong>:</strong> <p>{group?.country}</p>
-								</div>
-								<div className="flex items-center gap-1">
-									<strong>Price:</strong> <p>{group?.price}</p>
-									<strong>:</strong> <p>{group?.country}</p>
-								</div>
-								<div className="flex items-center gap-1">
-									<strong>Currency:</strong> <p>{group?.currency}</p>
-								</div>
-								<div className="flex items-center gap-1">
-									<strong>Duration:</strong> <p>{group?.duration}</p>
-									<strong>:</strong> <p>{group?.country}</p>
-								</div>
-								{/* <div className="flex items-center gap-1">
+				<BasicModal
+					id="group-item"
+					header="Group Details"
+					content={
+						<div>
+							<div className="flex items-center gap-1">
+								<strong>Group name:</strong> <p>{group?.name}</p>
+							</div>
+							<div className="flex items-center gap-1">
+								<strong>Organiser:</strong> <p>{groupData?.group?.creatorId}</p>
+								<strong>:</strong> <p>{group?.country}</p>
+							</div>
+							<div className="flex items-center gap-1">
+								<strong>Price:</strong> <p>{group?.price}</p>
+								<strong>:</strong> <p>{group?.country}</p>
+							</div>
+							<div className="flex items-center gap-1">
+								<strong>Currency:</strong> <p>{group?.currency}</p>
+							</div>
+							<div className="flex items-center gap-1">
+								<strong>Duration:</strong> <p>{group?.duration}</p>
+								<strong>:</strong> <p>{group?.country}</p>
+							</div>
+							{/* <div className="flex items-center gap-1">
 									<strong>Group members:</strong> <p>{product.groupMembers}</p>
 								</div>
 								{product.itemsReceived ? (
@@ -152,11 +152,10 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 										<strong>Items received:</strong> <p>{product.itemsReceived}</p>
 									</div>
 								) : null} */}
-							</div>
-						}
-					/>
-				</div>
-			)}
+						</div>
+					}
+				/>
+			</div>
 		</>
 	);
 };

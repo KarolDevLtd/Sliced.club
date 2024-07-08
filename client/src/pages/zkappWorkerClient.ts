@@ -149,7 +149,6 @@ export default class ZkappWorkerClient {
 		paymentDuration: number,
 		amountOfBids: number
 	) {
-		console.log('roundPayment');
 		return await this._call('roundPayment', {
 			userKey,
 			maxMembers,
@@ -172,6 +171,10 @@ export default class ZkappWorkerClient {
 			userKey,
 			groupAddress,
 		});
+	}
+
+	async fetchGroupEvents() {
+		return await this._call('fetchGroupEvents', {});
 	}
 
 	async deployToken(adminPublicKey: string, zkAppPrivateKey: string) {

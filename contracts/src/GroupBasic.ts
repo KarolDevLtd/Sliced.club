@@ -117,6 +117,27 @@ export class GroupSettings extends Struct({
   }
 }
 
+export class PaymentEvent extends Struct({
+  paymentRound: UInt64,
+  paymentAmount: UInt64,
+  userPubKey: PublicKey,
+  timestamp: UInt32,
+}) {
+  constructor(
+    paymentRound: UInt64,
+    paymentAmount: UInt64,
+    userPubKey: PublicKey,
+    timestamp: UInt32
+  ) {
+    super({
+      paymentRound,
+      paymentAmount,
+      userPubKey,
+      timestamp,
+    });
+  }
+}
+
 // TODO add validation for group settings
 const MAX_PAYMENTS = 200;
 const MAX_UPDATES_WITH_ACTIONS = 20;
@@ -134,6 +155,7 @@ export class GroupBasic extends TokenContract {
   events = {
     'lottery-winner': PublicKey,
     'auction-winner': PublicKey,
+    'payment-made': PaymentEvent,
   };
 
   @method
@@ -332,7 +354,11 @@ export class GroupBasic extends TokenContract {
 
     // Pay the total amount
     const token = new FungibleToken(_groupSettings.tokenAddress);
+
+    Provable.log('before Transfer');
     await token.transfer(senderAddr, this.address, totalPay);
+
+    Provable.log('before dispatch');
     this.reducer.dispatch(
       new Entry(
         senderAddr,
@@ -347,12 +373,21 @@ export class GroupBasic extends TokenContract {
     // let adminPubKey = this.admin.getAndRequireEquals();
     // let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
 
+    Provable.log('before 2nd dispatch');
     this.reducer.dispatch(
       new Entry(senderAddr, amountOfBids, currentPaymentRound, Bool(false))
     );
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
     // adminPubKey;
 
+    const paymentEvent = new PaymentEvent(
+      currentPaymentRound,
+      totalPay,
+      senderAddr,
+      this.network.globalSlotSinceGenesis.getAndRequireEquals()
+    );
+    Provable.log('paymentEvent', paymentEvent);
+    this.emitEvent('payment-made', paymentEvent);
     update.requireSignature();
   }
   //TODO are we saving last action's hash and using it everyy

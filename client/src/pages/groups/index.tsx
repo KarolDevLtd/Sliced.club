@@ -34,14 +34,13 @@ export default function Groups() {
 
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
-	const { compileContracts } = useMinaProvider();
+	const { compileContractsOnly } = useMinaProvider();
 
 	const showGroupModal = async () => {
 		try {
 			if (preventActionNotLoggedIn(isLoggedIn, 'Log in to create a group')) return;
 			showModal('add-group');
-			await compileContracts('group');
-			// await setTokenNoDeploy();
+			await compileContractsOnly();
 		} catch (err) {
 			console.log('showGroupModal', err);
 		}
@@ -71,7 +70,7 @@ export default function Groups() {
 	return (
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
-			<div className="py-4">
+			{/* <div className="py-4">
 				<Carousel
 					slides={[
 						{
@@ -108,8 +107,8 @@ export default function Groups() {
 						height: 150,
 					}}
 				/>
-			</div>
-			<InlineLink href={`groups/${groupId}`}>Group 69</InlineLink>
+			</div> */}
+			{/* <InlineLink href={`groups/${groupId}`}>Group 69</InlineLink> */}
 			<div className="p-1">
 				{/* @ts-ignore */}
 				<BasicButton type="primary" onClick={showGroupModal}>
@@ -117,16 +116,16 @@ export default function Groups() {
 				</BasicButton>
 			</div>
 			<div>
-				<TextInput
+				{/* <TextInput
 					id={'group-search'}
 					name={'group-search'}
 					type={'text'}
 					onChange={(e) => handleSearchContentChange(e)}
-				/>
+				/> */}
 
 				<div className="flex">
 					<div className="w-1/2">
-						<div className="my-5 px-10">
+						{/* <div className="my-5 px-10">
 							<div>Minimum product price: {searchMinimumPrice}</div>
 							<BasicSlider
 								maxValue={maxProductPrice}
@@ -157,7 +156,7 @@ export default function Groups() {
 								}}
 								isReversed={false}
 							/>
-						</div>
+						</div> */}
 					</div>
 					{/* <div className="flex w-2/5 justify-center items-center">
 						<SelectOption
