@@ -29,7 +29,7 @@ const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 					<ul className="menu p-0 [&_li>*]:rounded-none">
 						<li className="menu-title pb-6">
 							<Link href="/">
-								<Image src={`/logos/slice-logo.png`} alt="slice logo" width="64" height="64" />
+								<Image src={`/logos/sliced-logo-w-bg.png`} alt="slice logo" width="100" height="64" />
 							</Link>
 						</li>
 						<li>
