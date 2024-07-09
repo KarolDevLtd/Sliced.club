@@ -58,23 +58,25 @@ const ProductList = ({ heading, isHomeScreen }: ProductListProps) => {
 	return (
 		<div className="flex flex-col gap-2 mb-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
-			{products && products.length > 0 ? (
-				<div
-					className={
-						isHomeScreen
-							? 'overflow-y-scroll flex flex-col m-4 h-60'
-							: 'overflow-y-scroll flex flex-col m-4 h-96'
-					}
-				>
-					{products.map((product, index) => (
-						<ProductItem key={index} productHash={product.ipfs_pin_hash} />
-					))}
-					{productCount > displayProductCount ? <div ref={ref} /> : 'No more products to display...'}
-					{isLoading ? <Spinner /> : null}
-				</div>
-			) : (
-				<p>No products found.</p>
-			)}
+			<div
+				className={
+					isHomeScreen
+						? 'overflow-y-scroll flex flex-col m-4 h-60'
+						: 'overflow-y-scroll flex flex-col m-4 h-96'
+				}
+			>
+				{products && products.length > 0 ? (
+					<>
+						{products.map((product, index) => (
+							<ProductItem key={index} productHash={product.ipfs_pin_hash} />
+						))}
+						{productCount > displayProductCount ? <div ref={ref} /> : 'No more products to display...'}
+						{isLoading && <Spinner />}
+					</>
+				) : (
+					<p>No products found.</p>
+				)}
+			</div>
 		</div>
 	);
 };

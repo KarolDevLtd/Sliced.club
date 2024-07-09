@@ -22,52 +22,54 @@ type PlatformSidebarProps = {
 const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 	return (
 		<aside
-			className={`${hidden ? 'hidden sm:flex' : null} fixed top-0 flex flex-col justify-between items-center pt-6 min-h-screen w-full sm:w-1/4 md:w-1/5 lg:w-1/6 bg-light-grey bg-accent`}
+			className={`${hidden ? 'hidden sm:flex' : null} fixed top-0 flex flex-col justify-center items-center align-center pb-6 h-full w-full sm:w-1/4 md:w-1/5 lg:w-1/6 `}
 		>
-			<div className="min-w-full flex flex-col">
-				<ul className="menu p-0 [&_li>*]:rounded-none">
-					<li className="menu-title pb-6">
-						<Link href="/">
-							<Image src={`/logos/slice-logo.png`} alt="slice logo" width="64" height="64" />
-						</Link>
-					</li>
-					<li>
-						<SidebarItem text="Home" href="/" icon={<FaHome />} />
-					</li>
-					<li>
-						<SidebarItem text="Groups" href="/groups" icon={<FaUserGroup />} />
-					</li>
-					<li>
-						<SidebarItem text="My Products" href="/products" icon={<FaShoppingCart />} />
-					</li>
-					<li>
-						<SidebarItem text="My Payments" href="/payments" icon={<FaMoneyBill />} />
-					</li>
-					<li>
-						<SidebarItem text="My Profile" href="/profile/69" icon={<FaUser />} />
-					</li>
-					<li>
-						<SidebarItem text="Categories" href="/categories" icon={<FaSearch />} />
-					</li>
-					<li>
-						<SidebarItem text="Notifications" href="/notifications" icon={<IoMdNotifications />} />
-					</li>
-					<li>
-						<SidebarItem text="Settings" href="/settings" icon={<IoIosSettings />} />
-					</li>
-				</ul>
-			</div>
+			<div className="border border-neutral rounded-xl border-xl h-4/5 w-3/4 flex flex-col justify-evenly bg-bottomfade">
+				<div className="min-w-full">
+					<ul className="menu p-0 [&_li>*]:rounded-none">
+						<li className="menu-title pb-6">
+							<Link href="/">
+								<Image src={`/logos/slice-logo.png`} alt="slice logo" width="64" height="64" />
+							</Link>
+						</li>
+						<li>
+							<SidebarItem text="Home" href="/" icon={<FaHome />} />
+						</li>
+						<li>
+							<SidebarItem text="Groups" href="/groups" icon={<FaUserGroup />} />
+						</li>
+						<li>
+							<SidebarItem text="My Products" href="/products" icon={<FaShoppingCart />} />
+						</li>
+						<li>
+							<SidebarItem text="My Payments" href="/payments" icon={<FaMoneyBill />} />
+						</li>
+						<li>
+							<SidebarItem text="My Profile" href="/profile/69" icon={<FaUser />} />
+						</li>
+						<li>
+							<SidebarItem text="Categories" href="/categories" icon={<FaSearch />} />
+						</li>
+						<li>
+							<SidebarItem text="Notifications" href="/notifications" icon={<IoMdNotifications />} />
+						</li>
+						<li>
+							<SidebarItem text="Settings" href="/settings" icon={<IoIosSettings />} />
+						</li>
+					</ul>
+				</div>
 
-			<div>
-				<MinaButton types={['connect', 'chain']} />
-			</div>
+				<div className="p-5">
+					<MinaButton types={['connect', 'chain']} />
+				</div>
 
-			<div className="min-w-full flex flex-col">
-				<ul className="menu p-0 [&_li>*]:rounded-none">
-					<li>
-						<LogoutButton />
-					</li>
-				</ul>
+				<div className="min-w-full flex flex-col">
+					<ul className="menu p-0 [&_li>*]:rounded-none">
+						<li>
+							<LogoutButton />
+						</li>
+					</ul>
+				</div>
 			</div>
 		</aside>
 	);

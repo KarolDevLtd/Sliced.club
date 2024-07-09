@@ -33,11 +33,13 @@ export default {
 		},
 		backgroundImage: {
 			auctionsfade: 'radial-gradient(circle at 50% 100%, #f54325, transparent)',
-			itemfade: 'linear-gradient(to left, #1f3745, transparent)',
+			itemfade: 'linear-gradient(to left, #193648, #121a24)',
 			paymentbtnfade: 'radial-gradient(circle at 50% 100%, #f99270, transparent)',
 			offerbtnfade: 'radial-gradient(circle at 50% 100%, #f06342, transparent)',
 			productbtnfade: 'radial-gradient(circle at 50% 100%, #fa3412, transparent)',
 			aboutgobtnfade: 'radial-gradient(circle at 50% 100%, #e12615, transparent)',
+			backgroundfade: 'linear-gradient(to top left, #131b25, #193648)',
+			bottomfade: 'linear-gradient(to top, #131b25, #193648)',
 		},
 	},
 	plugins: [daisyui],
@@ -56,6 +58,7 @@ export default {
 					warning: '#fde047',
 					error: '#ef4444',
 					'electric-blue': '#3b72ff',
+					'background-gradient': 'linear-gradient(to top left, #131b25, #193648)', // Custom background gradient
 				},
 			},
 		],
