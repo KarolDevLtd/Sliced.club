@@ -24,7 +24,7 @@ const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 		<aside
 			className={`${hidden ? 'hidden sm:flex' : null} fixed top-0 flex flex-col justify-center items-center align-center pb-6 h-full w-full sm:w-1/4 md:w-1/5 lg:w-1/6 `}
 		>
-			<div className="border border-neutral rounded-xl border-xl h-4/5 w-3/4 flex flex-col justify-evenly bg-bottomfade">
+			<div className="border border-accent rounded-xl border-xl h-full my-8 w-3/4 flex flex-col justify-evenly bg-bottomfade">
 				<div className="min-w-full">
 					<ul className="menu p-0 [&_li>*]:rounded-none">
 						<li className="menu-title pb-6">

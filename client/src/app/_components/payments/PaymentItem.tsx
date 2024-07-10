@@ -17,7 +17,7 @@ const PaymentItem = ({ payment }: PaymentItemProps) => {
 
 	return (
 		<div
-			className="grid grid-cols-10 gap-4 bg-itemfade min-w-full min-h-[90px] rounded-md border border-accent hover:border-black hover:cursor-pointer overflow-hidden flex justify-around"
+			className="grid grid-cols-10 gap-4 bg-itemfade min-w-full min-h-[90px] rounded-md border border-accent hover:border-neutral hover:cursor-pointer overflow-hidden flex justify-around"
 			onClick={(e) => handleClick(e)}
 		>
 			<div className="col-span-1 max-w-[120px] min-h-full rounded flex items-center justify-center">5</div>
