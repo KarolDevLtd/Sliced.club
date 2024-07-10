@@ -38,40 +38,6 @@ export default function Dashboard() {
 		<>
 			<DashboardHeader />
 			<div className="grid grid-rows-5 gap-4 min-h-full flex-1">
-				{/* <div className="row-span-1 grid grid-cols-3 gap-4">
-					{/* <div className="col-span-2">
-						<Carousel
-							slides={[
-								{
-									content: <p>Hi</p>,
-								},
-								{
-									content: <p>Bye</p>,
-								},
-							]}
-							options={{
-								visibleSlides: 1,
-								height: 150,
-							}}
-						></Carousel>
-					</div>
-					<div className="col-span-1">
-						<Carousel
-							slides={[
-								{
-									content: <p>Hi</p>,
-								},
-								{
-									content: <p>Bye</p>,
-								},
-							]}
-							options={{
-								visibleSlides: 1,
-								height: 150,
-							}}
-						></Carousel>
-					</div>
-				</div> */}
 				<div className="row-span-3 grid grid-cols-3 gap-4">
 					<div className="col-span-2">
 						{walletConnected ? (

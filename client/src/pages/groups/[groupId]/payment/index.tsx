@@ -17,7 +17,6 @@ import { api } from '@/trpc/react';
 import { useWallet } from '@/providers/WalletProvider';
 import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 import { toast } from 'react-toastify';
-import { console_log } from 'o1js/dist/node/bindings/compiled/node_bindings/plonk_wasm.cjs';
 import Spinner from '@/app/_components/ui/Spinner';
 
 export default function GroupPayment() {
@@ -76,6 +75,7 @@ export default function GroupPayment() {
 				const currGroup = groupData.group as IPFSGroupModel;
 				setGroup(currGroup);
 				console.log('group data');
+
 				// const z = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupId });
 				// console.log(z);
 			}
