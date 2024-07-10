@@ -15,7 +15,7 @@ const SidebarItem = ({ text, href, icon }: SidebarItemProps) => {
 
 	return (
 		<Link className={`${activeLink ? 'active border-r-2 border-bigred' : ''} `} href={href}>
-			<span className="p-3 border rounded-xl bg-itemfade">{icon}</span>
+			<span className="p-3 border border-accent rounded-xl bg-itemfade text-l">{icon}</span>
 			<span>{text}</span>
 		</Link>
 	);
