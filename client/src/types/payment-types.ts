@@ -2,8 +2,8 @@ import { type Product } from './product-types';
 
 export type Payment = {
 	amountDue: number;
-	nextPaymentDue: Date;
-	product: Product;
+	nextPaymentDue: string; // that should be date of that payment
+	// product: Product;
 	transactionId: string;
 	status: string;
 };

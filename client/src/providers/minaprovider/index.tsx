@@ -45,8 +45,15 @@ interface MinaContextType {
 		amountOfBids: number
 	) => Promise<void>;
 	getUserStorage: (userKey: string, groupAddress: string) => Promise<void>;
+	getPaymentEvents: (groupAddress: string, userKey?: string) => Promise<PaymentEvent[]>;
 }
-
+type PaymentEvent = {
+	amountDue: string;
+	globalSlot: string;
+	paymentRound: string;
+	txHash: string;
+	txStatus: string;
+};
 const MinaProviderContext = createContext<MinaContextType | undefined>(undefined);
 
 // Custom hook to use the wallet context
@@ -373,6 +380,39 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 			console.error(error);
 		}
 	};
+
+	const getPaymentEvents = async (groupAddress: string, userKey?: string): Promise<PaymentEvent[]> => {
+		try {
+			if (!zkappWorkerClient) {
+				console.error('zkappWorkerClient is not defined');
+				return [];
+			}
+			await logFetchAccount(groupAddress);
+			await zkappWorkerClient.initGroupInstance(groupAddress);
+			const allEvents = (await zkappWorkerClient.fetchGroupEvents()) as string;
+			const parsedEvents = JSON.parse(allEvents);
+
+			const events = userKey
+				? parsedEvents.filter((obj: any) => obj.event.data.userPubKey === userKey)
+				: parsedEvents;
+
+			const userData: PaymentEvent[] = events.map((obj: any) => {
+				return {
+					amountDue: obj.event.data.paymentAmount,
+					globalSlot: obj.event.data.timestamp,
+					paymentRound: obj.event.data.paymentRound,
+					txHash: obj.event.transactionInfo.transactionHash,
+					txStatus: obj.event.transactionInfo.transactionStatus,
+				};
+			});
+			console.log('user data', userData);
+			return userData;
+		} catch (error) {
+			console.error(error);
+			return [];
+		}
+	};
+
 	const deployToken = async () => {
 		// const tokenPrivKey = PrivateKey.random();
 		const tokenPrivKey = PrivateKey.fromBase58(tokenPrivKeyBase58);
@@ -438,6 +478,7 @@ export const MinaProvider: React.FC<MinaProviderProps> = ({ children }) => {
 		addUserToGroup,
 		userPayment,
 		getUserStorage,
+		getPaymentEvents,
 		async compileContractsOnly() {
 			await compileContracts();
 			setIsMinaLoading(false);

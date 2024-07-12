@@ -5,6 +5,7 @@ import { formatDate } from '~/helpers/date-helper';
 import { type Payment } from '~/types/payment-types';
 import PaymentStatus from '../ui/PaymentStatus';
 import { CiMenuKebab } from 'react-icons/ci';
+import { sliceWalletAddress } from '@/helpers/user-helper';
 
 type PaymentItemProps = {
 	payment: Payment;
@@ -22,13 +23,14 @@ const PaymentItem = ({ payment }: PaymentItemProps) => {
 		>
 			<div className="col-span-1 max-w-[120px] min-h-full rounded flex items-center justify-center">5</div>
 			<div className="col-span-2 max-w-[120px] min-h-full rounded flex items-center justify-center">
-				{formatDate(payment.nextPaymentDue)}
+				{/* {formatDate(payment.nextPaymentDue)} */}
+				{payment.nextPaymentDue}
 			</div>
 			<div className="col-span-2 max-w-[120px] min-h-full rounded flex items-center justify-center">
 				{formatCurrency(payment.amountDue)}
 			</div>
 			<div className="col-span-2 flex flex-col justify-center">
-				<p className="font-bold">{payment.transactionId}</p>
+				<p className="font-bold">{sliceWalletAddress(payment.transactionId)}</p>
 				{/* <p className="text-sm text-dark-grey">{product?.groupOrganiser}</p> */}
 			</div>
 			<div className="col-span-2 flex items-center flex items-center justify-center">

@@ -18,6 +18,7 @@ import { useWallet } from '@/providers/WalletProvider';
 import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 import { toast } from 'react-toastify';
 import Spinner from '@/app/_components/ui/Spinner';
+import { Payment } from '@/types/payment-types';
 
 export default function GroupPayment() {
 	// const groupId = router.query.groupId;
@@ -27,9 +28,38 @@ export default function GroupPayment() {
 	const { walletAddress } = useWallet();
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
 	const [number, setNumber] = useState(0);
-	const { userPayment, isMinaLoading } = useMinaProvider();
+	const { userPayment, isMinaLoading, getPaymentEvents } = useMinaProvider();
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [loading, setIsLoading] = useState<boolean>(false);
+	const [productPayments, setProductPayments] = useState<Payment[]>([]);
+
+	useEffect(() => {
+		// Function to fetch payments
+		const fetchPayments = async () => {
+			if (!group) {
+				console.log('no group address');
+				return;
+			}
+			try {
+				const data = await getPaymentEvents(group.chainPubKey);
+				console.log('data:', data);
+				const payments = data.map((payment) => {
+					return {
+						amountDue: parseInt(payment.amountDue),
+						nextPaymentDue: payment.globalSlot,
+						transactionId: payment.txHash,
+						status: payment.txStatus,
+					} as Payment;
+				});
+				setProductPayments(payments);
+			} catch (error) {
+				console.error('Error fetching payments:', error);
+			}
+		};
+
+		// Call the fetch function
+		void fetchPayments();
+	}, [walletAddress, getPaymentEvents]);
 
 	// console.log(query);
 
