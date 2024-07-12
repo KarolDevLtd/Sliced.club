@@ -36,12 +36,12 @@ export default function GroupPayment() {
 	useEffect(() => {
 		// Function to fetch payments
 		const fetchPayments = async () => {
-			if (!group) {
-				console.log('no group address');
+			if (!group || !walletAddress) {
+				console.log('not loaded');
 				return;
 			}
 			try {
-				const data = await getPaymentEvents(group.chainPubKey);
+				const data = await getPaymentEvents(group.chainPubKey, walletAddress.toString());
 				console.log('data:', data);
 				const payments = data.map((payment) => {
 					return {
