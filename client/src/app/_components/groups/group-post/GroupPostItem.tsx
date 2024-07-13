@@ -54,7 +54,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 			if (postData) {
 				setPost(postData.post);
 				//Fetch post image if exists
-				if (currentPost.imageHash!.length > 0) {
+				if (currentPost.imageHash && currentPost.imageHash.length > 0) {
 					setHasImage(true);
 					await fetchImageData(currentPost, setHasImage, setImageData, setImageError);
 				}
@@ -138,7 +138,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	}, [commentCountData, totalCommentCount]);
 
 	return (
-		<div className="flex flex-col mb-4 rounded-xl bg-white border-solid border border-neutral bg-accent p-4">
+		<div className="flex flex-col mb-4 rounded-xl border-solid border border-accent bg-accent p-4">
 			{isLoading ? (
 				'Loading...'
 			) : (
