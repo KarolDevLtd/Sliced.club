@@ -28,7 +28,7 @@ export default function GroupPayment() {
 	const { walletAddress } = useWallet();
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
 	const [number, setNumber] = useState(0);
-	const { userPayment, isMinaLoading, getPaymentEvents } = useMinaProvider();
+	const { userPayment, isMinaLoading, getPaymentEvents, getWinner } = useMinaProvider();
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [loading, setIsLoading] = useState<boolean>(false);
 	const [productPayments, setProductPayments] = useState<Payment[]>([]);
@@ -91,6 +91,26 @@ export default function GroupPayment() {
 					3, // missable
 					parseInt(group.period),
 					0
+				);
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
+	const getWinnerFn = async () => {
+		try {
+			if (group && walletAddress) {
+				await getWinner(
+					group.chainPubKey,
+					// currentSelectedParticpant.metadata.keyvalues.userKey,
+					walletAddress.toString(),
+					parseInt(group.participants),
+					parseInt(group.price),
+					parseInt(group.duration),
+					// parseInt(groupData.group.missable) // TODO that's wrong
+					3, // missable
+					parseInt(group.period)
 				);
 			}
 		} catch (err) {
@@ -219,7 +239,9 @@ export default function GroupPayment() {
 						{/* <div className=""> */}
 						<div className="flex flex-col align-center row-span-2 justify-end mb-8 items-center">
 							{group?.creatorKey == walletAddress?.toString() && (
-								<BasicButton type={'secondary'}>Get Winner</BasicButton>
+								<BasicButton type={'secondary'} onClick={getWinnerFn}>
+									Get Winner
+								</BasicButton>
 							)}
 							<div className="flex justify-center text-3xl my-2">Payment</div>
 							<div className="flex justify-center ">Time left</div>

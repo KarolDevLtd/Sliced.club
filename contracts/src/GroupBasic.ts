@@ -403,7 +403,8 @@ export class GroupBasic extends TokenContract {
     // groupSettingsHash.assertEquals(_groupSettings.hash());
     await this.assertGroupHash(_groupSettings);
     let adminPubKey = this.admin.getAndRequireEquals();
-    adminPubKey.assertEquals(adminPrivKey.toPublicKey());
+    // adminPubKey.assertEquals(adminPrivKey.toPublicKey());
+    adminPubKey.assertEquals(this.sender.getAndRequireSignature());
 
     let currentPaymentRound = this.paymentRound.getAndRequireEquals();
     // Provable.log('randomValue', randomValue);
