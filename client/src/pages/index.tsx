@@ -24,6 +24,7 @@ import mustang from '../../public/promotedimages/mustang.jpg';
 import tesla from '../../public/promotedimages/tesla.jpg';
 import Carousel from '@/app/_components/ui/Carousel';
 import ZoomableImage from '@/app/_components/ui/ZoomableImage';
+import { TiHome } from 'react-icons/ti';
 
 export default function Dashboard() {
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
@@ -61,8 +62,8 @@ export default function Dashboard() {
 							</div>
 						</div>
 					</div>
-					<div className="h-full w-full flex col-span-3">
-						<figure className="h-52 bg-accent w-80 col-span-1 flex justify-center">
+					<div className="h-full w-full flex col-span-3 justify-center">
+						<figure className="h-52 bg-accent w-80 col-span-1 flex">
 							<Carousel
 								slides={imageData.map((image) => ({
 									content: (
@@ -83,17 +84,29 @@ export default function Dashboard() {
 						<div className="grid grid-cols-9">
 							<div className="col-span-6 mx-4">
 								{walletConnected ? (
-									<ProductList
-										heading="My Products"
-										isHomeScreen={true}
-										setCarouselProducts={setCarouselProducts}
-									/>
+									<ProductList heading="My Products" isHomeScreen={true} />
 								) : (
 									'Log in to see all your products'
 								)}
 							</div>
-							<div className="col-span-3 mx-4">
-								<PaymentList heading="Next Payments" payments={myPayments} isHomeScreen={true} />
+							<div className="col-span-3 mx-4 h-full">
+								<div className="flex flex-col gap-2 py-4 h-full">
+									<h2 className="text-2xl">Next Payment</h2>
+									<div className="h-full border border-accent rounded-xl flex grid grid-cols-5 w-full justify-around bg-itemfade py-2">
+										{/* <TiHome /> */}
+										<div className="col-span-1 w-full flex justify-center align-center items-center">
+											<div className="p-2 border border-accent rounded-xl bg-electricblue">
+												<TiHome size={30} />
+											</div>
+										</div>
+										<div className="col-span-4 w-full flex align-center items-center">
+											<div className="grid grid-rows-2">
+												<strong>$ 225</strong>
+												<div>Group Name - Model 3</div>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
