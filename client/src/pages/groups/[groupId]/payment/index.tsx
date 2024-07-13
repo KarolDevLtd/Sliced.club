@@ -144,7 +144,7 @@ export default function GroupPayment() {
 								</div>
 							</div>
 							<div className="h-full flex items-center justify-center justify-between">
-								{/* <div className="flex">
+								<div className="flex">
 									<div className="flex px-2 cursor-pointer" onClick={() => handleNumberChange(-1)}>
 										-
 									</div>
@@ -152,7 +152,7 @@ export default function GroupPayment() {
 									<div className="flex px-2 cursor-pointer" onClick={() => handleNumberChange(1)}>
 										+
 									</div>
-								</div> */}
+								</div>
 								<div className="text-3xl">$240</div>
 							</div>
 						</div>
