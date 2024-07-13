@@ -14,6 +14,7 @@ import { FaShoppingCart } from 'react-icons/fa';
 import { FaMoneyBill } from 'react-icons/fa';
 import { FaSearch } from 'react-icons/fa';
 import { IoMdNotifications } from 'react-icons/io';
+import SlicedLogo from '../../../../../public/logos/SLICED.svg';
 
 type PlatformSidebarProps = {
 	hidden: boolean | undefined;
@@ -25,13 +26,14 @@ const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 			className={`${hidden ? 'hidden sm:flex' : null} fixed top-0 flex flex-col justify-center items-center align-center pb-6 h-full w-full sm:w-1/4 md:w-1/5 lg:w-1/6 `}
 		>
 			<div className="border border-accent rounded-xl border-xl h-full my-8 w-3/4 flex flex-col justify-evenly bg-bottomfade">
-				<div className="min-w-full">
+				<div className="p-2">
+					<Link href="/">
+						<Image src={SlicedLogo} alt="slice logo" width="120" height="64" />
+					</Link>
+				</div>
+				<div className="min-w-full justify-evenly ">
 					<ul className="menu p-0 [&_li>*]:rounded-none">
-						<li className="menu-title pb-6">
-							<Link href="/">
-								<Image src={`/logos/sliced-logo-w-bg.png`} alt="slice logo" width="100" height="64" />
-							</Link>
-						</li>
+						{/* <li className="menu-title pb-6"></li> */}
 						<li>
 							<SidebarItem text="Home" href="/" icon={<FaHome />} />
 						</li>
