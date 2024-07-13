@@ -16,6 +16,7 @@ const SlicedApp: NextComponentType<AppContext, AppInitialProps, AppLayoutProps> 
 
 	return getLayout(
 		<>
+			<link rel="icon" href="/favicon.ico" />
 			<Component {...pageProps} />
 		</>
 	);
