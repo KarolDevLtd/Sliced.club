@@ -20,20 +20,18 @@ const PaymentItem = ({ payment }: PaymentItemProps) => {
 			className="grid grid-cols-10 gap-4 p-2 my-2 bg-itemfade min-w-full min-h-[90px] rounded-md border border-accent hover:border-neutral hover:cursor-pointer overflow-hidden flex justify-around"
 			onClick={(e) => handleClick(e)}
 		>
-			<div className="col-span-1 max-w-[120px] min-h-full rounded flex items-center justify-center">5</div>
-			<div className="col-span-2 max-w-[120px] min-h-full rounded flex items-center justify-center">
+			<div className="col-span-1 min-h-full rounded flex items-center justify-center">5</div>
+			<div className="col-span-2 min-h-full rounded flex items-center justify-center">
 				{formatDate(payment.nextPaymentDue)}
 			</div>
-			<div className="col-span-2 max-w-[120px] min-h-full rounded flex items-center justify-center">
+			<div className="col-span-2 min-h-full rounded flex items-center justify-center">
 				{formatCurrency(payment.amountDue)}
 			</div>
-			<div className="col-span-2 flex flex-col justify-center">
+			<div className="col-span-2 flex flex-col justify-center items-center">
 				<p className="font-bold">{payment.transactionId}</p>
-				{/* <p className="text-sm text-dark-grey">{product?.groupOrganiser}</p> */}
 			</div>
 			<div className="col-span-2 flex items-center flex items-center justify-center">
 				<PaymentStatus status={payment.status} />
-				{/* <InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink> */}
 			</div>
 			<div className="flex justify-center items-center h-full text-3xl">
 				<CiMenuKebab />
