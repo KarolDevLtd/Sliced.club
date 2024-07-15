@@ -355,10 +355,8 @@ export class GroupBasic extends TokenContract {
     // Pay the total amount
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
-    Provable.log('before Transfer');
     await token.transfer(senderAddr, this.address, totalPay);
 
-    Provable.log('before dispatch');
     this.reducer.dispatch(
       new Entry(
         senderAddr,
@@ -373,18 +371,19 @@ export class GroupBasic extends TokenContract {
     // let adminPubKey = this.admin.getAndRequireEquals();
     // let message = Encryption.encrypt(amountOfBids.toFields(), adminPubKey);
 
-    Provable.log('before 2nd dispatch');
     this.reducer.dispatch(
       new Entry(senderAddr, amountOfBids, currentPaymentRound, Bool(false))
     );
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
     // adminPubKey;
+    const globalSlot = this.network.globalSlotSinceGenesis.get();
+    this.network.globalSlotSinceGenesis.requireNothing();
 
     const paymentEvent = new PaymentEvent(
       currentPaymentRound,
       totalPay,
       senderAddr,
-      this.network.globalSlotSinceGenesis.getAndRequireEquals()
+      globalSlot
     );
     Provable.log('paymentEvent', paymentEvent);
     this.emitEvent('payment-made', paymentEvent);
