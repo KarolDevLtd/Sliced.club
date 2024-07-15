@@ -70,13 +70,13 @@ const GroupList = ({
 	}, [inView]);
 
 	return (
-		<div className="flex flex-col gap-2 mb-4">
+		<div className="flex flex-col gap-2 py-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{groups && groups.length > 0 ? (
 				<div
 					className={
 						isHomeScreen
-							? 'overflow-y-scroll flex flex-col m-4 h-96'
+							? 'overflow-y-scroll flex flex-col h-80'
 							: 'overflow-y-scroll flex flex-col m-4 h-fit'
 					}
 				>

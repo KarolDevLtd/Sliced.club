@@ -10,20 +10,20 @@ import { type UserState } from '~/stores/userStore';
 import { type FirebasePostModel } from '~/models/firebase/firebase-post-model';
 import { type IPFSPostModel } from '~/models/ipfs/ipfs-post-model';
 import { api } from '~/trpc/react';
-import BasicButton from '../../ui/BasicButton';
+import BasicButton from '../ui/BasicButton';
 import { FaRegCommentDots } from 'react-icons/fa6';
 import { useWallet } from '~/providers/WalletProvider';
-import PostComment from './group-post-comment/PostComment';
-import PostCommentList from './group-post-comment/PostCommentList';
+import PostComment from '../groups/group-post/group-post-comment/PostComment';
+import PostCommentList from '../groups/group-post/group-post-comment/PostCommentList';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected, sliceWalletAddress } from '~/helpers/user-helper';
 import { toast } from 'react-toastify';
-import ZoomableImage from '../../ui/ZoomableImage';
+import ZoomableImage from '../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
 import { IoMdThumbsUp } from 'react-icons/io';
 import { MdOutlineThumbUp } from 'react-icons/md';
-import UserAvatar from '../../ui/UserAvatar';
+import UserAvatar from '../ui/UserAvatar';
 
-const GroupPostItem = (currentPost: FirebasePostModel) => {
+const CommunityItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
 	const { data: likesData } = api.FirebasePost.getPostLikes.useQuery({ postId: currentPost.hash });
 	const { data: commentCountData, refetch: refetchComments } = api.FirebasePost.getTotalCommentNumber.useQuery({
@@ -138,7 +138,7 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	}, [commentCountData, totalCommentCount]);
 
 	return (
-		<div className="flex flex-col mb-4 rounded-xl border-solid border border-accent bg-accent p-4">
+		<div className="flex flex-col h-fit mb-4 rounded-xl border-solid border border-accent bg-itemfade p-4">
 			{isLoading ? (
 				'Loading...'
 			) : (
@@ -216,4 +216,4 @@ const GroupPostItem = (currentPost: FirebasePostModel) => {
 	);
 };
 
-export default GroupPostItem;
+export default CommunityItem;
