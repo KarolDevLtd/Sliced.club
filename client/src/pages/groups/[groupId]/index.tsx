@@ -32,7 +32,7 @@ export default function Group() {
 	const router = useRouter();
 	const [refreshPosts, setRefreshPosts] = useState(false);
 	const { walletAddress } = useWallet();
-	const { addUserToGroup, getUserStorage } = useMinaProvider();
+	const { addUserToGroup, getUserStorage, getPaymentEvents } = useMinaProvider();
 
 	const groupId = router.query.groupId;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
@@ -106,10 +106,6 @@ export default function Group() {
 
 	useEffect(() => {
 		if (participants) {
-			// console.log('user');
-			// console.log(participants[0].metadata.keyvalues.userKey);
-			// console.log('wallet');
-			// console.log(walletAddress);
 			if (
 				participants.some((participant) => participant.metadata.keyvalues.userKey === walletAddress?.toString())
 			) {
@@ -256,7 +252,8 @@ export default function Group() {
 					onClick={async () => {
 						console.log('group', group?.chainPubKey);
 						console.log('groupData', groupData.group.chainPubKey);
-						await getUserStorage(walletAddress?.toString(), group?.chainPubKey);
+						// await getUserStorage(walletAddress?.toString(), group?.chainPubKey);
+						await getPaymentEvents(group?.chainPubKey, walletAddress?.toString());
 					}}
 				>
 					Invoke user details

@@ -159,6 +159,24 @@ export default class ZkappWorkerClient {
 			amountOfBids,
 		});
 	}
+
+	async getResult(
+		userKey: string,
+		maxMembers: number,
+		itemPrice: number,
+		groupDuration: number,
+		missable: number,
+		paymentDuration: number
+	) {
+		return await this._call('getResult', {
+			userKey,
+			maxMembers,
+			itemPrice,
+			groupDuration,
+			missable,
+			paymentDuration,
+		});
+	}
 	async getGroupAdmin() {
 		return await this._call('getGroupAdmin', {});
 	}

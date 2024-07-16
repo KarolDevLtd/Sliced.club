@@ -368,6 +368,38 @@ const functions = {
 		state.transaction = transaction;
 	},
 
+	getResult: async (args: {
+		userKey: string;
+		maxMembers: number;
+		itemPrice: number;
+		groupDuration: number;
+		missable: number;
+		paymentDuration: number;
+	}) => {
+		const userKey = PublicKey.fromBase58(args.userKey);
+		const maxMembers = UInt32.from(args.maxMembers);
+		const itemPrice = UInt32.from(args.itemPrice);
+		const groupDuration = UInt32.from(args.groupDuration);
+		const tokenAddress = state.tokenZkapp!.address;
+		const missable = UInt32.from(args.missable);
+		const paymentDuration = UInt64.from(args.paymentDuration);
+		const groupSettings = new GroupSettings(
+			maxMembers,
+			itemPrice,
+			groupDuration,
+			tokenAddress,
+			missable,
+			paymentDuration
+		);
+		const transaction = await Mina.transaction({ sender: userKey, fee: 0.01 * 1e9 }, async () => {
+			//gonna have to fund group with token first
+			// AccountUpdate.fundNewAccount(userKey);
+			await state.groupZkapp!.getResults(groupSettings, PrivateKey.random(), Field.from(1));
+			// amountOfPayments reffers to when you have to catchup with payments,if u always on schedule it's just '1'
+		});
+		state.transaction = transaction;
+	},
+
 	/** 
 	Group get functions
 	*/
