@@ -106,10 +106,6 @@ export default function Group() {
 
 	useEffect(() => {
 		if (participants) {
-			// console.log('user');
-			// console.log(participants[0].metadata.keyvalues.userKey);
-			// console.log('wallet');
-			// console.log(walletAddress);
 			if (
 				participants.some((participant) => participant.metadata.keyvalues.userKey === walletAddress?.toString())
 			) {

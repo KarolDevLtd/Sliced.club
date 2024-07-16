@@ -6,7 +6,7 @@ import { FaCreditCard } from 'react-icons/fa';
 import PaymentList from '~/app/_components/payments/PaymentList';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
-import { PaymentBarChartData, productPayments } from '~/static-data';
+import { PaymentBarChartData } from '~/static-data';
 import { TbCalendarDollar } from 'react-icons/tb';
 import { useCallback, useEffect, useState } from 'react';
 import { MdBarChart } from 'react-icons/md';
@@ -18,7 +18,7 @@ import { useWallet } from '@/providers/WalletProvider';
 import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 import { toast } from 'react-toastify';
 import Spinner from '@/app/_components/ui/Spinner';
-import { Payment } from '@/types/payment-types';
+import { type Payment } from '@/types/payment-types';
 
 export default function GroupPayment() {
 	// const groupId = router.query.groupId;
@@ -27,11 +27,14 @@ export default function GroupPayment() {
 	// console.log(router.query);
 	const { walletAddress } = useWallet();
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
-	const [number, setNumber] = useState(0);
+	const [number, setNumber] = useState(1);
 	const { userPayment, isMinaLoading, getPaymentEvents, getWinner } = useMinaProvider();
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [loading, setIsLoading] = useState<boolean>(false);
 	const [productPayments, setProductPayments] = useState<Payment[]>([]);
+	const [installmentsLeft, setInstallmentsLeft] = useState<number>(0);
+	const [paymentsMade, setPaymentsMade] = useState<number>(0);
+	const [outstandingPayments, setOutstandingPayments] = useState<number>(0);
 
 	useEffect(() => {
 		// Function to fetch payments
@@ -125,9 +128,6 @@ export default function GroupPayment() {
 				const currGroup = groupData.group as IPFSGroupModel;
 				setGroup(currGroup);
 				console.log('group data');
-
-				// const z = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupId });
-				// console.log(z);
 			}
 		} catch (err) {
 			console.log(err);
@@ -138,19 +138,25 @@ export default function GroupPayment() {
 	}, [groupData]);
 
 	useEffect(() => {
+		const calculatePaymentDetails = () => {
+			setInstallmentsLeft(group ? parseInt(group.duration) - productPayments.length : 0);
+			setPaymentsMade(group ? productPayments.length * parseInt(group.instalments) : 0);
+			//Outstanding payments
+			setOutstandingPayments(
+				group ? parseInt(group.price) - productPayments.length * parseInt(group.instalments) : 0
+			);
+		};
+		calculatePaymentDetails();
+	}, [productPayments, group]);
+
+	useEffect(() => {
 		void fetchInfo();
 	}, [fetchInfo, group]);
 
 	return (
 		<>
 			<div className="flex flex-col justify-between items-start">
-				<PageHeader
-					text={'Payment'}
-					// text={groupData?.group?.name ?? 'Group Name'}
-					// subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
-					buttonText="Back"
-					onClick={handleBackClick}
-				/>
+				<PageHeader text={'Payment'} buttonText="Back" onClick={handleBackClick} />
 			</div>
 			<div className="grid grid-rows-8 grid-flow-col gap-4 h-full">
 				<div className="col-span-3 row-span-5 grid grid-cols-3 gap-2">
@@ -163,22 +169,22 @@ export default function GroupPayment() {
 								</div>
 								<div className="flex items-center px-4 text-xl">Payment Details</div>
 							</div>
-							<div className="my-5">
+							<div className="my-4 flex flex-col h-2/3 justify-around">
 								<div className="flex justify-between">
 									<div className="text-sm">Installment amount</div>
-									<strong className="text-sm">$230</strong>
+									<strong className="text-sm">${group ? group?.instalments : null}</strong>
 								</div>
 								<div className="flex justify-between">
 									<div className="text-sm">Installments left</div>
-									<strong className="text-sm">26</strong>
+									<strong className="text-sm">{installmentsLeft}</strong>
 								</div>
 								<div className="flex justify-between">
 									<div className="text-sm">Payments made</div>
-									<strong className="text-sm">$2300</strong>
+									<strong className="text-sm">${paymentsMade}</strong>
 								</div>
 								<div className="flex justify-between">
 									<div className="text-sm">Outstanding payments</div>
-									<strong className="text-sm">None</strong>
+									<strong className="text-sm">${outstandingPayments}</strong>
 								</div>
 							</div>
 						</div>
@@ -203,7 +209,7 @@ export default function GroupPayment() {
 										+
 									</div>
 								</div>
-								<div className="text-3xl">$240</div>
+								<div className="text-3xl">${group ? parseInt(group?.instalments) * number : null}</div>
 							</div>
 						</div>
 					</div>

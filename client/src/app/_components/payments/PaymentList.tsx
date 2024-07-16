@@ -10,7 +10,7 @@ type PaymentListProps = {
 
 const PaymentList = ({ heading, payments, isHomeScreen }: PaymentListProps) => {
 	return (
-		<div className="flex flex-col gap-2 py-4">
+		<div className="flex flex-col gap-2 py-4 w-full">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{payments && payments.length > 0 ? (
 				<div
@@ -45,7 +45,7 @@ const PaymentList = ({ heading, payments, isHomeScreen }: PaymentListProps) => {
 					})}
 				</div>
 			) : (
-				<p>No payments scheduled.</p>
+				<p>No payments made.</p>
 			)}
 		</div>
 	);
