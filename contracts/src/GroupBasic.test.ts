@@ -1,6 +1,7 @@
 import { FungibleToken } from './token/FungibleToken';
 import { GroupBasic, GroupSettings, Payments, Entry } from './GroupBasic';
 import {
+  Cache,
   Field,
   Mina,
   PrivateKey,
@@ -140,12 +141,18 @@ describe('GroupBasic', () => {
     //we always need to compile vk2 for tokenStorage
     // Analsye methods
     // console.log('Methods analysed: \n', await GroupBasic.analyzeMethods());
-    const { verificationKey: vk2 } = await GroupBasic.compile();
+    const { verificationKey: vk2 } = await GroupBasic.compile({
+      cache: Cache.FileSystemDefault,
+    });
     verificationKey = vk2;
     if (proofsEnabled) {
-      await FungibleToken.compile();
+      await FungibleToken.compile({
+        cache: Cache.FileSystemDefault,
+      });
       console.log('compiled fungible token ');
-      await Escrow.compile();
+      await Escrow.compile({
+        cache: Cache.FileSystemDefault,
+      });
       console.log('compiled escrow ');
     }
 

@@ -1,6 +1,7 @@
 import { FungibleToken } from './token/FungibleToken';
 import { GroupId, GroupSettings, Payments, Entry } from './GroupId';
 import {
+  Cache,
   Field,
   Mina,
   PrivateKey,
@@ -94,10 +95,14 @@ describe('GroupId', () => {
 
     const { verificationKey: vk3 } = await proofOfNationality.compile();
     verificationKeyAge = vk3;
-    const { verificationKey: vk2 } = await GroupId.compile();
+    const { verificationKey: vk2 } = await GroupId.compile({
+      cache: Cache.FileSystemDefault,
+    });
     verificationKey = vk2;
     if (proofsEnabled) {
-      await FungibleToken.compile();
+      await FungibleToken.compile({
+        cache: Cache.FileSystemDefault,
+      });
       console.log('compiled');
     }
 
