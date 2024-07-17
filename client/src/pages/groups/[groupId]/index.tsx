@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import TextInput from '@/app/_components/ui/TextInput';
 import { preventActionNotLoggedIn } from '@/helpers/user-helper';
 import { useWallet } from '@/providers/WalletProvider';
 import { useMinaProvider } from '@/providers/minaprovider';
@@ -24,7 +23,6 @@ import { type UserState } from '~/stores/userStore';
 import { showModal } from '@/helpers/modal-helper';
 import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 import Spinner from '@/app/_components/ui/Spinner';
-import BasicButton from '@/app/_components/ui/BasicButton';
 import Carousel from '@/app/_components/ui/Carousel';
 import ZoomableImage from '@/app/_components/ui/ZoomableImage';
 
@@ -32,7 +30,16 @@ export default function Group() {
 	const router = useRouter();
 	const [refreshPosts, setRefreshPosts] = useState(false);
 	const { walletAddress } = useWallet();
-	const { addUserToGroup, getUserStorage, getPaymentEvents } = useMinaProvider();
+	const { addUserToGroup } = useMinaProvider();
+	const [isLoading, setIsLoading] = useState(false);
+	const [group, setGroup] = useState<IPFSGroupModel>();
+	const [product, setProduct] = useState<IPFSProductModel>();
+	const [participants, setParticipants] = useState<IPFSGroupParticipantModel[]>();
+	const [hasImage, setHasImage] = useState<boolean>(false);
+	const [imageData, setImageData] = useState<string[]>([]);
+	const [imageError, setImageError] = useState(false);
+	const [isParticipant, setIsParticipant] = useState<boolean>(false);
+	const [pendingParticipants, setPendingParticipants] = useState<IPFSGroupParticipantModel[]>();
 
 	const groupId = router.query.groupId;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
@@ -44,26 +51,12 @@ export default function Group() {
 	});
 	const groupParticipantToIPFS = api.PinataGroup.createGroupParticipantObject.useMutation();
 
-	const [isLoading, setIsLoading] = useState(false);
-	const [group, setGroup] = useState<IPFSGroupModel>();
-	const [product, setProduct] = useState<IPFSProductModel>();
-	const [participants, setParticipants] = useState<IPFSGroupParticipantModel[]>();
-	const [hasImage, setHasImage] = useState<boolean>(false);
-	const [imageData, setImageData] = useState<string[]>([]);
-	const [imageError, setImageError] = useState(false);
-	const [isParticipant, setIsParticipant] = useState<boolean>(false);
-	const [pendingParticipants, setPendingParticipants] = useState<IPFSGroupParticipantModel[]>();
-
-	const [admitUserKey, setAdmitUserKey] = useState('');
-
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 
 	const handlePostSubmission = () => {
 		// After the post is submitted successfully, set refreshPosts to true to trigger a refresh of posts
 		setRefreshPosts(true);
 	};
-
-	const {} = useMinaProvider();
 
 	const showAdmitModal = async () => {
 		try {
@@ -80,9 +73,7 @@ export default function Group() {
 			if (groupData) {
 				const currGroup = groupData.group as IPFSGroupModel;
 				setGroup(currGroup);
-				console.log('group data');
-				// const z = api.PinataGroup.getGroupParticipants.useQuery({ groupHash: groupId });
-				// console.log(z);
+				// console.log('group data');
 			}
 			if (productData) {
 				const currProd = productData.product as IPFSProductModel;
@@ -90,9 +81,6 @@ export default function Group() {
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 			if (participantData) {
-				// const currProd = productData.product as IPFSProductModel;
-				// setProduct(productData.product);
-				// await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 				console.log(participantData.participants);
 				setParticipants(participantData.participants.rows);
 			}
@@ -180,14 +168,11 @@ export default function Group() {
 
 									await addUserToGroup(
 										groupData.group.chainPubKey,
-										// currentSelectedParticpant.metadata.keyvalues.userKey,
 										walletAddress.toString(),
 										parseInt(groupData.group.participants),
 										parseInt(groupData.group.price),
 										parseInt(groupData.group.duration),
-										// parseInt(groupData.group.missable) // TODO that's wrong
 										3, // missable
-										// payment duration
 										parseInt(groupData.group.period)
 									);
 									await groupParticipantToIPFS.mutateAsync({
@@ -206,58 +191,9 @@ export default function Group() {
 						}}
 					/>
 				)}
-				{/* <PageHeader
-					text={'Pay'}
-					subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
-					buttonText="Payment"
-					onClick={async () => {
-						try {
-							console.log('paying group');
-							if (groupId && walletAddress && group) {
-								// console.log('add user ipfs values :\n', groupData.group);
-								console.log(walletAddress.toString());
-								console.log(parseInt(groupData.group.participants));
-								console.log(parseInt(groupData.group.price));
-								console.log(parseInt(groupData.group.duration));
-								await userPayment(
-									groupData.group.chainPubKey,
-									// currentSelectedParticpant.metadata.keyvalues.userKey,
-									walletAddress.toString(),
-									parseInt(groupData.group.participants),
-									parseInt(groupData.group.price),
-									parseInt(groupData.group.duration),
-									// parseInt(groupData.group.missable) // TODO that's wrong
-									3, // missable
-									2592000, // payment duration
-									0
-								);
-								// await groupParticipantToIPFS.mutateAsync({
-								// 	groupHash: groupId.toString(),
-								// 	creatorKey: group.creatorKey,
-								// 	userKey: walletAddress.toString(),
-								// 	status: 'approved',
-								// });
-								// setIsParticipant(true);
-							}
-						} catch (error) {
-							console.log(error);
-						}
-					}}
-				/> */}
 			</div>
 
 			<div className="flex-1">
-				<BasicButton
-					type={'primary'}
-					onClick={async () => {
-						console.log('group', group?.chainPubKey);
-						console.log('groupData', groupData.group.chainPubKey);
-						// await getUserStorage(walletAddress?.toString(), group?.chainPubKey);
-						await getPaymentEvents(group?.chainPubKey, walletAddress?.toString());
-					}}
-				>
-					Invoke user details
-				</BasicButton>
 				<div className="grid grid-cols-4 grid-rows-2 gap-2 h-auto">
 					<div className="card card-side bg-base-100 col-span-4 items-center p-2 grid grid-cols-4">
 						<figure className="h-48 bg-accent col-span-1 w-88">

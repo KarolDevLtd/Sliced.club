@@ -1,24 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import PlatformLayout from '~/layouts/platform';
 import DashboardHeader from '~/app/_components/dashboard/DashboardHeader';
 import ProductList from '~/app/_components/products/ProductList';
-import PaymentList from '~/app/_components/payments/PaymentList';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import GroupList from '~/app/_components/groups/GroupList';
-import { myPayments } from '~/static-data';
 import BasicButton from '@/app/_components/ui/BasicButton';
 import CommunityItem from '@/app/_components/community/CommunityItem';
-import { type IPFSSearchModel } from '@/models/ipfs/ipfs-search-model';
 import gopro from '../../public/promotedimages/gopro.jpg';
 import mustang from '../../public/promotedimages/mustang.jpg';
 import tesla from '../../public/promotedimages/tesla.jpg';
@@ -37,8 +28,6 @@ export default function Dashboard() {
 		if (router.query.login === 'wallet') toast.success('Logged in with wallet successfully');
 	}, [router.query.login, router.query.register]);
 
-	const [carouselProducts, setCarouselProducts] = useState<IPFSSearchModel[]>();
-
 	const imageData = [gopro, mustang, tesla];
 
 	return (
@@ -46,7 +35,7 @@ export default function Dashboard() {
 			<DashboardHeader />
 			<div className="grid grid-rows-7 gap-4 h-full flex-1">
 				<div className="row-span-2 grid grid-cols-9">
-					<div className="p-2 col-span-6 mx-4">
+					<div className="p-2 col-span-6 mx-2">
 						<div className="border border-accent bg-backgroundfade rounded-xl p-3 flex flex-col justify-center">
 							<div className="text-xl">Notification Title</div>
 							<div className="text-sm">12.01.24</div>
