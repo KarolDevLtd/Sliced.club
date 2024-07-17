@@ -157,7 +157,7 @@ export class GroupBasic extends TokenContract {
   @state(PublicKey) escrow = State<PublicKey>();
   /** Current index of the payment. */
   @state(UInt64) paymentRound = State<UInt64>();
-  /** Exact number of members needed for this group . */
+  /** Exact number of members needed for this group. */
   @state(UInt32) members = State<UInt32>();
 
   reducer = Reducer({ actionType: Entry });
@@ -170,7 +170,6 @@ export class GroupBasic extends TokenContract {
   @method
   async approveBase(updates: AccountUpdateForest): Promise<void> {
     this.checkZeroBalanceChange(updates);
-    // TODO: event emission here
   }
 
   async deploy(
@@ -193,7 +192,6 @@ export class GroupBasic extends TokenContract {
     // It does do something
     this.account.permissions.set({
       ...Permissions.default(),
-      // editState: Permissions.none(),
       send: Permissions.impossible(),
       incrementNonce: Permissions.proofOrSignature(),
     });
@@ -212,36 +210,8 @@ export class GroupBasic extends TokenContract {
     // Ensure withdraw is a multiple of the item price
     withdraw.mod(_groupSettings.itemPrice).assertEquals(UInt32.zero);
 
-    // // Transfer token to the caller
-    // const token = new FungibleToken(_groupSettings.tokenAddress);
-
-    // // withdraw the amount
-    // // let receiverAu = this.send({ to: admin, amount: new UInt64(withdraw) }); //err with overflow, I guess it's wrong token?
-
-    // // let receiverAu = token.send({
-    // //   to: admin,
-    // //   amount: new UInt64(withdraw),
-    // // }); // doesnt transfer the tokens
-
-    // // let receiverAu = token.internal.send({
-    // //   from: this.address,
-    // //   to: admin,
-    // //   amount: new UInt64(withdraw),
-    // // }); // doesnt transfer the tokens
-
-    // // await token.transfer(this.address, admin, new UInt64(withdraw)); // fails due 'incrementNonce' because permission for this field is 'Signature', but the required authorization was not provided ???
-
-    // // let adminAU = AccountUpdate.createSigned(admin, token.deriveTokenId()); // forces admin to sign
-    // // adminAU.body.useFullCommitment = Bool(true); // admin signs full tx so that the signature can't be reused against them
-    // // adminAU.send({ to: admin, amount: new UInt64(withdraw) });
-
-    // // let the receiver update inherit token permissions from this contract
-    // // receiverAu.body.mayUseToken = AccountUpdate.MayUseToken.InheritFromParent;
-
     // Need to call the escrow to withdraw
     let escrow = new Escrow(this.escrow.getAndRequireEquals());
-
-    // await escrow.withdrawOptimized(new UInt64(withdraw));
   }
 
   @method
@@ -273,7 +243,6 @@ export class GroupBasic extends TokenContract {
     );
   }
 
-  /** Called once at the start. User relinquishes ability to modify token account bu signing */
   @method async addUserToGroup(
     _groupSettings: GroupSettings,
     address: PublicKey,
@@ -321,18 +290,6 @@ export class GroupBasic extends TokenContract {
   }
 
   @method
-  async testPayment(_groupSettings: GroupSettings) {
-    // Payment to the contract
-    let senderAddr = this.sender.getAndRequireSignature();
-    const token = new FungibleToken(_groupSettings.tokenAddress);
-    await token.transfer(
-      senderAddr,
-      this.escrow.getAndRequireEquals(),
-      new UInt64(100)
-    );
-  }
-
-  @method
   async roundPayment(
     _groupSettings: GroupSettings,
     amountOfBids: UInt64, // Can be zero
@@ -362,7 +319,7 @@ export class GroupBasic extends TokenContract {
     // Fetch current round index from contract
     let currentPaymentRound: UInt64 = this.paymentRound.getAndRequireEquals();
 
-    // Tallys
+    // Tallies
     let paymentBatch: UInt32 = new UInt32(amountOfPayments);
     let totalPayments: UInt32 = UInt32.zero;
     let totalCompensations: UInt32 = UInt32.zero;
@@ -420,7 +377,6 @@ export class GroupBasic extends TokenContract {
       );
 
       // If compensation is true add to the comp tally
-      // Also if payment marked false for this month TODO
       totalCompensations = totalCompensations.add(
         Provable.if(compensationsBools[i], UInt32.one, UInt32.zero)
       );
@@ -434,13 +390,11 @@ export class GroupBasic extends TokenContract {
     members.assertEquals(_groupSettings.members);
 
     // Write back payments and compensations to the token storage
-    // createSigned() is needed , create() deosnt cut it
     const update = AccountUpdate.create(senderAddr, this.deriveTokenId());
     this.approve(update);
     AccountUpdate.setValue(
       update.body.update.appState[indexes.payments],
       Payments.fromBoolsField(paymentsBools)
-      // Field(69)
     );
     AccountUpdate.setValue(
       update.body.update.appState[indexes.compensations],
@@ -459,10 +413,8 @@ export class GroupBasic extends TokenContract {
       ).add(new UInt64(amountOfPayments))
     );
 
-    // Provable.log('totalPay', totalPay);
-    let totalPaymentsU64: UInt64 = new UInt64(totalPayments);
-
     // Pay the total amount
+    let totalPaymentsU64: UInt64 = new UInt64(totalPayments);
     const token = new FungibleToken(_groupSettings.tokenAddress);
 
     // Payment to the contract
@@ -471,9 +423,6 @@ export class GroupBasic extends TokenContract {
       this.escrow.getAndRequireEquals(),
       totalPay
     );
-
-    // Provable.log('totalPaymentsU64', totalPaymentsU64);
-    // Provable.log('currentPaymentRound', currentPaymentRound);
 
     // Can't paritcipate in lottery if they already won it
     let pickedAlready: Bool = userStorage.canClaim.get();
@@ -520,8 +469,7 @@ export class GroupBasic extends TokenContract {
 
     // UInt32.fromFields(Encryption.decrypt(message, adminPubKey));
   }
-  //TODO  mitigate the 'latest' most likley to win in underpaid group (eg 15/20 paid, rnd = 18 (15th has 5/20 chance))
-  //^ iterate from last ? and flip Bools
+
   @method
   async getResults(
     _groupSettings: GroupSettings,
@@ -629,7 +577,6 @@ export class GroupBasic extends TokenContract {
           lotteryWinner
         );
 
-        // Provable.log('Lottery winner: ', lotteryWinner);
         // UInt64.fromFields(Encryption.decrypt(action.message, adminPrivKey));
         distanceFromRandom = Provable.if(
           lotteryCondition,
