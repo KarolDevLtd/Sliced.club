@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { useEffect, useState } from 'react';
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';

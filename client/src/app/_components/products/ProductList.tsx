@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import ProductItem from './ProductItem';
 import { api } from '~/trpc/react';
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';

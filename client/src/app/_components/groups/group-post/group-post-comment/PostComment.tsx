@@ -1,24 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-
 import { toast } from 'react-toastify';
-
 import TextArea from '../../../ui/TextArea';
 import BasicButton from '../../../ui/BasicButton';
-import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { IoIosSend } from 'react-icons/io';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import Spinner from '../../../ui/Spinner';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 
 type PostCommentProps = {
 	postId: string;
@@ -53,7 +46,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 		if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post a comment')) return;
 		try {
 			setIsLoading(true);
-			await saveComment(data['comment-content']);
+			await saveComment(data['comment-content'] as string);
 			reset();
 			refetchComments();
 			toast.success('Comment posted successfully');

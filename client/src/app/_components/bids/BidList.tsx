@@ -1,4 +1,4 @@
-import { Bid } from '~/types/payment-types';
+import { type Bid } from '~/types/payment-types';
 import BidItem from './BidItem';
 
 type BidListProps = {

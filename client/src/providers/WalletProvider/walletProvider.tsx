@@ -5,12 +5,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // providers/walletprovider.tsx
 'use client';
-import MinaProvider, { ChainInfoArgs, ProviderError } from '@aurowallet/mina-provider';
-import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { sliceWalletAddress } from '~/helpers/user-helper';
 
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
-import { useMinaProvider } from '../minaprovider';
+import { useMinaProvider } from '../MinaProvider/minaProvider';
 import { useStartUpProvider } from '../start-up-provider';
 
 // Define the type for the context value

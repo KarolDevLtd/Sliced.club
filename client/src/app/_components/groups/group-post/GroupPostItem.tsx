@@ -12,7 +12,7 @@ import { type IPFSPostModel } from '~/models/ipfs/ipfs-post-model';
 import { api } from '~/trpc/react';
 import BasicButton from '../../ui/BasicButton';
 import { FaRegCommentDots } from 'react-icons/fa6';
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider';
 import PostComment from './group-post-comment/PostComment';
 import PostCommentList from './group-post-comment/PostCommentList';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected, sliceWalletAddress } from '~/helpers/user-helper';

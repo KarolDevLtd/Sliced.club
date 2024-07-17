@@ -8,21 +8,17 @@ import { useForm } from 'react-hook-form';
 
 import { toast } from 'react-toastify';
 import { preventActionWalletNotConnected, sliceWalletAddress } from '~/helpers/user-helper';
-
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-
 import BasicButton from '../../ui/BasicButton';
-import TextInput from '../../ui/TextInput';
 import Spinner from '../../ui/Spinner';
 import { closeModal } from '~/helpers/modal-helper';
 import TextArea from '../../ui/TextArea';
 import BasicModal from '../../ui/BasicModal';
 import DragDrop from '../../ui/ImageUpload';
-
 import { saveImages } from '~/helpers/image-helper';
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { FaImage } from 'react-icons/fa6';
@@ -36,15 +32,10 @@ type AddGroupPostModalProps = {
 const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
-	const [refreshPosts, setRefreshPosts] = useState(false);
 	const [showAttachments, setShowAttachments] = useState(false);
-
 	const { walletDisplayAddress, walletAddress } = useWallet();
-
 	const postToIPFS = api.PinataPost.postMessage.useMutation();
 	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
-
-	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const {

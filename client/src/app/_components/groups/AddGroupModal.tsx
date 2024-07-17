@@ -19,15 +19,14 @@ import { toast } from 'react-toastify';
 import { CountryOptions } from '~/models/country-options';
 import Spinner from '../ui/Spinner';
 import { api } from '~/trpc/react';
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { DateTime } from 'luxon';
-import InstalmentSlider from '~/app/_components/ui/InstalmentSlider';
 import { type DropDownContentModel } from '~/models/dropdown-content-model';
 import { closeModal } from '~/helpers/modal-helper';
 import { FaUserGroup } from 'react-icons/fa6';
 import TextArea from '../ui/TextArea';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
-import { useMinaProvider } from '@/providers/minaprovider';
+import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
 import Game from '../game/game';
 import { PeriodOptions } from '@/models/period-options';
 
@@ -40,7 +39,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const { isConnected, walletAddress } = useWallet();
 	const [displayProductCount, setDisplayProductCount] = useState(20);
 
-	const { deployGroup, logFetchAccount, isMinaLoading, groupPublicKey } = useMinaProvider();
+	const { deployGroup, isMinaLoading } = useMinaProvider();
 
 	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery({
 		creatorKey: walletAddress?.toString(),
@@ -149,7 +148,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 				reset();
 				closeModal('add-group');
 				toast.success('Posted successfully');
-			} else console.log('group pub key', groupPublicKey);
+			}
 		} catch (err) {
 			console.log(err);
 		} finally {

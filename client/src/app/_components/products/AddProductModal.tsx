@@ -21,7 +21,7 @@ import Spinner from '../ui/Spinner';
 import ImageUpload from '../ui/ImageUpload';
 import { defaultImageHash, saveImages } from '~/helpers/image-helper';
 import { api } from '~/trpc/react';
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { DateTime } from 'luxon';
 import ProductFields from './ProductFields';
 import { closeModal } from '~/helpers/modal-helper';

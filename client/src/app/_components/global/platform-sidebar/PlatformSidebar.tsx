@@ -1,11 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-
 import SidebarItem from './SidebarItem';
 import MinaButton from '../../ui/MinaButton';
 import LogoutButton from './LogoutButton';
-
 import { FaHome } from 'react-icons/fa';
 import { FaUserGroup } from 'react-icons/fa6';
 import { FaUser } from 'react-icons/fa';
@@ -28,12 +26,11 @@ const PlatformSidebar = ({ hidden = false }: PlatformSidebarProps) => {
 			<div className="border border-accent rounded-xl border-xl h-full my-8 w-3/4 flex flex-col justify-evenly bg-bottomfade">
 				<div className="p-2">
 					<Link href="/">
-						<Image src={SlicedLogo} alt="slice logo" width="120" height="64" />
+						<Image src={SlicedLogo as string} alt="slice logo" width="120" height="64" />
 					</Link>
 				</div>
 				<div className="min-w-full justify-evenly ">
 					<ul className="menu p-0 [&_li>*]:rounded-none">
-						{/* <li className="menu-title pb-6"></li> */}
 						<li>
 							<SidebarItem text="Home" href="/" icon={<FaHome />} />
 						</li>

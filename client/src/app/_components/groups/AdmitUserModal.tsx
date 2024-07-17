@@ -2,13 +2,12 @@ import BasicModal from '../ui/BasicModal';
 import { useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import { closeModal } from '@/helpers/modal-helper';
-import { useWallet } from '@/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { api } from '@/trpc/react';
 import { type ChangeEvent, useEffect, useState } from 'react';
 import { type DropDownContentModel } from '@/models/dropdown-content-model';
 import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 import SelectOption from '../ui/SelectOption';
-import { useMinaProvider } from '@/providers/minaprovider';
 import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 type AdmitUserModalProps = {
 	groupHash: string;
@@ -17,8 +16,7 @@ type AdmitUserModalProps = {
 };
 
 const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps) => {
-	const { isConnected, walletAddress } = useWallet();
-	const { addUserToGroup, groupPublicKey } = useMinaProvider();
+	const { walletAddress } = useWallet();
 	const [dropdownParticipants, setDropdownParticipants] = useState<DropDownContentModel[]>([]);
 	const [currentSelectedParticpant, setCurrentSelectedParticpant] = useState<IPFSGroupParticipantModel>();
 
@@ -28,13 +26,7 @@ const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps)
 		userKey: currentSelectedParticpant ? currentSelectedParticpant.metadata.keyvalues.userKey : '',
 	});
 	const deleteData = api.PinataGroup.deleteGroupParticipantObject.useMutation();
-	const {
-		register,
-		unregister,
-		handleSubmit,
-		reset,
-		formState: { errors },
-	} = useForm({
+	const { unregister, handleSubmit, reset } = useForm({
 		mode: 'onSubmit',
 		reValidateMode: 'onSubmit',
 		// Resolver for using Zod validation library schema

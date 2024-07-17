@@ -1,8 +1,8 @@
 import React, { type ReactNode } from 'react';
 import { TRPCReactProvider } from '~/trpc/react';
-import { WalletProvider } from './WalletProvider';
+import { WalletProvider } from './WalletProvider/walletProvider';
 import { UserStoreProvider } from '~/providers/store-providers/userStoreProvider';
-import { MinaProvider } from './minaprovider';
+import { MinaProvider } from './MinaProvider/minaProvider';
 import { StartUpProvider } from './start-up-provider';
 
 interface Props {

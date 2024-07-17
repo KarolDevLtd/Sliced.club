@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import React, { useCallback, useEffect, useState } from 'react';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -12,7 +7,6 @@ import { type IPFSPostModel } from '~/models/ipfs/ipfs-post-model';
 import { api } from '~/trpc/react';
 import BasicButton from '../ui/BasicButton';
 import { FaRegCommentDots } from 'react-icons/fa6';
-import { useWallet } from '~/providers/WalletProvider';
 import PostComment from '../groups/group-post/group-post-comment/PostComment';
 import PostCommentList from '../groups/group-post/group-post-comment/PostCommentList';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected, sliceWalletAddress } from '~/helpers/user-helper';
@@ -22,6 +16,7 @@ import { fetchImageData } from '~/helpers/image-helper';
 import { IoMdThumbsUp } from 'react-icons/io';
 import { MdOutlineThumbUp } from 'react-icons/md';
 import UserAvatar from '../ui/UserAvatar';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 
 const CommunityItem = (currentPost: FirebasePostModel) => {
 	const { data: postData } = api.PinataPost.getMessage.useQuery({ hash: currentPost.hash });
@@ -52,7 +47,7 @@ const CommunityItem = (currentPost: FirebasePostModel) => {
 		setIsLoading(true);
 		try {
 			if (postData) {
-				setPost(postData.post);
+				setPost(postData.post as IPFSPostModel);
 				//Fetch post image if exists
 				if (currentPost.imageHash && currentPost.imageHash.length > 0) {
 					setHasImage(true);
@@ -71,7 +66,7 @@ const CommunityItem = (currentPost: FirebasePostModel) => {
 		setIsLoading(true);
 		try {
 			if (postData) {
-				setPost(postData.post);
+				setPost(postData.post as IPFSPostModel);
 				const postLikes = likesData?.likes;
 				if (postLikes?.some((e) => e.posterKey === walletAddress?.toString())) {
 					setIsLiked(true);
@@ -114,7 +109,6 @@ const CommunityItem = (currentPost: FirebasePostModel) => {
 					setLikeCount(likeCount - 1);
 				});
 		} catch (err) {
-			// console.log('Error unliking');
 			toast.error('Error unliking post');
 		}
 	};
@@ -143,7 +137,6 @@ const CommunityItem = (currentPost: FirebasePostModel) => {
 				'Loading...'
 			) : (
 				<div>
-					{/* <div className=""> */}
 					<div className="flex items-center gap-2 mb-2">
 						<UserAvatar walletAddress={currentPost.posterKey} />
 						<div className="flex flex-col">

@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { preventActionNotLoggedIn } from '@/helpers/user-helper';
-import { useWallet } from '@/providers/WalletProvider';
-import { useMinaProvider } from '@/providers/minaprovider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
+import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
