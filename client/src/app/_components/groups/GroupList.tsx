@@ -10,6 +10,7 @@ import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 
 type GroupListProps = {
 	heading?: string;
@@ -72,7 +73,9 @@ const GroupList = ({
 	return (
 		<div className="flex flex-col gap-2 py-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
-			{groups && groups.length > 0 ? (
+			{isLoading && groups.length == 0 ? (
+				<Skeleton count={isHomeScreen ? 3 : 6} />
+			) : groups && groups.length > 0 ? (
 				<div
 					className={
 						isHomeScreen
