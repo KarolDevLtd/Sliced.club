@@ -11,6 +11,7 @@ import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 
 type ProductListProps = {
 	heading?: string;
@@ -58,23 +59,29 @@ const ProductList = ({ heading, isHomeScreen }: ProductListProps) => {
 	return (
 		<div className="flex flex-col gap-2 py-4">
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
-			<div
-				className={
-					isHomeScreen ? 'overflow-y-scroll flex flex-col h-32' : 'overflow-y-scroll flex flex-col m-4 h-96'
-				}
-			>
-				{products && products.length > 0 ? (
-					<>
-						{products.map((product, index) => (
-							<ProductItem key={index} productHash={product.ipfs_pin_hash} />
-						))}
-						{productCount > displayProductCount ? <div ref={ref} /> : 'No more products to display...'}
-						{isLoading && <Spinner />}
-					</>
-				) : (
-					<p>No products found.</p>
-				)}
-			</div>
+			{isLoading && products.length == 0 ? (
+				<Skeleton count={isHomeScreen ? 1 : 6} />
+			) : (
+				<div
+					className={
+						isHomeScreen
+							? 'overflow-y-scroll flex flex-col h-32'
+							: 'overflow-y-scroll flex flex-col m-4 h-96'
+					}
+				>
+					{products && products.length > 0 ? (
+						<>
+							{products.map((product, index) => (
+								<ProductItem key={index} productHash={product.ipfs_pin_hash} />
+							))}
+							{productCount > displayProductCount ? <div ref={ref} /> : 'No more products to display...'}
+							{isLoading ? <Spinner /> : null}
+						</>
+					) : (
+						<p>No products found.</p>
+					)}
+				</div>
+			)}
 		</div>
 	);
 };
