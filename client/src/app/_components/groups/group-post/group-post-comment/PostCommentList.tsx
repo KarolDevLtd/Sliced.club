@@ -1,8 +1,3 @@
-/* eslint-disable react/jsx-key */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React, { useEffect, useState } from 'react';
 import { type FirebaseCommentModel } from '~/models/firebase/firebase-comment-model';
 import PostCommentItem from './PostCommentItem';
@@ -10,7 +5,6 @@ import Spinner from '~/app/_components/ui/Spinner';
 import { defaultPageLimit } from '~/helpers/search-helper';
 import { api } from '~/trpc/react';
 import { useInView } from 'react-intersection-observer';
-import { DateTime } from 'luxon';
 
 type PostCommentListProps = {
 	parentMessageId: string;
