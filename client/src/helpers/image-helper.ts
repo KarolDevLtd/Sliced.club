@@ -7,6 +7,12 @@ import imageCompression from 'browser-image-compression';
 // hash for sliced default image
 const defaultImageHash = 'QmTdpE5ZdBTnnragH1mGjgJBcoDWYxhJc59VMMgYwHc3MV';
 
+interface IPFSResponseType {
+	data: {
+		IpfsHash: string;
+	};
+}
+
 const options = {
 	maxSizeMB: 1,
 	maxWidthOrHeight: 1920,
@@ -23,8 +29,8 @@ const compressImage = async (imageFile: File): Promise<File> => {
 	return compressedFile;
 };
 
-const saveImages = async (images: File[]) => {
-	const imgArr: Response[] = [];
+const saveImages = async (images: File[]): Promise<IPFSResponseType[]> => {
+	const imgArr: IPFSResponseType[] = [];
 	for (const element of images) {
 		const body = new FormData();
 		body.set('file', element);
@@ -35,7 +41,7 @@ const saveImages = async (images: File[]) => {
 		if (!response.ok) {
 			throw new Error('Error uploading profile image');
 		}
-		const result: Response = await response.json();
+		const result: IPFSResponseType = await response.json();
 		if (!result) throw new Error('Error uploading profile image');
 		imgArr.push(result);
 	}
