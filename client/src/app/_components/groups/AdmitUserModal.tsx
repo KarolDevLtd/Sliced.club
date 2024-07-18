@@ -1,5 +1,5 @@
 import BasicModal from '../ui/BasicModal';
-import { useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import BasicButton from '../ui/BasicButton';
 import { closeModal } from '@/helpers/modal-helper';
 import { useWallet } from '@/providers/WalletProvider/walletProvider';
@@ -9,10 +9,21 @@ import { type DropDownContentModel } from '@/models/dropdown-content-model';
 import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 import SelectOption from '../ui/SelectOption';
 import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
+
 type AdmitUserModalProps = {
 	groupHash: string;
 	participants: IPFSGroupParticipantModel[];
 	group: IPFSGroupModel;
+};
+
+interface PinataParticipantDataType {
+	participant: {
+		rows: IPFSGroupParticipantModel[];
+	};
+}
+
+type FormValuesType = {
+	'user-key': string;
 };
 
 const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps) => {
@@ -21,12 +32,12 @@ const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps)
 	const [currentSelectedParticpant, setCurrentSelectedParticpant] = useState<IPFSGroupParticipantModel>();
 
 	const groupParticipantToIPFS = api.PinataGroup.createGroupParticipantObject.useMutation();
-	const { data: participantData } = api.PinataGroup.getGroupParticipant.useQuery({
+	const { data: participantData } = api.PinataGroup.getGroupParticipant.useQuery<PinataParticipantDataType>({
 		groupHash: groupHash,
 		userKey: currentSelectedParticpant ? currentSelectedParticpant.metadata.keyvalues.userKey : '',
 	});
 	const deleteData = api.PinataGroup.deleteGroupParticipantObject.useMutation();
-	const { unregister, handleSubmit, reset } = useForm({
+	const { unregister, handleSubmit, reset } = useForm<FormValuesType>({
 		mode: 'onSubmit',
 		reValidateMode: 'onSubmit',
 		// Resolver for using Zod validation library schema
@@ -37,38 +48,29 @@ const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps)
 	const [isLoading, setIsLoading] = useState(false);
 	// const [participants, setParticipants] = useState();
 
-	const onSubmit = async (data: any) => {
+	const onSubmit: SubmitHandler<FormValuesType> = async (data) => {
 		try {
-			//if not null, then need to update
 			if (walletAddress && currentSelectedParticpant && group) {
-				//addUserToGroup
-				// console.log('pubkeyt', group.chainPubKey.toString());
-				// await addUserToGroup(
-				// 	group.chainPubKey.toString(),
-				// 	currentSelectedParticpant.metadata.keyvalues.userKey,
-				// 	parseInt(group.participants),
-				// 	parseInt(group.price),
-				// 	parseInt(group.duration),
-				// 	3
-				// );
-
 				//Fetch all instances with that user key and pending status and get ipfs hash
 				const pendingEntries = participantData?.participant.rows;
 				//Delete all objects
-				for (let i = 0; i < pendingEntries.length; i++) {
-					// console.log(pendingEntries[i].ipfs_pin_hash);
-					await deleteData.mutateAsync({ groupHash: pendingEntries[i].ipfs_pin_hash });
+				if (pendingEntries != null) {
+					for (const entry of pendingEntries) {
+						// console.log(entry.ipfs_pin_hash);
+						await deleteData.mutateAsync({ groupHash: entry.metadata.keyvalues.groupHash });
+					}
+
+					//Create new instances with approved status
+					const hash = groupParticipantToIPFS.mutateAsync({
+						groupHash: groupHash,
+						creatorKey: walletAddress.toString(),
+						userKey: currentSelectedParticpant.metadata.keyvalues.userKey.toString(),
+						status: 'approved',
+					});
+					//console.log(hash);
+					clearForm();
+					handleOnClose();
 				}
-				//Create new instances with approved status
-				const hash = groupParticipantToIPFS.mutateAsync({
-					groupHash: groupHash,
-					creatorKey: walletAddress!.toString(),
-					userKey: currentSelectedParticpant.metadata.keyvalues.userKey.toString(),
-					status: 'approved',
-				});
-				//console.log(hash);
-				clearForm();
-				handleOnClose();
 			}
 		} catch (err) {
 			console.log(err);
@@ -89,8 +91,6 @@ const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps)
 	};
 
 	const serializeList = (list: IPFSGroupParticipantModel[]): DropDownContentModel[] => {
-		// console.log('list');
-		// console.log(list);
 		return list.map((item) => ({
 			name: item.metadata.keyvalues.userKey,
 			value: item.metadata.keyvalues.userKey,
@@ -99,7 +99,9 @@ const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps)
 
 	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		//TODO: This filter on name should be replaced with filter on id?
-		const selectedParticipant = participants?.find((p) => p.metadata.keyvalues.userKey === event.target.value)!;
+		const selectedParticipant = participants?.find(
+			(p: IPFSGroupParticipantModel) => p.metadata.keyvalues.userKey === event.target.value
+		);
 		if (selectedParticipant) setCurrentSelectedParticpant(selectedParticipant);
 	};
 
@@ -127,25 +129,9 @@ const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps)
 							/>
 						</div>
 					) : null}
-					<BasicButton
-						type="primary"
-						// icon={isLoading ? <Spinner size="sm" /> : null}
-						// disabled={isLoading}
-						submitForm={true}
-					>
+					<BasicButton type="primary" submitForm={true}>
 						Admit
 					</BasicButton>
-					{/* {participants ? (
-						participants.users.rows.map((participant: any, index) => {
-							return (
-								<div>
-									<div key={index}>{participant.ipfs_pin_hash}</div>
-								</div>
-							);
-						})
-					) : (
-						<p>No participants</p>
-					)} */}
 				</form>
 			}
 		></BasicModal>
