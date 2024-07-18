@@ -21,6 +21,7 @@ type PostCommentProps = {
 type FormValuesType = {
 	'comment-content': string;
 };
+
 type IPFSResponseType = {
 	data: {
 		IpfsHash: string;
