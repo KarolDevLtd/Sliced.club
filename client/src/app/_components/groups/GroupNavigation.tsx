@@ -1,6 +1,6 @@
 import router from 'next/router';
-import { IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
-import { IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
+import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
+import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 
 type GroupNavigationProps = {
 	groupHash: string;
@@ -8,19 +8,17 @@ type GroupNavigationProps = {
 	product: IPFSProductModel;
 };
 
-const GroupNavigation = ({ groupHash, group, product }: GroupNavigationProps) => {
-	const handleCardClick = (e: Event | undefined, type: string) => {
-		//At this point we have all group information from firebase and IPFS
-		//Pass to reduce need to query?
+const GroupNavigation = ({ groupHash, group }: GroupNavigationProps) => {
+	const handleCardClick = (e: React.MouseEvent<HTMLDivElement> | undefined, type: string) => {
+		// At this point we have all group information from firebase and IPFS
+		// Pass to reduce need to query?
 		let query;
 
 		switch (type) {
 			case 'product':
-				// console.log(group.productHash);
 				query = { hash: group.productHash };
 				break;
 			case 'organiser':
-				// console.log(group.productHash);
 				query = { creatorHash: group.creatorKey };
 				break;
 		}
@@ -29,11 +27,10 @@ const GroupNavigation = ({ groupHash, group, product }: GroupNavigationProps) =>
 			pathname: `/groups/${groupHash}/${type}`,
 			query: query,
 		});
+
 		e?.stopPropagation();
 	};
 
-	// console.log(group);
-	// console.log(product);
 	return (
 		<div className="col-span-4 grid gap-4 grid-cols-4 h-auto">
 			<div

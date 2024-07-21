@@ -71,9 +71,6 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 
 	return (
 		<>
-			{/* {isLoading ? (
-				'.'
-			) : ( */}
 			{/* //TODO - BUG here, should be able to zoom image without triggering parent onClick */}
 			<div
 				className="grid bg-itemfade border border-accent grid-cols-10 gap-2 p-2 my-2 min-w-full min-h-[100px] rounded-md hover:border-neutral hover:cursor-pointer overflow-hidden"
@@ -104,23 +101,6 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 						View Details
 					</BasicButton>
 				</div>
-				{/* <div className="col-span-1 flex items-center gap-1">
-					<FaUserGroup />
-					<p>{product?.groupMembers}</p>
-				</div> */}
-				{/* <div className="col-span-1 flex items-center">
-					{product?.itemsReceived ? (
-						<div>
-							<p>{completedPercentage()}</p>
-							<ProgressBar progress={completedRatio} />
-						</div>
-					) : null}
-				</div> */}
-				{/* <div className="col-span-2 flex items-center">
-					<BasicButton type="secondary" onClick={(e) => handleClick(e)}>
-						View details
-					</BasicButton>
-				</div> */}
 				<BasicModal
 					id="group-item"
 					header="Group Details"
@@ -144,14 +124,6 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 								<strong>Duration:</strong> <p>{group?.duration}</p>
 								<strong>:</strong> <p>{group?.country}</p>
 							</div>
-							{/* <div className="flex items-center gap-1">
-									<strong>Group members:</strong> <p>{product.groupMembers}</p>
-								</div>
-								{product.itemsReceived ? (
-									<div className="flex items-center gap-1">
-										<strong>Items received:</strong> <p>{product.itemsReceived}</p>
-									</div>
-								) : null} */}
 						</div>
 					}
 				/>

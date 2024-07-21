@@ -1,9 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { useEffect, useState } from 'react';
-import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
@@ -11,6 +6,14 @@ import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
+import { IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
+
+interface PinataGroupDataType {
+	groups: {
+		rows: IPFSSearchModel[];
+		count: number;
+	};
+}
 
 type GroupListProps = {
 	heading?: string;
@@ -19,7 +22,6 @@ type GroupListProps = {
 	searchCategory: string | null;
 	searchMaxPrice: string | null;
 	searchMinPrice: string | null;
-	// products: Product[];
 };
 
 const GroupList = ({
@@ -30,29 +32,32 @@ const GroupList = ({
 	searchMaxPrice,
 	searchMinPrice,
 }: GroupListProps) => {
-	const { isConnected, walletAddress } = useWallet();
 	const [groups, setGroups] = useState<IPFSSearchModel[]>([]);
 	const [groupCount, setGroupCount] = useState<number>(0);
 	const [displayGroupCount, setDisplayGroupCount] = useState(defaultPageLimit);
 
 	const { ref, inView } = useInView();
 
+	// Construct the input object based on the available properties
+	const queryInput = {
+		groupCount: displayGroupCount,
+		...(searchValue && { searchValue }),
+		...(searchCategory && { searchCategory }),
+		...(searchMinPrice && { searchMinPrice }),
+		...(searchMaxPrice && { searchMaxPrice }),
+	};
+
 	const {
 		data: groupData,
 		error,
 		refetch,
 		isLoading,
-	} = api.PinataGroup.getGroups.useQuery({
-		// creatorKey: walletAddress?.toString(),
-		groupCount: displayGroupCount,
-		searchValue: searchValue,
-		searchCategory: searchCategory,
-		searchMinPrice: searchMinPrice,
-		searchMaxPrice: searchMaxPrice,
-	});
+	} = api.PinataGroup.getGroups.useQuery<PinataGroupDataType>(queryInput);
 
 	useEffect(() => {
 		if (groupData) {
+			console.log('groupData');
+			console.log(groupData);
 			setGroups(groupData.groups == null ? [] : groupData.groups.rows);
 			setGroupCount(groupData.groups == null ? 0 : groupData.groups.count);
 		}
@@ -99,4 +104,5 @@ const GroupList = ({
 		</div>
 	);
 };
+
 export default GroupList;
