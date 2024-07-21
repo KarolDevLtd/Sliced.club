@@ -1,7 +1,6 @@
 import React from 'react';
 import router from 'next/router';
 import { formatCurrency } from '~/helpers/currency-helper';
-import { formatDate } from '~/helpers/date-helper';
 import { type Payment } from '~/types/payment-types';
 import PaymentStatus from '../ui/PaymentStatus';
 import { CiMenuKebab } from 'react-icons/ci';
@@ -19,7 +18,7 @@ const PaymentItem = ({ payment }: PaymentItemProps) => {
 	return (
 		<div
 			className="grid grid-cols-10 gap-4 p-2 my-2 bg-itemfade min-w-full min-h-[90px] rounded-md border border-accent hover:border-neutral hover:cursor-pointer overflow-hidden flex justify-around"
-			onClick={(e) => handleClick(e)}
+			onClick={() => handleClick()}
 		>
 			<div className="col-span-1 min-h-full rounded flex items-center justify-center">5</div>
 			<div className="col-span-2 min-h-full rounded flex items-center justify-center">
