@@ -56,8 +56,6 @@ const GroupList = ({
 
 	useEffect(() => {
 		if (groupData) {
-			console.log('groupData');
-			console.log(groupData);
 			setGroups(groupData.groups == null ? [] : groupData.groups.rows);
 			setGroupCount(groupData.groups == null ? 0 : groupData.groups.count);
 		}
@@ -76,18 +74,13 @@ const GroupList = ({
 	}, [inView]);
 
 	return (
-		<div className="flex flex-col gap-2 py-4">
+		//TODO: bug here with multiple isHomeScreens. Reduce to one.
+		<div className={`flex flex-col gap-2 py-4 overflow-y-scroll ${isHomeScreen ? ' h-80' : 'm-4 h-fit'}`}>
 			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
 			{isLoading && groups.length == 0 ? (
 				<Skeleton count={isHomeScreen ? 3 : 6} />
 			) : groups && groups.length > 0 ? (
-				<div
-					className={
-						isHomeScreen
-							? 'overflow-y-scroll flex flex-col h-80'
-							: 'overflow-y-scroll flex flex-col m-4 h-fit'
-					}
-				>
+				<div className={`overflow-y-scroll flex flex-col  ${isHomeScreen ? 'h-80' : 'm-4 h-fit'}`}>
 					{groups.map((group, index) => (
 						<GroupItem
 							key={index}

@@ -65,7 +65,6 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 
 	return (
 		<>
-			{/* //TODO - BUG here, should be able to zoom image without triggering parent onClick */}
 			<div className="grid bg-itemfade border border-accent grid-cols-10 gap-2 p-2 my-2 min-w-full min-h-[100px] rounded-md hover:border-neutral hover:cursor-pointer overflow-hidden">
 				<div className="col-span-1 flex flex-col justify-center">
 					{hasImage ? (
@@ -87,7 +86,7 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 				</div>
 
 				<div className="flex flex-col col-span-2 items-center justify-center">
-					<BasicButton type={'secondary'} onClick={() => handleClick}>
+					<BasicButton type={'secondary'} onClick={handleClick}>
 						View Details
 					</BasicButton>
 				</div>

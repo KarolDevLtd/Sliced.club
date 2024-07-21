@@ -75,6 +75,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const [duration, setDuration] = useState(0);
 	const [period, setPeriod] = useState('');
 	const [instalments, setInstalments] = useState<number | null>();
+
 	const updateParticipantDuration = (sliderVal: number) => {
 		setDuration(sliderVal);
 		setParticipants(2 * sliderVal);
