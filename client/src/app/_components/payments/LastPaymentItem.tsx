@@ -1,5 +1,5 @@
 import { formatDate } from '~/helpers/date-helper';
-import { LastPayment } from '~/types/payment-types';
+import { type LastPayment } from '~/types/payment-types';
 
 type LastPaymentItemProps = {
 	payment: LastPayment;
