@@ -1,12 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
@@ -32,11 +25,16 @@ type AddProductModalProps = {
 	onProductSubmitted: () => void;
 };
 
+type FormValuesType = {
+	'product-name': string;
+	'product-price': number;
+	'product-category': string;
+};
+
 const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
 	const productToIPFS = api.PinataProduct.postProduct.useMutation();
-	const productToFirebase = api.FirebaseProduct.productToCollection.useMutation();
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 	const [displayTailoredFields, setDisplayTailoredFields] = useState(false);
 	const [attributes, setAttributes] = useState<AttributeModel[]>([]);
@@ -49,7 +47,7 @@ const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 		handleSubmit,
 		reset,
 		formState: { errors },
-	} = useForm({
+	} = useForm<FormValuesType>({
 		mode: 'onSubmit',
 		reValidateMode: 'onSubmit',
 		// Resolver for using Zod validation library schema
@@ -57,7 +55,7 @@ const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 		// resolver: {}
 	});
 
-	const assignAttributeValue = (value) => {
+	const assignAttributeValue = (value: AttributeModel[]) => {
 		setAttributes(value);
 	};
 
@@ -98,14 +96,13 @@ const AddProductModal = ({ onProductSubmitted }: AddProductModalProps) => {
 		}
 	};
 
-	const onSubmit = async (data: any) => {
+	const onSubmit: SubmitHandler<FormValuesType> = async (data) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to create product')) return;
 			await saveProduct(data['product-name'], data['product-price'], data['product-category']);
 			reset();
 			closeModal('add-product');
-			// refetchPosts();
 			toast.success('Product created successfully');
 		} catch (err) {
 			console.log(err);

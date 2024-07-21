@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import TextInput from '../ui/TextInput';
 import { BsFillTrashFill } from 'react-icons/bs';
 import BasicButton from '../ui/BasicButton';
@@ -10,10 +5,9 @@ import { toast } from 'react-toastify';
 import { type AttributeModel } from '~/models/attribute-model';
 
 type ProductFieldsProps = {
-	// productOpen: boolean;
 	onClose: () => void;
 	attributes: AttributeModel[];
-	setAttributes: (value) => void;
+	setAttributes: (value: AttributeModel[]) => void;
 };
 
 const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProps) => {
@@ -25,16 +19,16 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 		}
 	};
 
-	const handleChange = (index, key, value) => {
+	const handleChange = (index: number, key: keyof AttributeModel, value: string) => {
 		const updatedRows = [...attributes];
 		if (updatedRows) {
-			updatedRows[index]![key] = value;
+			updatedRows[index] = { ...updatedRows[index], [key]: value };
 			setAttributes(updatedRows);
 		}
 	};
 
-	const handleDeleteRow = (propertyName) => {
-		setAttributes((prevRows) => prevRows.filter((row) => row.propertyName !== propertyName));
+	const handleDeleteRow = (propertyName: string) => {
+		setAttributes(attributes.filter((row) => row.propertyName !== propertyName));
 	};
 
 	return (
@@ -55,7 +49,13 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 									name={`attributeName ${index}`}
 									type="text"
 									value={row.propertyName}
-									onChange={(e) => handleChange(index, 'propertyName', e.target.value)}
+									onChange={(e) =>
+										handleChange(
+											index,
+											'propertyName',
+											(e as React.ChangeEvent<HTMLInputElement>).target.value
+										)
+									}
 								/>
 							</td>
 							<td>
@@ -64,7 +64,13 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 									name={`attributeValue ${index}`}
 									type="text"
 									value={row.propertyValue}
-									onChange={(e) => handleChange(index, 'propertyValue', e.target.value)}
+									onChange={(e) =>
+										handleChange(
+											index,
+											'propertyValue',
+											(e as React.ChangeEvent<HTMLInputElement>).target.value
+										)
+									}
 								/>
 							</td>
 							<td>
@@ -87,4 +93,5 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 		</div>
 	);
 };
+
 export default ProductFields;

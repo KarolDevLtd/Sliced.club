@@ -1,8 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import React, { useEffect, useState } from 'react';
 import ProductItem from './ProductItem';
 import { api } from '~/trpc/react';
@@ -12,6 +7,13 @@ import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
+
+interface PinataProductDataType {
+	products: {
+		rows: IPFSSearchModel[];
+		count: number;
+	};
+}
 
 type ProductListProps = {
 	heading?: string;
@@ -32,7 +34,7 @@ const ProductList = ({ heading, isHomeScreen }: ProductListProps) => {
 		error,
 		refetch,
 		isLoading,
-	} = api.PinataProduct.getProducts.useQuery({
+	} = api.PinataProduct.getProducts.useQuery<PinataProductDataType>({
 		creatorKey: walletAddress?.toString(),
 		productCount: displayProductCount,
 	});
