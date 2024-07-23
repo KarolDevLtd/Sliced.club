@@ -52,7 +52,7 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 			{/* //TODO - BUG here, should be able to zoom image without triggering parent onClick */}
 			<div
 				className="grid grid-cols-10 gap-4 p-2 my-2 min-w-full min-h-[90px] rounded-md bg-itemfade border border-accent hover:border-neutral hover:cursor-pointer overflow-hidden"
-				onClick={(e) => handleClick}
+				onClick={() => handleClick}
 			>
 				<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded">
 					{hasImage ? (

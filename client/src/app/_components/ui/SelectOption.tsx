@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import React from 'react';
 
 type SelectOptionProps = {
@@ -103,7 +100,7 @@ const SelectOption = ({
 					onChange={onChange}
 					{...register(name, {
 						...validationSchema,
-						onChange: (e) => {
+						onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
 							handleChange(e);
 						},
 					})}

@@ -22,7 +22,6 @@ const LastPaymentItem = ({ payment }: LastPaymentItemProps) => {
 			</div>
 			<div className="col-span-2 flex flex-col justify-center">
 				<p className="font-bold">{payment.status}</p>
-				{/* <p className="text-sm text-dark-grey">{product?.groupOrganiser}</p> */}
 			</div>
 		</div>
 	);

@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // https:jujuontheweb.medium.com/how-to-use-react-hook-form-with-your-custom-form-components-a86a1a77cf3c
-
 import React, { type ReactElement } from 'react';
 
 type TextInputProps = {
@@ -14,7 +10,7 @@ type TextInputProps = {
 	autoComplete?: string;
 	placeholder?: string;
 	icon?: ReactElement | null;
-	onChange?: (e: any) => void;
+	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	disabled?: boolean;
 	required?: boolean;
 	value?: string;
@@ -86,7 +82,7 @@ const TextInput = ({
 					// React Hook Form
 					{...register(name, {
 						...validationSchema,
-						onChange: (e) => {
+						onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
 							handleChange(e);
 						},
 					})}

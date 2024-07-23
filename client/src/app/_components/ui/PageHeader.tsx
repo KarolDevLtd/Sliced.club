@@ -1,6 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
-
 import { FaBell } from 'react-icons/fa';
 import { FaCaretDown } from 'react-icons/fa';
 import BasicButton from './BasicButton';

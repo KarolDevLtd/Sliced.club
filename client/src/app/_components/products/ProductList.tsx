@@ -18,7 +18,6 @@ interface PinataProductDataType {
 type ProductListProps = {
 	heading?: string;
 	isHomeScreen: boolean;
-	// products: Product[];
 };
 
 const ProductList = ({ heading, isHomeScreen }: ProductListProps) => {
