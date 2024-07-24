@@ -3,7 +3,7 @@ import Spinner from '@/app/_components/ui/Spinner';
 import TextInput from '@/app/_components/ui/TextInput';
 import PlatformLayout from '@/layouts/platform';
 import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
-import { useState } from 'react';
+import { ReactElement, useState } from 'react';
 
 export default function Admin() {
 	const [pubKey, setPubKey] = useState('');
@@ -55,6 +55,6 @@ export default function Admin() {
 	);
 }
 
-Admin.getLayout = function getLayout(page) {
+Admin.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

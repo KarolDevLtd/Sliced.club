@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { type FirebasePostModel } from '@/models/firebase/firebase-post-model';
+import { type IPFSProductModel } from '@/models/ipfs/ipfs-product-model';
 import imageCompression from 'browser-image-compression';
 
 // hash for sliced default image
@@ -41,7 +39,7 @@ const saveImages = async (images: File[]): Promise<IPFSResponseType[]> => {
 		if (!response.ok) {
 			throw new Error('Error uploading profile image');
 		}
-		const result: IPFSResponseType = await response.json();
+		const result: IPFSResponseType = (await response.json()) as IPFSResponseType;
 		if (!result) throw new Error('Error uploading profile image');
 		imgArr.push(result);
 	}
@@ -49,7 +47,12 @@ const saveImages = async (images: File[]): Promise<IPFSResponseType[]> => {
 };
 
 //Gets image hashes and info
-const fetchImageData = async (data, setHasImage, setImageData, setImageError) => {
+const fetchImageData = async (
+	data: IPFSProductModel | FirebasePostModel,
+	setHasImage: (arg0: boolean) => void,
+	setImageData: React.Dispatch<React.SetStateAction<string[]>>,
+	setImageError: React.Dispatch<React.SetStateAction<boolean>>
+) => {
 	try {
 		if (data) {
 			if (data.imageHash!.length > 0) {
@@ -57,7 +60,7 @@ const fetchImageData = async (data, setHasImage, setImageData, setImageError) =>
 				if (Array.isArray(data.imageHash)) {
 					await Promise.all(
 						data.imageHash.map(async (element: string) => {
-							await fetchImages(element, data.imageHash, setImageData, setImageError);
+							await fetchImages(element, data.imageHash as string[], setImageData, setImageError);
 						})
 					);
 				}
@@ -69,18 +72,23 @@ const fetchImageData = async (data, setHasImage, setImageData, setImageError) =>
 };
 
 //Gets images themselves
-const fetchImages = async (imageHash: string, imageHashes, setImageData, setImageError) => {
+const fetchImages = async (
+	imageHash: string,
+	imageHashes: string[],
+	setImageData: React.Dispatch<React.SetStateAction<string[]>>,
+	setImageError: React.Dispatch<React.SetStateAction<boolean>>
+) => {
 	try {
 		const response = await fetch(`/api/upload?imageHash=${imageHash}`);
 		if (response.ok) {
 			const blob = await response.blob();
 			const imageUrl = URL.createObjectURL(blob);
-			//Below used to render images in the order they were uploaded to db...
+
 			// Find the index of the current imageHash in the imageHashes array
 			const index = imageHashes.indexOf(imageHash);
 			if (index !== -1) {
 				// Update the state at the corresponding index
-				setImageData((prevImageData) => {
+				setImageData((prevImageData: string[]) => {
 					const newData = [...prevImageData];
 					newData[index] = imageUrl;
 					return newData;
