@@ -13,3 +13,19 @@ export interface IPFSGroupModel {
 	chainPubKey: string;
 	period: string;
 }
+
+export const defaultGroup: IPFSGroupModel = {
+	name: '',
+	description: '',
+	currency: '',
+	price: '',
+	duration: '',
+	participants: '',
+	instalments: '',
+	country: '',
+	productHash: '',
+	creatorKey: '',
+	userObjectHash: '',
+	chainPubKey: '',
+	period: '',
+};

@@ -7,3 +7,11 @@ export interface IPFSProductModel {
 	imageHash: string[] | null;
 	productAttributes: AttributeModel[] | null;
 }
+
+export const defaultProduct: IPFSProductModel = {
+	name: '',
+	price: '',
+	category: '',
+	imageHash: null,
+	productAttributes: null,
+};

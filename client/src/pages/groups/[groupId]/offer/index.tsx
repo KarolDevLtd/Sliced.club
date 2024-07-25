@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import router from 'next/router';
 import { MdBarChart } from 'react-icons/md';
 import BasicBarChart from '~/app/_components/ui/BasicBarChart';
@@ -11,6 +9,7 @@ import { FaCar } from 'react-icons/fa6';
 import { AiFillDollarCircle } from 'react-icons/ai';
 import LastPaymentList from '~/app/_components/payments/LastPaymentList';
 import BidList from '~/app/_components/bids/BidList';
+import { type ReactElement } from 'react';
 
 export default function GroupOffer() {
 	const handleBackClick = () => {
@@ -89,6 +88,6 @@ export default function GroupOffer() {
 	);
 }
 
-GroupOffer.getLayout = function getLayout(page) {
+GroupOffer.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

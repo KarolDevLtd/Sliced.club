@@ -3,7 +3,7 @@ import Spinner from '@/app/_components/ui/Spinner';
 import TextInput from '@/app/_components/ui/TextInput';
 import PlatformLayout from '@/layouts/platform';
 import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
-import { ReactElement, useState } from 'react';
+import { type ReactElement, useState } from 'react';
 
 export default function Admin() {
 	const [pubKey, setPubKey] = useState('');

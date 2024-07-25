@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { useRouter } from 'next/router';
 import { FaCreditCard } from 'react-icons/fa';
 import PaymentList from '~/app/_components/payments/PaymentList';
@@ -8,7 +5,7 @@ import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 import { PaymentBarChartData } from '~/static-data';
 import { TbCalendarDollar } from 'react-icons/tb';
-import { useCallback, useEffect, useState } from 'react';
+import { type ReactElement, useCallback, useEffect, useState } from 'react';
 import { MdBarChart } from 'react-icons/md';
 import BasicBarChart from '~/app/_components/ui/BasicBarChart';
 import BasicButton from '~/app/_components/ui/BasicButton';
@@ -21,12 +18,19 @@ import Spinner from '@/app/_components/ui/Spinner';
 import { type Payment } from '@/types/payment-types';
 
 export default function GroupPayment() {
-	// const groupId = router.query.groupId;
 	const router = useRouter();
 	const { query } = router;
-	// console.log(router.query);
 	const { walletAddress } = useWallet();
-	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
+	let groupId: string | null | undefined = null;
+
+	if (query.groupId) {
+		if (Array.isArray(query.groupId)) {
+			groupId = query.groupId[0];
+		} else {
+			groupId = query.groupId;
+		}
+	}
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
 	const [number, setNumber] = useState(1);
 	const { userPayment, isMinaLoading, getPaymentEvents, getWinner } = useMinaProvider();
 	const [group, setGroup] = useState<IPFSGroupModel>();
@@ -64,8 +68,6 @@ export default function GroupPayment() {
 		void fetchPayments();
 	}, [walletAddress, getPaymentEvents]);
 
-	// console.log(query);
-
 	const handleBackClick = () => {
 		router.back();
 	};
@@ -77,7 +79,6 @@ export default function GroupPayment() {
 	const makePayment = async () => {
 		try {
 			if (group && walletAddress) {
-				// console.log('add user ipfs values :\n', groupData.group);
 				console.log(walletAddress.toString());
 				console.log(parseInt(group.participants));
 				console.log(parseInt(group.price));
@@ -141,7 +142,6 @@ export default function GroupPayment() {
 		const calculatePaymentDetails = () => {
 			setInstallmentsLeft(group ? parseInt(group.duration) - productPayments.length : 0);
 			setPaymentsMade(group ? productPayments.length * parseInt(group.instalments) : 0);
-			//Outstanding payments
 			setOutstandingPayments(
 				group ? parseInt(group.price) - productPayments.length * parseInt(group.instalments) : 0
 			);
@@ -161,7 +161,6 @@ export default function GroupPayment() {
 			<div className="grid grid-rows-8 grid-flow-col gap-4 h-full">
 				<div className="col-span-3 row-span-5 grid grid-cols-3 gap-2">
 					<div className="col-span-1 grid grid-rows-9 gap-4">
-						{/* //Payment Details */}
 						<div className="row-span-5 m-2 p-6 border border-accent rounded-xl">
 							<div className="flex ">
 								<div className="p-4 border border-accent rounded-xl bg-electricblue">
@@ -188,7 +187,6 @@ export default function GroupPayment() {
 								</div>
 							</div>
 						</div>
-						{/* Next payment */}
 						<div className="row-span-4 m-1 p-6 border border-accent rounded-xl">
 							<div className="flex">
 								<div className="p-4 border border-accent rounded-xl bg-bigred">
@@ -214,7 +212,6 @@ export default function GroupPayment() {
 						</div>
 					</div>
 					<div className="col-span-1 grid grid-rows-4 gap-4 p-1">
-						{/* Your chance */}
 						<div className="row-span-1 border border-accent rounded-xl">
 							<div className="p-5 flex justify-center items-center align-center h-full">
 								<div className="text-sm">
@@ -226,7 +223,6 @@ export default function GroupPayment() {
 								</div>
 							</div>
 						</div>
-						{/* Total amount */}
 						<div className="row-span-3 border p-1 border-accent rounded-xl p-3 h-full">
 							<div className="flex">
 								<div className="p-3 border border-accent rounded-xl bg-bellow">
@@ -242,7 +238,6 @@ export default function GroupPayment() {
 						</div>
 					</div>
 					<div className="col-span-1 border border-accent rounded-xl bg-auctionsfade flex flex-col grid grid-rows-3 m-1">
-						{/* <div className=""> */}
 						<div className="flex flex-col align-center row-span-2 justify-end mb-8 items-center">
 							{group?.creatorKey == walletAddress?.toString() && (
 								<BasicButton type={'secondary'} onClick={getWinnerFn}>
@@ -254,9 +249,6 @@ export default function GroupPayment() {
 							<strong className="flex justify-center ">2d 13h 43min</strong>
 						</div>
 						<div className="flex items-center justify-cente place-content-evenly">
-							{/* <div className="flex align-center">
-								<BasicButton type={'primary'}>Pay</BasicButton>
-							</div> */}
 							<div className="flex flex-col">
 								<div className="flex justify-center my-2 flex-col">
 									<div className="flex">
@@ -287,13 +279,13 @@ export default function GroupPayment() {
 					</div>
 				</div>
 				<div className="col-span-3 row-span-3 flex">
-					<PaymentList heading={'Latest Payments'} payments={productPayments} />
+					<PaymentList heading={'Latest Payments'} payments={productPayments} isHomeScreen={false} />
 				</div>
 			</div>
 		</>
 	);
 }
 
-GroupPayment.getLayout = function getLayout(page) {
+GroupPayment.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

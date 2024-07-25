@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { type ReactElement } from 'react';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
@@ -14,6 +15,6 @@ export default function Category() {
 	);
 }
 
-Category.getLayout = function getLayout(page) {
+Category.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
