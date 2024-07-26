@@ -8,3 +8,14 @@ export interface IPFSGroupParticipantModel {
 		};
 	};
 }
+
+export const defaultParticipant: IPFSGroupParticipantModel = {
+	metadata: {
+		keyvalues: {
+			groupHash: '',
+			creatorKey: '',
+			userKey: '',
+			status: '',
+		},
+	},
+};
