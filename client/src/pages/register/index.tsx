@@ -8,6 +8,7 @@ import TextInput from '~/app/_components/ui/TextInput';
 import DefaultLayout from '~/layouts/default';
 import { CountryOptions } from '~/models/country-options';
 import CheckBox from '~/app/_components/ui/CheckBox';
+import { ReactElement } from 'react';
 
 export default function Register() {
 	const router = useRouter();
@@ -130,6 +131,6 @@ export default function Register() {
 	);
 }
 
-Register.getLayout = function getLayout(page) {
+Register.getLayout = function getLayout(page: ReactElement) {
 	return <DefaultLayout>{page}</DefaultLayout>;
 };

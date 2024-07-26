@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { type ReactElement, useEffect } from 'react';
 import { useRouter } from 'next/router';
 // https://react-hook-form.com/docs/useform
 import { useForm } from 'react-hook-form';
@@ -105,6 +105,6 @@ export default function Login() {
 	);
 }
 
-Login.getLayout = function getLayout(page) {
+Login.getLayout = function getLayout(page: ReactElement) {
 	return <DefaultLayout>{page}</DefaultLayout>;
 };

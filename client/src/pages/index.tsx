@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import PlatformLayout from '~/layouts/platform';
@@ -135,6 +135,6 @@ export default function Dashboard() {
 	);
 }
 
-Dashboard.getLayout = function getLayout(page) {
+Dashboard.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

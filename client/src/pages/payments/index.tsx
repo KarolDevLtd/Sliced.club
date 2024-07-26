@@ -1,3 +1,4 @@
+import { type ReactElement } from 'react';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import PlatformLayout from '~/layouts/platform';
 
@@ -9,6 +10,6 @@ export default function Payments() {
 	);
 }
 
-Payments.getLayout = function getLayout(page) {
+Payments.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
