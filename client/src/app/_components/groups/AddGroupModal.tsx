@@ -26,6 +26,8 @@ import Game from '../game/game';
 import { PeriodOptions } from '@/models/period-options';
 
 type AddGroupModalProps = {
+	groupOpen: boolean;
+	hideGroup: (modalId: string) => void;
 	onGroupSubmitted: () => void;
 };
 
