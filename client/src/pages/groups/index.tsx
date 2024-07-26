@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import PageHeader from '~/app/_components/ui/PageHeader';
 import BasicButton from '~/app/_components/ui/BasicButton';
 import { preventActionNotLoggedIn } from '~/helpers/user-helper';
@@ -12,7 +8,7 @@ import { type UserState } from '~/stores/userStore';
 import AddGroupModal from '~/app/_components/groups/AddGroupModal';
 import { closeModal, showModal } from '~/helpers/modal-helper';
 import GroupList from '~/app/_components/groups/GroupList';
-import { type ChangeEvent, useState } from 'react';
+import { type ChangeEvent, useState, type ReactElement } from 'react';
 import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
 
 export default function Groups() {
@@ -52,14 +48,6 @@ export default function Groups() {
 		setSearchCategory(event.target.value);
 	};
 
-	// useEffect(() => {
-	// 	console.log(`max price ${searchMaximumPrice}`);
-	// }, [searchMaximumPrice]);
-
-	// useEffect(() => {
-	// 	console.log(`min price ${searchMinimumPrice}`);
-	// }, [searchMinimumPrice]);
-
 	return (
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
@@ -86,6 +74,6 @@ export default function Groups() {
 	);
 }
 
-Groups.getLayout = function getLayout(page) {
+Groups.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

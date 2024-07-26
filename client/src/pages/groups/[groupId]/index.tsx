@@ -64,17 +64,11 @@ export default function Group() {
 		}
 	}
 
-	let hash: string | null | undefined = null;
-	if (query.hash) {
-		if (Array.isArray(query.hash)) {
-			hash = query.hash[0];
-		} else {
-			hash = query.hash;
-		}
-	}
 	// const groupId = router.query.groupId;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery<PinataGroupDataType>({ hash: groupId });
-	const { data: productData } = api.PinataProduct.getProduct.useQuery<PinataProductDataType>({ hash: hash });
+	const { data: productData } = api.PinataProduct.getProduct.useQuery<PinataProductDataType>({
+		hash: groupData == undefined ? '' : groupData?.group?.productHash,
+	});
 	const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery<PinataGroupParticipantModel>({
 		groupHash: groupId ?? '',
 	});
@@ -109,7 +103,6 @@ export default function Group() {
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 			if (participantData) {
-				console.log(participantData.participants);
 				setParticipants(participantData.participants.rows);
 			}
 		} catch (err) {
@@ -139,6 +132,11 @@ export default function Group() {
 	useEffect(() => {
 		void fetchInfo();
 	}, [fetchInfo, group]);
+
+	useEffect(() => {
+		console.log('hasImage', hasImage);
+		console.log('imageData', imageData);
+	}, [hasImage, imageData]);
 
 	return (
 		<>
