@@ -45,20 +45,6 @@ export const FirebasePostRouter = createTRPCRouter({
 		}),
 
 	//UPDATE POST
-	// export const UpdateFirebasePostRouter = createTRPCRouter({
-	// 	postSample: publicProcedure
-	// 		.input(z.object({ name: z.string(), email: z.string(), age: z.string() }))
-	// 		.mutation(({ input }) => {
-	// 			const user = {
-	// 				name: input.name,
-	// 				email: input.email,
-	// 				age: input.age,
-	// 			};
-
-	// 			addDoc(postCollection, user);
-	// 			return { user };
-	// 		}),
-	// });
 
 	//DELETE POST
 

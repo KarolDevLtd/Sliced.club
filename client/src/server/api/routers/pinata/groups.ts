@@ -1,12 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-import { array, z } from 'zod';
+import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../../trpc';
 import { URLBuilder, defaultPageLimit, defaultStatus } from '~/helpers/search-helper';
+import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
+import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
 
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 export const PinataGroupRouter = createTRPCRouter({
 	postGroup: publicProcedure
 		.input(
@@ -51,7 +48,7 @@ export const PinataGroupRouter = createTRPCRouter({
 					body: JSON.stringify({ pinataContent: input, pinataMetadata }),
 				};
 				const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options);
-				data = await response.json();
+				data = (await response.json()) as IPFSGroupModel;
 			} catch (err) {
 				console.log(err);
 			}
@@ -66,7 +63,7 @@ export const PinataGroupRouter = createTRPCRouter({
 				const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
 					method: 'GET',
 				});
-				group = await response.json(); // This parses the JSON from the response body
+				group = (await response.json()) as IPFSGroupModel; // This parses the JSON from the response body
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}
@@ -90,7 +87,7 @@ export const PinataGroupRouter = createTRPCRouter({
 					},
 				};
 				const response = await fetch(URLBuilder(input.creatorKey ?? null, 'group', input.groupCount), options);
-				groups = await response.json();
+				groups = (await response.json()) as IPFSGroupModel;
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}
@@ -112,7 +109,7 @@ export const PinataGroupRouter = createTRPCRouter({
 						},
 					};
 					const response = await fetch(URLBuilder(input.creatorKey, 'group', input.groupCount), options);
-					groups = await response.json();
+					groups = (await response.json()) as IPFSGroupModel;
 				} catch (err) {
 					console.log('Error getting hash from IPFS');
 				}
@@ -154,7 +151,7 @@ export const PinataGroupRouter = createTRPCRouter({
 					body: JSON.stringify({ pinataContent: input, pinataMetadata }),
 				};
 				const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', options);
-				data = await response.json();
+				data = (await response.json()) as IPFSGroupParticipantModel;
 				console.log(data);
 			} catch (err) {
 				console.log(err);
@@ -181,7 +178,7 @@ export const PinataGroupRouter = createTRPCRouter({
 					},
 				};
 				const response = await fetch(`https://api.pinata.cloud/pinning/unpin/${input.groupHash}`, options);
-				data = await response.json();
+				data = (await response.json()) as IPFSGroupParticipantModel;
 				console.log(data);
 			} catch (err) {
 				console.log(err);
@@ -207,7 +204,7 @@ export const PinataGroupRouter = createTRPCRouter({
 						`https://api.pinata.cloud/data/pinList?status=${defaultStatus}&metadata[keyvalues]={"type":{"value":"${'participant'}","op":"eq"},"groupHash":{"value":"${input.groupHash}","op":"eq"}${input.status ? `,"status":{"value":"${input.status}","op":"eq"}` : ''}}&pageLimit=${defaultPageLimit}&includeCount=true`,
 						options
 					);
-					participants = await response.json();
+					participants = (await response.json()) as IPFSGroupParticipantModel;
 				} catch (err) {
 					console.log('Error getting hash from IPFS');
 				}
@@ -235,7 +232,7 @@ export const PinataGroupRouter = createTRPCRouter({
 						`https://api.pinata.cloud/data/pinList?status=${defaultStatus}&metadata[keyvalues]={"type":{"value":"${'participant'}","op":"eq"},"groupHash":{"value":"${input.groupHash}","op":"eq"},"userKey":{"value":"${input.userKey}","op":"eq"}}&pageLimit=${defaultPageLimit}&includeCount=true`,
 						options
 					);
-					participant = await response.json();
+					participant = (await response.json()) as IPFSGroupParticipantModel;
 				} catch (err) {
 					console.log('Error getting hash from IPFS');
 				}
