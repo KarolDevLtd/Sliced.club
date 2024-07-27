@@ -47,16 +47,11 @@ export const useWallet = (): WalletContextType => {
 	}
 };
 
-// Define props interface for WalletProvider component
-interface WalletProviderProps {
-	children: ReactNode;
-}
-
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const LOCAL_STORAGE_KEY = 'MINA';
 
 	const { setUserWalletAddress } = useUserStore((state) => state);
-	const { startingUp, hasCompletedStartUp, setStartingUp } = useStartUpProvider();
+	const { startingUp, setStartingUp } = useStartUpProvider();
 	const { spinUp } = useMinaProvider();
 
 	const [isConnected, setIsConnected] = useState(false);
@@ -80,9 +75,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
 	const tryChainChange = async (chain: string) => {
 		try {
-			const switchResult = await window?.mina?.switchChain({ chainId: chain }).catch((err) => {
-				throw err;
-			});
+			const switchResult = await window?.mina?.switchChain({ chainId: chain });
 			if (switchResult && 'message' in switchResult) {
 				console.log(switchResult);
 			} else {
@@ -95,9 +88,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
 	const getCurrentChainType = async () => {
 		try {
-			const chain = await window.mina?.requestNetwork().catch((err) => {
-				throw err;
-			});
+			const chain = await window.mina?.requestNetwork();
 			setChainType(chain.chainId);
 		} catch (err) {
 			console.log(err);
