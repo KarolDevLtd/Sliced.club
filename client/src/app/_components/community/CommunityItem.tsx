@@ -47,7 +47,7 @@ const CommunityItem = (currentPost: FirebasePostModel) => {
 		setIsLoading(true);
 		try {
 			if (postData) {
-				setPost(postData.post as IPFSPostModel);
+				setPost(postData.post);
 				//Fetch post image if exists
 				if (currentPost.imageHash && currentPost.imageHash.length > 0) {
 					setHasImage(true);
@@ -66,7 +66,7 @@ const CommunityItem = (currentPost: FirebasePostModel) => {
 		setIsLoading(true);
 		try {
 			if (postData) {
-				setPost(postData.post as IPFSPostModel);
+				setPost(postData.post);
 				const postLikes = likesData?.likes;
 				if (postLikes?.some((e) => e.posterKey === walletAddress?.toString())) {
 					setIsLiked(true);

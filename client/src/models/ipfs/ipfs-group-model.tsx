@@ -1,3 +1,5 @@
+import { type IPFSSearchModel } from './ipfs-search-model';
+
 export interface IPFSGroupModel {
 	name: string;
 	description: string;
@@ -29,3 +31,14 @@ export const defaultGroup: IPFSGroupModel = {
 	chainPubKey: '',
 	period: '',
 };
+
+export interface PinataGroupDataType {
+	group: IPFSGroupModel;
+}
+
+export interface PinataGroupsDataType {
+	groups: {
+		rows: IPFSSearchModel[];
+		count: number;
+	};
+}

@@ -10,34 +10,24 @@ import Breadcrumbs from '~/app/_components/ui/Breadcrumbs';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import { fetchImageData } from '~/helpers/image-helper';
 import PlatformLayout from '~/layouts/platform';
-import { defaultGroup, type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
-import { defaultProduct, type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
+import { type PinataGroupDataType, defaultGroup, type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
+import { type PinataProductDataType, defaultProduct, type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { api } from '~/trpc/react';
 import AdmitUserModal from '~/app/_components/groups/AdmitUserModal';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import { showModal } from '@/helpers/modal-helper';
-import { defaultParticipant, type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
+import {
+	type PinataGroupParticipantsModel,
+	defaultParticipant,
+	type IPFSGroupParticipantModel,
+} from '@/models/ipfs/ipfs-participant-model';
 import Spinner from '@/app/_components/ui/Spinner';
 import Carousel from '@/app/_components/ui/Carousel';
 import ZoomableImage from '@/app/_components/ui/ZoomableImage';
 import { type IPFSSearchModel } from '@/models/ipfs/ipfs-search-model';
 
-interface PinataGroupDataType {
-	group: IPFSGroupModel;
-}
-
-interface PinataProductDataType {
-	product: IPFSProductModel;
-}
-
-interface PinataGroupParticipantModel {
-	participants: {
-		rows: IPFSSearchModel[];
-		count: number;
-	};
-}
 export default function Group() {
 	const router = useRouter();
 	const { pathname, query, asPath } = router;
@@ -64,12 +54,11 @@ export default function Group() {
 		}
 	}
 
-	// const groupId = router.query.groupId;
 	const { data: groupData } = api.PinataGroup.getGroup.useQuery<PinataGroupDataType>({ hash: groupId });
 	const { data: productData } = api.PinataProduct.getProduct.useQuery<PinataProductDataType>({
 		hash: groupData == undefined ? '' : groupData?.group?.productHash,
 	});
-	const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery<PinataGroupParticipantModel>({
+	const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery<PinataGroupParticipantsModel>({
 		groupHash: groupId ?? '',
 	});
 	const groupParticipantToIPFS = api.PinataGroup.createGroupParticipantObject.useMutation();

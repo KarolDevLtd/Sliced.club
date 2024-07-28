@@ -126,9 +126,8 @@ export default function GroupPayment() {
 		setIsLoading(true);
 		try {
 			if (groupData) {
-				const currGroup = groupData.group as IPFSGroupModel;
+				const currGroup = groupData.group;
 				setGroup(currGroup);
-				console.log('group data');
 			}
 		} catch (err) {
 			console.log(err);

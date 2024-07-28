@@ -22,12 +22,6 @@ type FormValuesType = {
 	'comment-content': string;
 };
 
-type IPFSResponseType = {
-	data: {
-		IpfsHash: string;
-	};
-};
-
 const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const { isConnected, walletAddress } = useWallet();
@@ -72,16 +66,15 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 				console.log('Wallet not connected');
 				return;
 			}
-			await commentToIPFS.mutateAsync({ content }).then(async (response: IPFSResponseType) => {
-				if (response.data != null) {
-					await commentToFirebase.mutateAsync({
-						posterKey: walletAddress.toString(),
-						parentMessageId: postId,
-						commentContent: response.data.IpfsHash,
-						dateTime: DateTime.now().toString(),
-					});
-				}
-			});
+			const response = await commentToIPFS.mutateAsync({ content });
+			if (response.data != null) {
+				await commentToFirebase.mutateAsync({
+					posterKey: walletAddress.toString(),
+					parentMessageId: postId,
+					commentContent: response.data.IpfsHash,
+					dateTime: DateTime.now().toString(),
+				});
+			}
 		} catch (err) {
 			console.log(err);
 			toast.error('Error making comment - please try again');

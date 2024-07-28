@@ -1,4 +1,4 @@
-import { IPFSPostModel } from '@/models/ipfs/ipfs-post-model';
+import { type IPFSPostModel } from '@/models/ipfs/ipfs-post-model';
 import { z } from 'zod';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';

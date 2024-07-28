@@ -6,13 +6,7 @@ import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
-
-interface PinataGroupDataType {
-	groups: {
-		rows: IPFSSearchModel[];
-		count: number;
-	};
-}
+import { PinataGroupDataType } from '@/models/ipfs/ipfs-group-model';
 
 type GroupListProps = {
 	heading?: string;

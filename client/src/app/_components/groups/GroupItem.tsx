@@ -43,12 +43,12 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 		setIsLoading(true);
 		try {
 			if (groupData) {
-				const currGroup = groupData.group as IPFSGroupModel;
+				const currGroup = groupData.group;
 				setGroup(currGroup);
 			}
 			if (productData) {
-				const currProd = productData.product as IPFSProductModel;
-				setProduct(productData.product as IPFSProductModel);
+				const currProd = productData.product!;
+				setProduct(productData.product);
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 		} catch (err) {

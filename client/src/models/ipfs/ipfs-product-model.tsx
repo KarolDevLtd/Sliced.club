@@ -1,4 +1,5 @@
 import { type AttributeModel } from '../attribute-model';
+import { type IPFSSearchModel } from './ipfs-search-model';
 
 export interface IPFSProductModel {
 	name: string;
@@ -15,3 +16,14 @@ export const defaultProduct: IPFSProductModel = {
 	imageHash: null,
 	productAttributes: null,
 };
+
+export interface PinataProductDataType {
+	product: IPFSProductModel;
+}
+
+export interface PinataProductsDataType {
+	products: {
+		rows: IPFSProductModel[];
+		count: number;
+	};
+}

@@ -24,6 +24,7 @@ import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
 import Game from '../game/game';
 import { PeriodOptions } from '@/models/period-options';
+import { PinataProductsDataType } from '@/models/ipfs/ipfs-product-model';
 
 type AddGroupModalProps = {
 	groupOpen: boolean;

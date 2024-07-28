@@ -1,3 +1,5 @@
+import { type IPFSSearchModel } from './ipfs-search-model';
+
 export interface IPFSGroupParticipantModel {
 	metadata: {
 		keyvalues: {
@@ -19,3 +21,10 @@ export const defaultParticipant: IPFSGroupParticipantModel = {
 		},
 	},
 };
+
+export interface PinataGroupParticipantsModel {
+	participants: {
+		rows: IPFSSearchModel[];
+		count: number;
+	};
+}

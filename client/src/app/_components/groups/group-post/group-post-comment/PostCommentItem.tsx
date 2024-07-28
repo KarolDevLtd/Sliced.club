@@ -15,7 +15,7 @@ const PostCommentItem = (currentComment: FirebaseCommentModel) => {
 		try {
 			if (commentData) {
 				console.log(commentData.post);
-				setComment(commentData.post as IPFSPostModel);
+				setComment(commentData.post);
 			}
 		} catch (err) {
 			console.log(err);

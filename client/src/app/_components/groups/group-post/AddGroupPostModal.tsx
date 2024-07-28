@@ -89,14 +89,14 @@ const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) =>
 				}
 			}
 			// Save to IPFS
-			const postMsgIPFS: IPFSResponseType = await postToIPFS.mutateAsync({
+			const postMsgIPFS = await postToIPFS.mutateAsync({
 				title: title,
 				content: content,
 			});
 			await postToFirebase.mutateAsync({
 				posterKey: walletAddress!.toString(),
 				groupId: groupId,
-				messageHash: postMsgIPFS.data.IpfsHash,
+				messageHash: postMsgIPFS.data!.IpfsHash,
 				imageHash: imageHashes,
 				dateTime: DateTime.now().toString(),
 			});
