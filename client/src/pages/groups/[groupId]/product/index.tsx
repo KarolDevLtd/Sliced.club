@@ -1,6 +1,6 @@
 import ImageCarousel from '@/app/_components/ui/ImageCarousel';
 import { type AttributeModel } from '@/models/attribute-model';
-import { type IPFSGroupModel, defaultGroup } from '@/models/ipfs/ipfs-group-model';
+import { defaultGroup, type PinataGroupDataType } from '@/models/ipfs/ipfs-group-model';
 import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -8,16 +8,8 @@ import GroupNavigation from '~/app/_components/groups/GroupNavigation';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import { fetchImageData } from '~/helpers/image-helper';
 import PlatformLayout from '~/layouts/platform';
-import { defaultProduct, type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
+import { type PinataProductDataType, defaultProduct, type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { api } from '~/trpc/react';
-
-interface PinataGroupDataType {
-	group: IPFSGroupModel;
-}
-
-interface PinataProductDataType {
-	product: IPFSProductModel;
-}
 
 export default function GroupProductDetails() {
 	const router = useRouter();

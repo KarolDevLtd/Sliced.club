@@ -24,19 +24,13 @@ import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
 import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
 import Game from '../game/game';
 import { PeriodOptions } from '@/models/period-options';
-import { PinataProductsDataType } from '@/models/ipfs/ipfs-product-model';
+import { type PinataProductsDataType } from '@/models/ipfs/ipfs-product-model';
 
 type AddGroupModalProps = {
 	groupOpen: boolean;
 	hideGroup: (modalId: string) => void;
 	onGroupSubmitted: () => void;
 };
-
-interface PinataProductDataType {
-	products: {
-		rows: IPFSSearchModel[];
-	};
-}
 
 type FormValuesType = {
 	'group-name': string;
@@ -54,10 +48,11 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 
 	const { deployGroup, isMinaLoading } = useMinaProvider();
 
-	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery<PinataProductDataType>({
+	const { data: pinataProductData } = api.PinataProduct.getProducts.useQuery<PinataProductsDataType>({
 		creatorKey: walletAddress?.toString(),
 		productCount: displayProductCount,
 	});
+
 	const groupToIPFS = api.PinataGroup.postGroup.useMutation();
 	const [isLoading, setIsLoading] = useState(false);
 	const [dropdownProducts, setDropdownProducts] = useState<DropDownContentModel[]>([]);
@@ -86,7 +81,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	const [currentSelectedProduct, setCurrentSelectedProduct] = useState<IPFSSearchModel>();
 	const handleProductSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
 		//TODO: This filter on name should be replaced with filter on id?
-		const selectedProduct = pinataProductData?.products.rows.find(
+		const selectedProduct = pinataProductData?.rows.find(
 			(p: IPFSSearchModel) => p.metadata.name === event.target.value
 		);
 		if (selectedProduct) setCurrentSelectedProduct(selectedProduct);
@@ -110,11 +105,7 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to save group')) return;
-			// console.log('Saving group');
-			// console.log(currentSelectedProduct);
 			if (!currentSelectedProduct) return;
-			// const userObjectHash = groupUsersToIPFS.mutateAsync({ creatorKey: walletAddress!.toString() });
-			// console.log(userObjectHash);
 			await groupToIPFS.mutateAsync({
 				name: name,
 				description: description,
@@ -181,8 +172,8 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 	};
 
 	useEffect(() => {
-		if (pinataProductData?.products) setDropdownProducts(serializeList(pinataProductData?.products.rows ?? []));
-	}, [pinataProductData?.products]);
+		if (pinataProductData) setDropdownProducts(serializeList(pinataProductData?.rows ?? []));
+	}, [pinataProductData]);
 
 	useEffect(() => {
 		//TO DO : fix this cast
@@ -297,10 +288,6 @@ const AddGroupModal = ({ onGroupSubmitted }: AddGroupModalProps) => {
 							</div>
 						</div>
 					) : (
-						//Dropdown for weekly, bi-weekly and months
-						//Textbox for duration of these
-						//Product Price
-						//Instalments
 						`No products`
 					)}
 					<TextArea

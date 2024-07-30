@@ -6,7 +6,7 @@ import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
-import { PinataGroupDataType } from '@/models/ipfs/ipfs-group-model';
+import { type PinataGroupsDataType } from '@/models/ipfs/ipfs-group-model';
 
 type GroupListProps = {
 	heading?: string;
@@ -45,12 +45,14 @@ const GroupList = ({
 		error,
 		refetch,
 		isLoading,
-	} = api.PinataGroup.getGroups.useQuery<PinataGroupDataType>(queryInput);
+	} = api.PinataGroup.getGroups.useQuery<PinataGroupsDataType>(queryInput);
 
 	useEffect(() => {
 		if (groupData) {
-			setGroups(groupData.groups == null ? [] : groupData.groups.rows);
-			setGroupCount(groupData.groups == null ? 0 : groupData.groups.count);
+			console.log('groupData');
+			console.log(groupData);
+			setGroups(groupData == null ? [] : groupData.rows);
+			setGroupCount(groupData == null ? 0 : groupData.count);
 		}
 	}, [groupData]);
 

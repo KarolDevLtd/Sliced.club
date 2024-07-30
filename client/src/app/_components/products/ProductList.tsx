@@ -7,13 +7,7 @@ import { defaultPageLimit } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
-
-interface PinataProductDataType {
-	products: {
-		rows: IPFSSearchModel[];
-		count: number;
-	};
-}
+import { type PinataProductsDataType } from '@/models/ipfs/ipfs-product-model';
 
 type ProductListProps = {
 	heading?: string;
@@ -33,15 +27,15 @@ const ProductList = ({ heading, isHomeScreen }: ProductListProps) => {
 		error,
 		refetch,
 		isLoading,
-	} = api.PinataProduct.getProducts.useQuery<PinataProductDataType>({
+	} = api.PinataProduct.getProducts.useQuery<PinataProductsDataType>({
 		creatorKey: walletAddress?.toString(),
 		productCount: displayProductCount,
 	});
 
 	useEffect(() => {
 		if (productData) {
-			setProducts(productData.products == null ? [] : productData.products.rows);
-			setProductCount(productData.products == null ? 0 : productData.products.count);
+			setProducts(productData == null ? [] : productData.rows);
+			setProductCount(productData == null ? 0 : productData.count);
 		}
 	}, [productData]);
 

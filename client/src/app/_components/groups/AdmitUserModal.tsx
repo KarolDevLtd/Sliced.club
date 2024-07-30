@@ -26,6 +26,8 @@ type FormValuesType = {
 	'user-key': string;
 };
 
+//NOTE THIS COMPONENT IS CURRENTLY UNUSED
+
 const AdmitUserModal = ({ groupHash, participants, group }: AdmitUserModalProps) => {
 	const { walletAddress } = useWallet();
 	const [dropdownParticipants, setDropdownParticipants] = useState<DropDownContentModel[]>([]);

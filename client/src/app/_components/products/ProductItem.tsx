@@ -30,7 +30,7 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 		setIsLoading(true);
 		try {
 			if (productData) {
-				const currProd = productData.product as IPFSProductModel;
+				const currProd = productData.product!;
 				setProduct(currProd);
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}

@@ -22,8 +22,6 @@ export interface PinataProductDataType {
 }
 
 export interface PinataProductsDataType {
-	products: {
-		rows: IPFSProductModel[];
-		count: number;
-	};
+	rows: IPFSSearchModel[];
+	count: number;
 }

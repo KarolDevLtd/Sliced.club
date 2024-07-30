@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../../trpc';
 import { URLBuilder } from '~/helpers/search-helper';
-import { IPFSProductModel } from '@/models/ipfs/ipfs-product-model';
+import { type IPFSProductModel, type PinataProductsDataType } from '@/models/ipfs/ipfs-product-model';
 
 const productAttributesSchema = z.object({
 	propertyName: z.string(),
@@ -87,13 +87,13 @@ export const PinataProductRouter = createTRPCRouter({
 						},
 					};
 					const response = await fetch(URLBuilder(input.creatorKey, 'product', input.productCount), options);
-					products = (await response.json()) as IPFSProductModel;
+					products = (await response.json()) as PinataProductsDataType;
 				} catch (err) {
-					console.log('Error getting hash from IPFS');
+					console.log('Error getting hash from IPFS', err);
 				}
 			} else {
 				console.log('sliced-server-msg:getProducts, current creatorKey id is null');
 			}
-			return { products };
+			return products;
 		}),
 });

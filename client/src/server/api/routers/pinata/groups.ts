@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../../trpc';
 import { URLBuilder, defaultPageLimit, defaultStatus } from '~/helpers/search-helper';
-import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
-import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
+import { type PinataGroupsDataType, type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
+import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-participant-model';
 
 export const PinataGroupRouter = createTRPCRouter({
 	postGroup: publicProcedure
@@ -87,11 +87,11 @@ export const PinataGroupRouter = createTRPCRouter({
 					},
 				};
 				const response = await fetch(URLBuilder(input.creatorKey ?? null, 'group', input.groupCount), options);
-				groups = (await response.json()) as IPFSGroupModel;
+				groups = (await response.json()) as PinataGroupsDataType;
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}
-			return { groups };
+			return groups;
 		}),
 
 	//getGroups based on creator key
@@ -204,7 +204,7 @@ export const PinataGroupRouter = createTRPCRouter({
 						`https://api.pinata.cloud/data/pinList?status=${defaultStatus}&metadata[keyvalues]={"type":{"value":"${'participant'}","op":"eq"},"groupHash":{"value":"${input.groupHash}","op":"eq"}${input.status ? `,"status":{"value":"${input.status}","op":"eq"}` : ''}}&pageLimit=${defaultPageLimit}&includeCount=true`,
 						options
 					);
-					participants = (await response.json()) as IPFSGroupParticipantModel;
+					participants = (await response.json()) as IPFSGroupParticipantModel[];
 				} catch (err) {
 					console.log('Error getting hash from IPFS');
 				}
@@ -239,6 +239,6 @@ export const PinataGroupRouter = createTRPCRouter({
 			} else {
 				console.log('sliced-server-msg:getGroups, current creatorKey id is null');
 			}
-			return { participant };
+			return participant;
 		}),
 });

@@ -49,13 +49,7 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 									name={`attributeName ${index}`}
 									type="text"
 									value={row.propertyName}
-									onChange={(e) =>
-										handleChange(
-											index,
-											'propertyName',
-											(e as React.ChangeEvent<HTMLInputElement>).target.value
-										)
-									}
+									onChange={(e) => handleChange(index, 'propertyName', e.target.value)}
 								/>
 							</td>
 							<td>
@@ -64,13 +58,7 @@ const ProductFields = ({ onClose, attributes, setAttributes }: ProductFieldsProp
 									name={`attributeValue ${index}`}
 									type="text"
 									value={row.propertyValue}
-									onChange={(e) =>
-										handleChange(
-											index,
-											'propertyValue',
-											(e as React.ChangeEvent<HTMLInputElement>).target.value
-										)
-									}
+									onChange={(e) => handleChange(index, 'propertyValue', e.target.value)}
 								/>
 							</td>
 							<td>

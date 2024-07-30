@@ -37,8 +37,6 @@ export interface PinataGroupDataType {
 }
 
 export interface PinataGroupsDataType {
-	groups: {
-		rows: IPFSSearchModel[];
-		count: number;
-	};
+	rows: IPFSSearchModel[];
+	count: number;
 }

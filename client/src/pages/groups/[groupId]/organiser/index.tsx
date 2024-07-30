@@ -5,7 +5,7 @@ import PageHeader from '~/app/_components/ui/PageHeader';
 import UserAvatar from '~/app/_components/ui/UserAvatar';
 import PlatformLayout from '~/layouts/platform';
 import { FaFacebookSquare, FaYoutube, FaInstagramSquare } from 'react-icons/fa';
-import { ReactElement } from 'react';
+import { type ReactElement } from 'react';
 
 export default function GroupOrganiser() {
 	const router = useRouter();
