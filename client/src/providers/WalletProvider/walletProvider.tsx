@@ -75,7 +75,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
 	const tryChainChange = async (chain: string) => {
 		try {
-			const switchResult = await window?.mina?.switchChain({ chainId: chain });
+			const switchResult = await window.mina?.switchChain({
+				networkID: chain,
+			});
 			if (switchResult && 'message' in switchResult) {
 				console.log(switchResult);
 			} else {
