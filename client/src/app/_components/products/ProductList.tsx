@@ -53,7 +53,7 @@ const ProductList = ({ heading, isHomeScreen }: ProductListProps) => {
 
 	return (
 		<div className="flex flex-col gap-2 py-4">
-			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
+			{heading ? <h2 className="text-2xl font-normal">{heading}</h2> : null}
 			{isLoading && products.length == 0 ? (
 				<Skeleton count={isHomeScreen ? 1 : 6} />
 			) : (

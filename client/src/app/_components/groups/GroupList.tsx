@@ -7,6 +7,8 @@ import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
 import { type PinataGroupsDataType } from '@/models/ipfs/ipfs-group-model';
+import { FaSliders } from 'react-icons/fa6';
+import { FaSearch } from 'react-icons/fa';
 
 type GroupListProps = {
 	heading?: string;
@@ -71,7 +73,19 @@ const GroupList = ({
 	return (
 		//TODO: bug here with multiple isHomeScreens. Reduce to one.
 		<div className={`flex flex-col gap-2 py-4 overflow-y-scroll ${isHomeScreen ? ' h-80' : 'm-4 h-fit'}`}>
-			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
+			{heading ? (
+				<div className="flex justify-center align-center items-center justify-between">
+					<h2 className="text-2xl font-normal">{heading}</h2>
+					<div className="flex">
+						<div className={`bg-itemfade border-accent  p-3 border rounded-xl text-xl cursor-pointer m-1`}>
+							{<FaSliders />}
+						</div>
+						<div className={`bg-itemfade border-accent  p-3 border rounded-xl text-xl cursor-pointer m-1`}>
+							{<FaSearch />}
+						</div>
+					</div>
+				</div>
+			) : null}
 			{isLoading && groups.length == 0 ? (
 				<Skeleton count={isHomeScreen ? 3 : 6} />
 			) : groups && groups.length > 0 ? (

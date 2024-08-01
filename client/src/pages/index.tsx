@@ -37,7 +37,7 @@ export default function Dashboard() {
 				<div className="row-span-2 grid grid-cols-9">
 					<div className="p-2 col-span-6 mx-2">
 						<div className="border border-accent bg-backgroundfade rounded-xl p-3 flex flex-col justify-center">
-							<div className="text-xl">Notification Title</div>
+							<div className="text-xl font-normal">Notification Title</div>
 							<div className="text-sm">12.01.24</div>
 							<div className="text-sm">
 								Lorem ipsum dolor sit amet. Et mollitia aliquid ut accusantium atque ut consectetur
@@ -104,7 +104,7 @@ export default function Dashboard() {
 							<div className="col-span-6 mx-4">
 								{walletConnected ? (
 									<GroupList
-										heading="My Groups"
+										heading="Available groups"
 										isHomeScreen={true}
 										searchValue={null}
 										searchCategory={null}
