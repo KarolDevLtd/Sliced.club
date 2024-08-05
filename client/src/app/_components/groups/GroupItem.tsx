@@ -81,12 +81,12 @@ const GroupItem = ({ groupHash, productHash }: GroupItemProps) => {
 				</div>
 
 				<div className="flex flex-row col-span-2 items-center justify-center">
-					<IoPeople />
+					<IoPeople size={20} />
 					<p>{group?.participants}</p>
 				</div>
 
 				<div className="flex flex-col col-span-2 items-center justify-center">
-					<BasicButton type={'secondary'} onClick={handleClick}>
+					<BasicButton type={'neutral'} onClick={handleClick}>
 						View Details
 					</BasicButton>
 				</div>

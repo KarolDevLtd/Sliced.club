@@ -6,6 +6,8 @@ import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
+import BasicButton from '../ui/BasicButton';
+import { IoPeople } from 'react-icons/io5';
 
 type ProductItemProps = {
 	productHash: string;
@@ -18,6 +20,7 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
+	const dummyVal = Math.floor(Math.random() * 48);
 
 	const handleClick = (e: MouseEvent) => {
 		//TODO: Is here a product page not associated with group?
@@ -54,16 +57,33 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 				className="grid grid-cols-10 gap-4 p-2 my-2 min-w-full min-h-[90px] rounded-md bg-itemfade border border-accent hover:border-neutral hover:cursor-pointer overflow-hidden"
 				onClick={() => handleClick}
 			>
-				<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded">
+				<div className="col-span-1 min-h-full bg-medium-grey rounded">
 					{hasImage ? (
 						<ZoomableImage source={imageData[0] ?? null} width={100} height={100} alt={'image'} />
 					) : null}
 				</div>
-				<div className="col-span-2 flex flex-col justify-center">
+				<div className="col-span-3 flex flex-col justify-center items-center">
 					<p className="font-bold">{product?.name}</p>
 				</div>
-				<div className="col-span-2 flex items-center">
+				<div className="col-span-2 flex items-center justify-center">
 					<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
+				</div>
+				<div className="flex flex-row col-span-1 items-center justify-center">
+					<div className="mx-2 flex flex-row">
+						<IoPeople size={20} />
+						<p>{dummyVal}</p>
+					</div>
+				</div>
+				<div className="flex flex-row col-span-1 items-center justify-center">
+					<div className="mx-2">
+						<p className=" flex items-center justify-center">{dummyVal}%</p>
+						<progress className="progress w-16" value={dummyVal} max={50} />
+					</div>
+				</div>
+				<div className="flex flex-col col-span-2 items-center justify-center">
+					<BasicButton type={'neutral'} onClick={handleClick}>
+						View Details
+					</BasicButton>
 				</div>
 				<BasicModal
 					id="product-item"

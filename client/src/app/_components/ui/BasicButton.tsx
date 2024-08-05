@@ -2,7 +2,6 @@ import React, { type ReactElement } from 'react';
 
 type BasicButtonProps = {
 	children: React.ReactNode;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	onClick?: (e: any) => any;
 	type: 'primary' | 'secondary' | 'accent' | 'neutral' | 'ghost';
 	size?: 'xs' | 'sm' | 'md' | 'lg';

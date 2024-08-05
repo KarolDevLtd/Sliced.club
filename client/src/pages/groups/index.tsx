@@ -52,7 +52,7 @@ export default function Groups() {
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
 			<div className="p-1">
-				<BasicButton type="primary" onClick={showGroupModal}>
+				<BasicButton type="neutral" onClick={showGroupModal}>
 					Add Group
 				</BasicButton>
 			</div>

@@ -7,8 +7,7 @@ import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
 import { type PinataGroupsDataType } from '@/models/ipfs/ipfs-group-model';
-import { FaSliders } from 'react-icons/fa6';
-import { FaSearch } from 'react-icons/fa';
+import Search from '../ui/Search';
 
 type GroupListProps = {
 	heading?: string;
@@ -51,18 +50,10 @@ const GroupList = ({
 
 	useEffect(() => {
 		if (groupData) {
-			console.log('groupData');
-			console.log(groupData);
 			setGroups(groupData == null ? [] : groupData.rows);
 			setGroupCount(groupData == null ? 0 : groupData.count);
 		}
 	}, [groupData]);
-
-	useEffect(() => {
-		if (error) {
-			console.error('Error fetching groups:', error);
-		}
-	}, [error]);
 
 	useEffect(() => {
 		if (inView) {
@@ -76,14 +67,7 @@ const GroupList = ({
 			{heading ? (
 				<div className="flex justify-center align-center items-center justify-between">
 					<h2 className="text-2xl font-normal">{heading}</h2>
-					<div className="flex">
-						<div className={`bg-itemfade border-accent  p-3 border rounded-xl text-xl cursor-pointer m-1`}>
-							{<FaSliders />}
-						</div>
-						<div className={`bg-itemfade border-accent  p-3 border rounded-xl text-xl cursor-pointer m-1`}>
-							{<FaSearch />}
-						</div>
-					</div>
+					<Search />
 				</div>
 			) : null}
 			{isLoading && groups.length == 0 ? (
