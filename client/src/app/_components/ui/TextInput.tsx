@@ -1,4 +1,3 @@
-// https:jujuontheweb.medium.com/how-to-use-react-hook-form-with-your-custom-form-components-a86a1a77cf3c
 import React, { type ReactElement } from 'react';
 
 type TextInputProps = {
@@ -14,6 +13,7 @@ type TextInputProps = {
 	disabled?: boolean;
 	required?: boolean;
 	value?: string;
+	width?: string | null;
 
 	// React Hook Form Props
 	validationSchema?: {
@@ -55,6 +55,7 @@ const TextInput = ({
 	disabled,
 	required = false,
 	value,
+	width = null,
 	validationSchema,
 	register = () => [],
 	errors,
@@ -66,7 +67,7 @@ const TextInput = ({
 	};
 
 	return (
-		<div>
+		<>
 			<label htmlFor={id} className="input input-bordered flex items-center gap-2">
 				{label && `${label}:`}
 				<input
@@ -86,7 +87,7 @@ const TextInput = ({
 							handleChange(e);
 						},
 					})}
-					className="grow"
+					className={`grow ${width ?? ''}`}
 				/>
 				{required && <span className="badge badge-info">Required</span>}
 				{icon ? <span>{icon}</span> : null}
@@ -107,7 +108,7 @@ const TextInput = ({
 			{errors && errors[name]?.type === 'max' && (
 				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 			)}
-		</div>
+		</>
 	);
 };
 
