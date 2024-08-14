@@ -63,13 +63,11 @@ const GroupList = ({
 
 	return (
 		//TODO: bug here with multiple isHomeScreens. Reduce to one.
-		<div className={`flex flex-col gap-2 py-4 overflow-y-scroll ${isHomeScreen ? ' h-80' : 'm-4 h-fit'}`}>
-			{heading ? (
-				<div className="flex justify-center align-center items-center justify-between">
-					<h2 className="text-2xl font-normal">{heading}</h2>
-					<Search />
-				</div>
-			) : null}
+		<div className={`flex flex-col gap-2 overflow-y-scroll ${isHomeScreen ? ' h-80 py-4' : 'm-1 h-fit'}`}>
+			<div className="flex justify-center align-center items-center justify-between">
+				<h2 className="text-2xl font-normal">{heading}</h2>
+				<Search />
+			</div>
 			{isLoading && groups.length == 0 ? (
 				<Skeleton count={isHomeScreen ? 3 : 6} />
 			) : groups && groups.length > 0 ? (
