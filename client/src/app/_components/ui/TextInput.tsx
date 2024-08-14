@@ -9,6 +9,7 @@ type TextInputProps = {
 	autoComplete?: string;
 	placeholder?: string;
 	icon?: ReactElement | null;
+	iconClick?: () => void;
 	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	disabled?: boolean;
 	required?: boolean;
@@ -51,6 +52,7 @@ const TextInput = ({
 	autoComplete,
 	placeholder,
 	icon,
+	iconClick,
 	onChange,
 	disabled,
 	required = false,
@@ -90,7 +92,7 @@ const TextInput = ({
 					className={`grow ${width ?? ''}`}
 				/>
 				{required && <span className="badge badge-info">Required</span>}
-				{icon ? <span>{icon}</span> : null}
+				{icon ? <span onClick={iconClick}>{icon}</span> : null}
 			</label>
 			{/* React Hook Form Errors */}
 			{errors && errors[name]?.type === 'required' && (
