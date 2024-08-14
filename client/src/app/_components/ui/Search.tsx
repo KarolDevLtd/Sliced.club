@@ -2,70 +2,110 @@ import { useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { FaSliders } from 'react-icons/fa6';
 import TextInput from './TextInput';
-import Dropdown from './Dropdown';
 import SelectOption from './SelectOption';
 import { ProductCategoryOptions } from '@/models/product-category-options';
 import BasicButton from './BasicButton';
+import { RxCross2 } from 'react-icons/rx';
 
 const Search = () => {
-	const [hasFilters, setHasFilters] = useState<boolean>(false);
-	const [hasSearch, setHasSearch] = useState<boolean>(false);
+	const [searchValue, setSearchValue] = useState<string>('');
 	const [displaySearchBar, setDisplaySearchBar] = useState<boolean>(false);
+	const [category, setCategory] = useState<string>('');
+	const [minValue, setMinValue] = useState<string>('');
+	const [maxValue, setMaxValue] = useState<string>('');
+
+	const handleClear = () => {
+		setCategory('');
+		setMinValue('');
+		setMaxValue('');
+	};
+
+	const clearSearch = () => {
+		setSearchValue('');
+	};
+
 	return (
 		<div className="flex">
 			<div className="dropdown dropdown-click dropdown-end">
 				<div tabIndex={0} role="button" className="p-0 flex items-center">
 					<div
-						className={`bg-${hasSearch ? `brightwhite` : `itemfade`} border-accent p-3 border rounded-xl text-xl cursor-pointer m-1`}
+						className={`bg-${category != '' || minValue != '' || maxValue != '' ? `brightwhite` : `itemfade`} border-accent p-3 border rounded-xl text-xl cursor-pointer m-1`}
 					>
 						{<FaSliders />}
 					</div>
 				</div>
 				<ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-					<li>
-						{/* <a>Price Range</a> */}
-						<div className="p-1">
-							<TextInput
-								label={'Min'}
-								id={'min'}
-								name={'min'}
-								type={'number'}
-								placeholder="Min"
-								required={false}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
-								width="w-3/4"
-							/>
-						</div>
-						<div className="p-1">
-							<TextInput
-								label={'Max'}
-								id={'max'}
-								name={'max'}
-								type={'number'}
-								placeholder="Max"
-								required={false}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
-								width="w-3/4"
-							/>
-						</div>
-					</li>
-					<li>
-						{/* <a>Category</a> */}
+					<div className="p-1">
+						<TextInput
+							label={'Min'}
+							id={'min'}
+							name={'min'}
+							type={'number'}
+							placeholder="Min"
+							required={false}
+							value={minValue}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+								setMinValue(e.target.value);
+							}}
+							width="w-3/4"
+						/>
+					</div>
+					<div className="p-1">
+						<TextInput
+							label={'Max'}
+							id={'max'}
+							name={'max'}
+							type={'number'}
+							placeholder="Max"
+							required={false}
+							value={maxValue}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+								setMaxValue(e.target.value);
+							}}
+							width="w-3/4"
+						/>
+					</div>
+
+					<div className="p-1">
 						<SelectOption
 							id="product-category"
 							name="product-category"
 							placeholder="Category"
-							defaultValue=""
+							defaultValue={undefined}
+							value={category}
 							options={ProductCategoryOptions}
 							width={'w-full'}
+							onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+								setCategory(e.target.value);
+							}}
 						/>
-					</li>
-					<BasicButton type={'neutral'}>Clear</BasicButton>
+					</div>
+
+					<BasicButton
+						type={'neutral'}
+						onClick={() => {
+							handleClear();
+						}}
+					>
+						Clear
+					</BasicButton>
 				</ul>
 			</div>
-			{displaySearchBar && <TextInput id={'group-list-search'} name={'group-list-search'} type={'text'} />}
+			{displaySearchBar && (
+				<TextInput
+					id={'group-list-search'}
+					name={'group-list-search'}
+					type={'text'}
+					value={searchValue}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+						setSearchValue(e.target.value);
+					}}
+					icon={<RxCross2 />}
+					iconClick={clearSearch}
+				/>
+			)}
 			<div
-				className={`bg-${displaySearchBar ? `brightwhite` : `itemfade`} border-accent p-3 border rounded-xl text-xl cursor-pointer m-1`}
+				className={`bg-${searchValue ? `brightwhite` : `itemfade`} border-accent p-3 border rounded-xl text-xl cursor-pointer m-1`}
 				onClick={() => setDisplaySearchBar(!displaySearchBar)}
 			>
 				{<FaSearch />}
