@@ -60,7 +60,7 @@ const ProductList = ({ heading, isHomeScreen }: ProductListProps) => {
 				<div
 					className={
 						isHomeScreen
-							? 'overflow-y-scroll flex flex-col h-32'
+							? 'overflow-y-scroll flex flex-col h-60'
 							: 'overflow-y-scroll flex flex-col m-4 h-96'
 					}
 				>

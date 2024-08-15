@@ -56,7 +56,7 @@ const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 
 	return (
 		//TODO: bug here with multiple isHomeScreens. Reduce to one.
-		<div className={`flex flex-col gap-2 overflow-y-scroll ${isHomeScreen ? ' h-80 py-4' : 'm-1 h-fit'}`}>
+		<div className={`flex flex-col gap-2 overflow-y-scroll ${isHomeScreen ? ' h-80' : 'm-1 h-fit'}`}>
 			<div className="flex justify-center align-center items-center justify-between">
 				<h2 className="text-2xl font-normal">{heading}</h2>
 				<Search
