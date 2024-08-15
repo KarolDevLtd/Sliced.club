@@ -8,21 +8,13 @@ import { type UserState } from '~/stores/userStore';
 import AddGroupModal from '~/app/_components/groups/AddGroupModal';
 import { closeModal, showModal } from '~/helpers/modal-helper';
 import GroupList from '~/app/_components/groups/GroupList';
-import { type ChangeEvent, useState, type ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
 
 export default function Groups() {
-	const maxProductPrice = 20000;
-	const minProductPrice = 1;
 	const [groupOpen, setGroupOpen] = useState(false);
 	const [shouldRefreshGroups, setShouldRefreshGroups] = useState(false);
-	const [searchContent, setSearchContent] = useState<string | null>(null);
-	const [searchMinimumPrice, setSearchMinimumPrice] = useState<string | null>(minProductPrice.toString());
-	const [searchMaximumPrice, setSearchMaximumPrice] = useState<string | null>(maxProductPrice.toString());
-	const [searchCategory, setSearchCategory] = useState<string | null>(null);
-
 	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
-
 	const { compileContractsOnly } = useMinaProvider();
 
 	const showGroupModal = async () => {
@@ -39,15 +31,6 @@ export default function Groups() {
 		setShouldRefreshGroups((prev) => !prev);
 	};
 
-	const handleSearchContentChange = (event: ChangeEvent<HTMLInputElement>) => {
-		// console.log(event.target.value);
-		setSearchContent(event.target.value);
-	};
-
-	const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
-		setSearchCategory(event.target.value);
-	};
-
 	return (
 		<>
 			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
@@ -61,14 +44,7 @@ export default function Groups() {
 					<div className="w-1/2"></div>
 				</div>
 			</div>
-			<GroupList
-				key={shouldRefreshGroups ? 'refresh' : 'normal'}
-				isHomeScreen={false}
-				searchValue={searchContent}
-				searchCategory={searchCategory}
-				searchMaxPrice={searchMaximumPrice}
-				searchMinPrice={searchMinimumPrice}
-			/>
+			<GroupList key={shouldRefreshGroups ? 'refresh' : 'normal'} isHomeScreen={false} />
 			<AddGroupModal groupOpen={groupOpen} hideGroup={closeModal} onGroupSubmitted={handleGroupSubmitted} />
 		</>
 	);

@@ -7,17 +7,33 @@ import { ProductCategoryOptions } from '@/models/product-category-options';
 import BasicButton from './BasicButton';
 import { RxCross2 } from 'react-icons/rx';
 
-const Search = () => {
-	const [searchValue, setSearchValue] = useState<string>('');
+type SearchProps = {
+	searchValue: string;
+	setSearchValue: (value: string) => void;
+	searchCategory: string;
+	setSearchCategory: (value: string) => void;
+	searchMaxPrice: string;
+	setSearchMaxPrice: (value: string) => void;
+	searchMinPrice: string;
+	setSearchMinPrice: (value: string) => void;
+};
+
+const Search = ({
+	searchValue,
+	setSearchValue,
+	searchCategory,
+	setSearchCategory,
+	searchMaxPrice,
+	setSearchMaxPrice,
+	searchMinPrice,
+	setSearchMinPrice,
+}: SearchProps) => {
 	const [displaySearchBar, setDisplaySearchBar] = useState<boolean>(false);
-	const [category, setCategory] = useState<string>('');
-	const [minValue, setMinValue] = useState<string>('');
-	const [maxValue, setMaxValue] = useState<string>('');
 
 	const handleClear = () => {
-		setCategory('');
-		setMinValue('');
-		setMaxValue('');
+		setSearchCategory('');
+		setSearchMinPrice('');
+		setSearchMaxPrice('');
 	};
 
 	const clearSearch = () => {
@@ -29,7 +45,7 @@ const Search = () => {
 			<div className="dropdown dropdown-click dropdown-end">
 				<div tabIndex={0} role="button" className="p-0 flex items-center">
 					<div
-						className={`bg-${category != '' || minValue != '' || maxValue != '' ? `brightwhite` : `itemfade`} border-accent p-3 border rounded-xl text-xl cursor-pointer m-1`}
+						className={`bg-${searchCategory != '' || searchMinPrice != '' || searchMaxPrice != '' ? `brightwhite` : `itemfade`} border-accent p-3 border rounded-xl text-xl cursor-pointer m-1`}
 					>
 						{<FaSliders />}
 					</div>
@@ -43,9 +59,9 @@ const Search = () => {
 							type={'number'}
 							placeholder="Min"
 							required={false}
-							value={minValue}
+							value={searchMinPrice}
 							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-								setMinValue(e.target.value);
+								setSearchMinPrice(e.target.value);
 							}}
 							width="w-3/4"
 						/>
@@ -58,9 +74,9 @@ const Search = () => {
 							type={'number'}
 							placeholder="Max"
 							required={false}
-							value={maxValue}
+							value={searchMaxPrice}
 							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-								setMaxValue(e.target.value);
+								setSearchMaxPrice(e.target.value);
 							}}
 							width="w-3/4"
 						/>
@@ -72,15 +88,14 @@ const Search = () => {
 							name="product-category"
 							placeholder="Category"
 							defaultValue={undefined}
-							value={category}
+							value={searchCategory}
 							options={ProductCategoryOptions}
 							width={'w-full'}
 							onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-								setCategory(e.target.value);
+								setSearchCategory(e.target.value);
 							}}
 						/>
 					</div>
-
 					<BasicButton
 						type={'neutral'}
 						onClick={() => {

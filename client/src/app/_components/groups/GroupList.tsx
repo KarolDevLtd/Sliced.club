@@ -11,24 +11,17 @@ import Search from '../ui/Search';
 
 type GroupListProps = {
 	heading?: string;
-	searchValue: string | null;
 	isHomeScreen: boolean;
-	searchCategory: string | null;
-	searchMaxPrice: string | null;
-	searchMinPrice: string | null;
 };
 
-const GroupList = ({
-	heading,
-	isHomeScreen,
-	searchValue,
-	searchCategory,
-	searchMaxPrice,
-	searchMinPrice,
-}: GroupListProps) => {
+const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 	const [groups, setGroups] = useState<IPFSSearchModel[]>([]);
 	const [groupCount, setGroupCount] = useState<number>(0);
 	const [displayGroupCount, setDisplayGroupCount] = useState(defaultPageLimit);
+	const [searchValue, setSearchValue] = useState<string>('');
+	const [category, setCategory] = useState<string>('');
+	const [minValue, setMinValue] = useState<string>('');
+	const [maxValue, setMaxValue] = useState<string>('');
 
 	const { ref, inView } = useInView();
 
@@ -36,9 +29,9 @@ const GroupList = ({
 	const queryInput = {
 		groupCount: displayGroupCount,
 		...(searchValue && { searchValue }),
-		...(searchCategory && { searchCategory }),
-		...(searchMinPrice && { searchMinPrice }),
-		...(searchMaxPrice && { searchMaxPrice }),
+		...(category && { category }),
+		...(minValue && { minValue }),
+		...(maxValue && { maxValue }),
 	};
 
 	const {
@@ -66,7 +59,16 @@ const GroupList = ({
 		<div className={`flex flex-col gap-2 overflow-y-scroll ${isHomeScreen ? ' h-80 py-4' : 'm-1 h-fit'}`}>
 			<div className="flex justify-center align-center items-center justify-between">
 				<h2 className="text-2xl font-normal">{heading}</h2>
-				<Search />
+				<Search
+					searchValue={searchValue}
+					setSearchValue={setSearchValue}
+					searchCategory={category}
+					setSearchCategory={setCategory}
+					searchMinPrice={minValue}
+					setSearchMinPrice={setMinValue}
+					searchMaxPrice={maxValue}
+					setSearchMaxPrice={setMaxValue}
+				/>
 			</div>
 			{isLoading && groups.length == 0 ? (
 				<Skeleton count={isHomeScreen ? 3 : 6} />

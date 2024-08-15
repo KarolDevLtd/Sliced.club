@@ -59,13 +59,7 @@ export default function GroupOrganiser() {
 				</div>
 				<div className="col-span-3 row-span-2 overflow-y-auto">
 					<div className="text-3xl mx-2">All GO Groups</div>
-					<GroupList
-						isHomeScreen={false}
-						searchValue={null}
-						searchCategory={null}
-						searchMaxPrice={null}
-						searchMinPrice={null}
-					/>
+					<GroupList isHomeScreen={false} />
 				</div>
 			</div>
 		</>

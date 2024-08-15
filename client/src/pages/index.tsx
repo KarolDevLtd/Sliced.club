@@ -1,4 +1,4 @@
-import { ReactElement, useEffect } from 'react';
+import { type ReactElement, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import PlatformLayout from '~/layouts/platform';
@@ -103,14 +103,7 @@ export default function Dashboard() {
 						<div className="grid grid-cols-9">
 							<div className="col-span-6 mx-4">
 								{walletConnected ? (
-									<GroupList
-										heading="Available groups"
-										isHomeScreen={true}
-										searchValue={null}
-										searchCategory={null}
-										searchMaxPrice={null}
-										searchMinPrice={null}
-									/>
+									<GroupList heading="Available groups" isHomeScreen={true} />
 								) : (
 									'Log in to see all your groups'
 								)}
