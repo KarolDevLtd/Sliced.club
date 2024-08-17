@@ -33,17 +33,12 @@ export default function Groups() {
 
 	return (
 		<>
-			<PageHeader text="Groups" subtext="Check out which groups you want to join" />
-			<div className="p-1">
-				<BasicButton type="neutral" onClick={showGroupModal}>
-					Add Group
-				</BasicButton>
-			</div>
-			<div>
-				<div className="flex">
-					<div className="w-1/2"></div>
-				</div>
-			</div>
+			<PageHeader
+				text="Groups"
+				subtext="Check out which groups you want to join"
+				buttonText="Add Group"
+				onClick={showGroupModal}
+			></PageHeader>
 			<GroupList key={shouldRefreshGroups ? 'refresh' : 'normal'} isHomeScreen={false} />
 			<AddGroupModal groupOpen={groupOpen} hideGroup={closeModal} onGroupSubmitted={handleGroupSubmitted} />
 		</>

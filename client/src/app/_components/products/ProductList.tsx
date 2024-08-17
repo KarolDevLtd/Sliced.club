@@ -69,7 +69,11 @@ const ProductList = ({ heading, isHomeScreen }: ProductListProps) => {
 							{products.map((product, index) => (
 								<ProductItem key={index} productHash={product.ipfs_pin_hash} />
 							))}
-							{productCount > displayProductCount ? <div ref={ref} /> : 'No more products to display...'}
+							{productCount > displayProductCount ? (
+								<div ref={ref} />
+							) : (
+								<div className="flex w-full justify-center">No more products to display...</div>
+							)}
 							{isLoading ? <Spinner /> : null}
 						</>
 					) : (

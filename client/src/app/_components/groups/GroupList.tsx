@@ -81,7 +81,11 @@ const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 							productHash={group.metadata.keyvalues.productHash}
 						/>
 					))}
-					{groupCount > displayGroupCount ? <div ref={ref} /> : 'No more products to display...'}
+					{groupCount > displayGroupCount ? (
+						<div ref={ref} />
+					) : (
+						<div className="flex w-full justify-center">No more groups to display...</div>
+					)}
 					{isLoading ? <Spinner /> : null}
 				</div>
 			) : (
