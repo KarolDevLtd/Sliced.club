@@ -92,8 +92,6 @@ export const PinataGroupRouter = createTRPCRouter({
 		.query(async ({ input }) => {
 			let groups;
 
-			console.log('groupCount');
-			console.log(input.groupCount);
 			try {
 				// const options = {
 				// 	method: 'GET',
@@ -118,11 +116,6 @@ export const PinataGroupRouter = createTRPCRouter({
 					.pageLimit(input.groupCount)
 					.keyValue('type', 'group')
 					.keyValue('productName', `${input.searchValue}%`, 'iLike')) as unknown as IPFSSearchModel[]; // .pageLimit(input.groupCount)
-
-				const count = pinata.usage.pinnedFileCount();
-				console.log(count);
-				console.log(files);
-				console.log(files.length);
 
 				groups = {
 					rows: files,

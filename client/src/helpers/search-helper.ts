@@ -2,7 +2,7 @@
 //Search
 //Filter
 //URL builder
-export const defaultPageLimit = 3;
+export const defaultPageLimit = 7;
 export const maxRecordNumber = 999;
 export const defaultPageOffset = 0;
 export const defaultStatus = 'pinned';
