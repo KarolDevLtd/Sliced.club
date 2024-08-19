@@ -1,11 +1,10 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../../trpc';
 import { URLBuilder, defaultPageLimit, defaultStatus } from '~/helpers/search-helper';
-import { type PinataGroupsDataType, type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
+import { type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-participant-model';
 import { PinataSDK } from 'pinata';
 import { type IPFSSearchModel } from '@/models/ipfs/ipfs-search-model';
-import Search from '@/app/_components/ui/Search';
 
 const pinata = new PinataSDK({
 	pinataJwt: process.env.PINATA_BEARER_TOKEN!,
@@ -87,42 +86,40 @@ export const PinataGroupRouter = createTRPCRouter({
 				creatorKey: z.string().nullish(),
 				groupCount: z.number(),
 				searchValue: z.string(),
+				maxPrice: z.number().nullish(),
+				minPrice: z.number().nullish(),
+				category: z.string().nullish(),
 			})
 		)
 		.query(async ({ input }) => {
 			let groups;
 
 			try {
-				// const options = {
-				// 	method: 'GET',
-				// 	headers: {
-				// 		'content-type': 'application/json',
-				// 		authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
-				// 	},
-				// };
-				// const response = await fetch(
-				// 	// URLBuilder(input.creatorKey ?? null, 'group', input.groupCount, input.searchValue),
-				// 	URLBuilder({
-				// 		creatorKey: input.creatorKey,
-				// 		type: 'group',
-				// 		pageLimit: input.groupCount,
-				// 		searchValue: input.searchValue,
-				// 	}),
-				// 	options
-				// );
-				// groups = (await response.json()) as PinataGroupsDataType;
-				const files = (await pinata
-					.listFiles()
-					.pageLimit(input.groupCount)
-					.keyValue('type', 'group')
-					.keyValue('productName', `${input.searchValue}%`, 'iLike')) as unknown as IPFSSearchModel[]; // .pageLimit(input.groupCount)
+				let filesRequest = pinata.listFiles().pageLimit(input.groupCount).keyValue('type', 'group');
+				const keyValuePairs = [];
 
+				if (input.minPrice !== undefined && input.minPrice !== null) {
+					keyValuePairs.push({ key: 'productPrice', value: input.minPrice, comparator: 'gte' });
+				}
+				if (input.maxPrice !== undefined && input.maxPrice !== null) {
+					keyValuePairs.push({ key: 'productPrice', value: input.maxPrice, comparator: 'lte' });
+				}
+				if (input.searchValue !== undefined && input.searchValue !== null && input.searchValue.trim() !== '') {
+					keyValuePairs.push({ key: 'productName', value: `${input.searchValue}%`, comparator: 'iLike' });
+				}
+				// if (input.category !== undefined && input.category !== null) {
+				// 	keyValuePairs.push({ key: 'cate', value: `${input.searchValue}%`, comparator: 'iLike' });
+				// }
+
+				keyValuePairs.forEach(({ key, value, comparator }) => {
+					filesRequest = filesRequest.keyValue(key, value, comparator);
+				});
+
+				const files = (await filesRequest) as unknown as IPFSSearchModel[];
 				groups = {
 					rows: files,
 					count: files.length,
 				};
-				// groups = x as IPFSSearchModel[];
-				// console.log(groups);
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}

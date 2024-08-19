@@ -82,7 +82,7 @@ const Search = ({
 						/>
 					</div>
 
-					<div className="p-1">
+					{/* <div className="p-1">
 						<SelectOption
 							id="product-category"
 							name="product-category"
@@ -95,7 +95,7 @@ const Search = ({
 								setSearchCategory(e.target.value);
 							}}
 						/>
-					</div>
+					</div> */}
 					<BasicButton
 						type={'neutral'}
 						onClick={() => {

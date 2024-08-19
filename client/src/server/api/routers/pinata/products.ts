@@ -77,8 +77,6 @@ export const PinataProductRouter = createTRPCRouter({
 		.input(z.object({ creatorKey: z.string().nullish(), productCount: z.number() }))
 		.query(async ({ input }) => {
 			let products;
-			console.log('productCount');
-			console.log(input.productCount);
 			if (input.creatorKey != null) {
 				try {
 					const options = {

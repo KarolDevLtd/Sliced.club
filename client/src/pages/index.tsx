@@ -65,7 +65,7 @@ export default function Dashboard() {
 					<div className="row-span-2">
 						<div className="col-span-6 mx-4">
 							{walletConnected ? (
-								<GroupList heading="Available groups" isHomeScreen={true} />
+								<GroupList heading="Available Groups" isHomeScreen={true} />
 							) : (
 								'Log in to see all your groups'
 							)}

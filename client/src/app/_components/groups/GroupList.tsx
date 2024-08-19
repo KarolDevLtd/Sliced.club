@@ -29,9 +29,9 @@ const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 	const queryInput = {
 		groupCount: displayGroupCount,
 		searchValue: searchValue,
-		...(category && { category }),
-		...(minValue && { minValue }),
-		...(maxValue && { maxValue }),
+		maxPrice: maxValue != '' ? parseInt(maxValue) : null,
+		minPrice: minValue != '' ? parseInt(minValue) : null,
+		// category: category,
 	};
 
 	const {
