@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
-import { defaultPageLimit } from '~/helpers/search-helper';
+import { defaultPageLimit, maxRecordNumber } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
@@ -28,7 +28,7 @@ const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 	// Construct the input object based on the available properties
 	const queryInput = {
 		groupCount: displayGroupCount,
-		...(searchValue && { searchValue }),
+		searchValue: searchValue,
 		...(category && { category }),
 		...(minValue && { minValue }),
 		...(maxValue && { maxValue }),
@@ -81,7 +81,7 @@ const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 							productHash={group.metadata.keyvalues.productHash}
 						/>
 					))}
-					{groupCount > displayGroupCount ? (
+					{groupCount < maxRecordNumber ? (
 						<div ref={ref} />
 					) : (
 						<div className="flex w-full justify-center">No more groups to display...</div>

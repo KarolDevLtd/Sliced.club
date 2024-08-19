@@ -77,6 +77,8 @@ export const PinataProductRouter = createTRPCRouter({
 		.input(z.object({ creatorKey: z.string().nullish(), productCount: z.number() }))
 		.query(async ({ input }) => {
 			let products;
+			console.log('productCount');
+			console.log(input.productCount);
 			if (input.creatorKey != null) {
 				try {
 					const options = {
@@ -86,7 +88,10 @@ export const PinataProductRouter = createTRPCRouter({
 							authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
 						},
 					};
-					const response = await fetch(URLBuilder(input.creatorKey, 'product', input.productCount), options);
+					const response = await fetch(
+						URLBuilder({ creatorKey: input.creatorKey, type: 'product', pageLimit: input.productCount }),
+						options
+					);
 					products = (await response.json()) as PinataProductsDataType;
 				} catch (err) {
 					console.log('Error getting hash from IPFS', err);

@@ -3,6 +3,16 @@ import { createTRPCRouter, publicProcedure } from '../../trpc';
 import { URLBuilder, defaultPageLimit, defaultStatus } from '~/helpers/search-helper';
 import { type PinataGroupsDataType, type IPFSGroupModel } from '@/models/ipfs/ipfs-group-model';
 import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-participant-model';
+import { PinataSDK } from 'pinata';
+import { type IPFSSearchModel } from '@/models/ipfs/ipfs-search-model';
+import Search from '@/app/_components/ui/Search';
+
+const pinata = new PinataSDK({
+	pinataJwt: process.env.PINATA_BEARER_TOKEN!,
+	pinataGateway: process.env.PINATA_GATEWAY_URL,
+});
+
+// const files = await pinata.listFiles().name('pinnie');
 
 export const PinataGroupRouter = createTRPCRouter({
 	postGroup: publicProcedure
@@ -60,10 +70,7 @@ export const PinataGroupRouter = createTRPCRouter({
 		let group;
 		if (input.hash != null) {
 			try {
-				const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${input.hash}`, {
-					method: 'GET',
-				});
-				group = (await response.json()) as IPFSGroupModel; // This parses the JSON from the response body
+				group = (await pinata.gateways.get(input.hash)).data as unknown as IPFSGroupModel;
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}
@@ -75,19 +82,54 @@ export const PinataGroupRouter = createTRPCRouter({
 
 	//getGroups based on creator key
 	getGroups: publicProcedure
-		.input(z.object({ creatorKey: z.string().nullish(), groupCount: z.number() }))
+		.input(
+			z.object({
+				creatorKey: z.string().nullish(),
+				groupCount: z.number(),
+				searchValue: z.string(),
+			})
+		)
 		.query(async ({ input }) => {
 			let groups;
+
+			console.log('groupCount');
+			console.log(input.groupCount);
 			try {
-				const options = {
-					method: 'GET',
-					headers: {
-						'content-type': 'application/json',
-						authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
-					},
+				// const options = {
+				// 	method: 'GET',
+				// 	headers: {
+				// 		'content-type': 'application/json',
+				// 		authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
+				// 	},
+				// };
+				// const response = await fetch(
+				// 	// URLBuilder(input.creatorKey ?? null, 'group', input.groupCount, input.searchValue),
+				// 	URLBuilder({
+				// 		creatorKey: input.creatorKey,
+				// 		type: 'group',
+				// 		pageLimit: input.groupCount,
+				// 		searchValue: input.searchValue,
+				// 	}),
+				// 	options
+				// );
+				// groups = (await response.json()) as PinataGroupsDataType;
+				const files = (await pinata
+					.listFiles()
+					.pageLimit(input.groupCount)
+					.keyValue('type', 'group')
+					.keyValue('productName', `${input.searchValue}%`, 'iLike')) as unknown as IPFSSearchModel[]; // .pageLimit(input.groupCount)
+
+				const count = pinata.usage.pinnedFileCount();
+				console.log(count);
+				console.log(files);
+				console.log(files.length);
+
+				groups = {
+					rows: files,
+					count: files.length,
 				};
-				const response = await fetch(URLBuilder(input.creatorKey ?? null, 'group', input.groupCount), options);
-				groups = (await response.json()) as PinataGroupsDataType;
+				// groups = x as IPFSSearchModel[];
+				// console.log(groups);
 			} catch (err) {
 				console.log('Error getting hash from IPFS');
 			}
@@ -108,7 +150,10 @@ export const PinataGroupRouter = createTRPCRouter({
 							authorization: `Bearer ${process.env.PINATA_BEARER_TOKEN}`,
 						},
 					};
-					const response = await fetch(URLBuilder(input.creatorKey, 'group', input.groupCount), options);
+					const response = await fetch(
+						URLBuilder({ creatorKey: input.creatorKey, type: 'group', pageLimit: input.groupCount }),
+						options
+					);
 					groups = (await response.json()) as IPFSGroupModel;
 				} catch (err) {
 					console.log('Error getting hash from IPFS');
