@@ -1,9 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import React, { useCallback, useEffect, useState } from 'react';
 import BasicModal from '../ui/BasicModal';
 import InlineLink from '../ui/InlineLink';
@@ -12,6 +6,8 @@ import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { toast } from 'react-toastify';
 import ZoomableImage from '../ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
+import BasicButton from '../ui/BasicButton';
+import { IoPeople } from 'react-icons/io5';
 
 type ProductItemProps = {
 	productHash: string;
@@ -24,14 +20,9 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
+	const dummyVal = Math.floor(Math.random() * 48);
 
-	// const completedRatio = product?.itemsReceived ? (product.itemsReceived / product.groupMembers) * 100 : 0;
-
-	// const completedPercentage = () => {
-	// 	return product.itemsReceived ? `${Math.round(completedRatio)}%` : 0;
-	// };
-
-	const handleClick = (e: Event | undefined) => {
+	const handleClick = (e: MouseEvent) => {
 		//TODO: Is here a product page not associated with group?
 		// void router.push(`/groups/${firebaseProduct.id}`);
 		e?.stopPropagation();
@@ -42,8 +33,8 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 		setIsLoading(true);
 		try {
 			if (productData) {
-				const currProd = productData.product as IPFSProductModel;
-				setProduct(productData.product);
+				const currProd = productData.product!;
+				setProduct(currProd);
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 		} catch (err) {
@@ -60,46 +51,40 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 	}, [fetchAndDisplayImages, productData]);
 
 	return (
-		// <div>{currentProduct}</div>
 		<>
-			{/* {isLoading ? (
-				'Loading...'
-			) : ( */}
 			{/* //TODO - BUG here, should be able to zoom image without triggering parent onClick */}
 			<div
 				className="grid grid-cols-10 gap-4 p-2 my-2 min-w-full min-h-[90px] rounded-md bg-itemfade border border-accent hover:border-neutral hover:cursor-pointer overflow-hidden"
-				// @ts-ignore
-				onClick={(e) => handleClick(e)}
+				onClick={() => handleClick}
 			>
-				<div className="col-span-2 max-w-[120px] min-h-full bg-medium-grey rounded">
+				<div className="col-span-1 min-h-full bg-medium-grey rounded">
 					{hasImage ? (
 						<ZoomableImage source={imageData[0] ?? null} width={100} height={100} alt={'image'} />
 					) : null}
 				</div>
-				<div className="col-span-2 flex flex-col justify-center">
+				<div className="col-span-3 flex flex-col justify-center items-center">
 					<p className="font-bold">{product?.name}</p>
-					{/* <p className="text-sm text-dark-grey">{product?.groupOrganiser}</p> */}
 				</div>
-				<div className="col-span-2 flex items-center">
+				<div className="col-span-2 flex items-center justify-center">
 					<InlineLink href={`categories/${product?.category}`}>{product?.category}</InlineLink>
 				</div>
-				{/* <div className="col-span-1 flex items-center gap-1">
-					<FaUserGroup />
-					<p>{product?.groupMembers}</p>
-				</div> */}
-				{/* <div className="col-span-1 flex items-center">
-					{product?.itemsReceived ? (
-						<div>
-							<p>{completedPercentage()}</p>
-							<ProgressBar progress={completedRatio} />
-						</div>
-					) : null}
-				</div> */}
-				{/* <div className="col-span-2 flex items-center">
-					<BasicButton type="secondary" onClick={(e) => handleClick(e)}>
-						View details
+				<div className="flex flex-row col-span-1 items-center justify-center">
+					<div className="mx-2 flex flex-row">
+						<IoPeople size={20} />
+						<p>{dummyVal}</p>
+					</div>
+				</div>
+				<div className="flex flex-row col-span-1 items-center justify-center">
+					<div className="mx-2">
+						<p className=" flex items-center justify-center">{dummyVal}%</p>
+						<progress className="progress w-16" value={dummyVal} max={50} />
+					</div>
+				</div>
+				<div className="flex flex-col col-span-2 items-center justify-center">
+					<BasicButton type={'neutral'} onClick={handleClick}>
+						View Details
 					</BasicButton>
-				</div> */}
+				</div>
 				<BasicModal
 					id="product-item"
 					header="Item Details"
@@ -108,26 +93,13 @@ const ProductItem = ({ productHash }: ProductItemProps) => {
 							<div className="flex items-center gap-1">
 								<strong>Product name:</strong> <p>{product?.name}</p>
 							</div>
-							{/* <div className="flex items-center gap-1">
-									<strong>Group Organiser:</strong> <p>{product.groupOrganiser}</p>
-								</div> */}
 							<div className="flex items-center gap-1">
-								{/* <strong>Price:</strong> <p>{formatCurrency(product?.price)}</p> */}
 								<strong>Price:</strong> <p>{product?.price}</p>
 							</div>
-							{/* <div className="flex items-center gap-1">
-									<strong>Group members:</strong> <p>{product.groupMembers}</p>
-								</div>
-								{product.itemsReceived ? (
-									<div className="flex items-center gap-1">
-										<strong>Items received:</strong> <p>{product.itemsReceived}</p>
-									</div>
-								) : null} */}
 						</div>
 					}
 				/>
 			</div>
-			{/* )} */}
 		</>
 	);
 };

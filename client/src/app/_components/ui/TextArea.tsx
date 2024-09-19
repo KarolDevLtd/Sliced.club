@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import React, { type ChangeEvent, useState, useRef } from 'react';
 import { useAutosizeTextArea } from '~/helpers/textarea-helper';
 
@@ -17,7 +13,7 @@ type TextAreaProps = {
 	placeholder?: string;
 	hideAsterisk?: boolean;
 	rows?: number;
-	onChange?: (e: any) => any;
+	onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
 	disabled?: boolean;
 	required?: boolean;
 	showCharacterCount?: boolean;

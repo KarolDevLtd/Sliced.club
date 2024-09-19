@@ -1,3 +1,4 @@
+import { type ReactElement } from 'react';
 import PlatformLayout from '~/layouts/platform';
 
 export default function CreateGroup() {
@@ -8,6 +9,6 @@ export default function CreateGroup() {
 	);
 }
 
-CreateGroup.getLayout = function getLayout(page) {
+CreateGroup.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

@@ -1,11 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { preventActionNotLoggedIn } from '@/helpers/user-helper';
-import { useWallet } from '@/providers/WalletProvider';
-import { useMinaProvider } from '@/providers/minaprovider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
+import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { type ReactElement, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import GroupNavigation from '~/app/_components/groups/GroupNavigation';
 import GroupPosts from '~/app/_components/groups/group-post/GroupPosts';
@@ -13,41 +10,56 @@ import Breadcrumbs from '~/app/_components/ui/Breadcrumbs';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import { fetchImageData } from '~/helpers/image-helper';
 import PlatformLayout from '~/layouts/platform';
-import { type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
-import { type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
+import { type PinataGroupDataType, defaultGroup, type IPFSGroupModel } from '~/models/ipfs/ipfs-group-model';
+import { type PinataProductDataType, defaultProduct, type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { api } from '~/trpc/react';
 import AdmitUserModal from '~/app/_components/groups/AdmitUserModal';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
 import { showModal } from '@/helpers/modal-helper';
-import { type IPFSGroupParticipantModel } from '@/models/ipfs/ipfs-user-model';
+import {
+	type PinataGroupParticipantsModel,
+	defaultParticipant,
+	type IPFSGroupParticipantModel,
+} from '@/models/ipfs/ipfs-participant-model';
 import Spinner from '@/app/_components/ui/Spinner';
 import Carousel from '@/app/_components/ui/Carousel';
 import ZoomableImage from '@/app/_components/ui/ZoomableImage';
+import { type IPFSSearchModel } from '@/models/ipfs/ipfs-search-model';
 
 export default function Group() {
 	const router = useRouter();
+	const { pathname, query, asPath } = router;
+
 	const [refreshPosts, setRefreshPosts] = useState(false);
 	const { walletAddress } = useWallet();
 	const { addUserToGroup } = useMinaProvider();
 	const [isLoading, setIsLoading] = useState(false);
 	const [group, setGroup] = useState<IPFSGroupModel>();
 	const [product, setProduct] = useState<IPFSProductModel>();
-	const [participants, setParticipants] = useState<IPFSGroupParticipantModel[]>();
+	const [participants, setParticipants] = useState<IPFSSearchModel[]>();
 	const [hasImage, setHasImage] = useState<boolean>(false);
 	const [imageData, setImageData] = useState<string[]>([]);
 	const [imageError, setImageError] = useState(false);
 	const [isParticipant, setIsParticipant] = useState<boolean>(false);
 	const [pendingParticipants, setPendingParticipants] = useState<IPFSGroupParticipantModel[]>();
 
-	const groupId = router.query.groupId;
-	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: groupId });
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({
+	let groupId: string | null | undefined = null;
+	if (query.groupId) {
+		if (Array.isArray(query.groupId)) {
+			groupId = query.groupId[0];
+		} else {
+			groupId = query.groupId;
+		}
+	}
+
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery<PinataGroupDataType>({ hash: groupId });
+	const { data: productData } = api.PinataProduct.getProduct.useQuery<PinataProductDataType>({
 		hash: groupData == undefined ? '' : groupData?.group?.productHash,
 	});
-	const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery({
-		groupHash: groupData == undefined ? '' : groupId,
+	const { data: participantData } = api.PinataGroup.getGroupParticipants.useQuery<PinataGroupParticipantsModel>({
+		groupHash: groupId ?? '',
 	});
 	const groupParticipantToIPFS = api.PinataGroup.createGroupParticipantObject.useMutation();
 
@@ -71,17 +83,15 @@ export default function Group() {
 		setIsLoading(true);
 		try {
 			if (groupData) {
-				const currGroup = groupData.group as IPFSGroupModel;
+				const currGroup = groupData.group;
 				setGroup(currGroup);
-				// console.log('group data');
 			}
 			if (productData) {
-				const currProd = productData.product as IPFSProductModel;
+				const currProd = productData.product;
 				setProduct(productData.product);
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 			if (participantData) {
-				console.log(participantData.participants);
 				setParticipants(participantData.participants.rows);
 			}
 		} catch (err) {
@@ -94,6 +104,7 @@ export default function Group() {
 
 	useEffect(() => {
 		if (participants) {
+			console.log(participants);
 			if (
 				participants.some((participant) => participant.metadata.keyvalues.userKey === walletAddress?.toString())
 			) {
@@ -110,6 +121,11 @@ export default function Group() {
 	useEffect(() => {
 		void fetchInfo();
 	}, [fetchInfo, group]);
+
+	useEffect(() => {
+		console.log('hasImage', hasImage);
+		console.log('imageData', imageData);
+	}, [hasImage, imageData]);
 
 	return (
 		<>
@@ -164,16 +180,14 @@ export default function Group() {
 								setIsLoading(true);
 								console.log('Joining group');
 								if (groupId && walletAddress && group && !isParticipant) {
-									console.log('add user ipfs values :\n', groupData.group);
-
 									await addUserToGroup(
-										groupData.group.chainPubKey,
+										group.chainPubKey,
 										walletAddress.toString(),
-										parseInt(groupData.group.participants),
-										parseInt(groupData.group.price),
-										parseInt(groupData.group.duration),
+										parseInt(group.participants),
+										parseInt(group.price),
+										parseInt(group.duration),
 										3, // missable
-										parseInt(groupData.group.period)
+										parseInt(group.period)
 									);
 									await groupParticipantToIPFS.mutateAsync({
 										groupHash: groupId.toString(),
@@ -236,21 +250,29 @@ export default function Group() {
 						</div>
 					</div>
 
-					<GroupNavigation groupHash={groupId?.toString() ?? ''} group={group} product={product} />
+					<GroupNavigation
+						groupHash={groupId?.toString() ?? ''}
+						group={group ?? defaultGroup}
+						product={product ?? defaultProduct}
+					/>
 				</div>
 
 				<div className="flex-1 grid grid-cols-8 gap-4">
 					<div className="col-span-5">
-						<GroupPosts groupId={groupId} refetchPosts={handlePostSubmission} />
+						<GroupPosts groupId={groupId ?? ''} refetchPosts={handlePostSubmission} />
 					</div>
 					<div className="col-span-3"></div>
 				</div>
 			</div>
-			<AdmitUserModal groupHash={groupId?.toString()} participants={pendingParticipants} group={group} />
+			<AdmitUserModal
+				groupHash={groupId?.toString() ?? ''}
+				participants={pendingParticipants ?? [defaultParticipant]}
+				group={group ?? defaultGroup}
+			/>
 		</>
 	);
 }
 
-Group.getLayout = function getLayout(page) {
+Group.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

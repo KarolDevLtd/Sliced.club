@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { type ReactElement } from 'react';
 import PlatformLayout from '~/layouts/platform';
 
 export default function GroupClaim() {
@@ -14,6 +15,6 @@ export default function GroupClaim() {
 	);
 }
 
-GroupClaim.getLayout = function getLayout(page) {
+GroupClaim.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

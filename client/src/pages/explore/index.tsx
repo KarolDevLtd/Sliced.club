@@ -1,3 +1,4 @@
+import { type ReactElement } from 'react';
 import PlatformLayout from '~/layouts/platform';
 
 export default function Explore() {
@@ -8,6 +9,6 @@ export default function Explore() {
 	);
 }
 
-Explore.getLayout = function getLayout(page) {
+Explore.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

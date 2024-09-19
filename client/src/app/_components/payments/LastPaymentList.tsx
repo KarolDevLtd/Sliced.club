@@ -1,4 +1,4 @@
-import { LastPayment } from '~/types/payment-types';
+import { type LastPayment } from '~/types/payment-types';
 import LastPaymentItem from './LastPaymentItem';
 
 type LastPaymentListProps = {

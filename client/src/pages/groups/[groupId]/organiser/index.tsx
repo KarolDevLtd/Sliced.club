@@ -1,17 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import BasicButton from '@/app/_components/ui/BasicButton';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { useInView } from 'react-intersection-observer';
 import GroupList from '~/app/_components/groups/GroupList';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import UserAvatar from '~/app/_components/ui/UserAvatar';
-import { defaultPageLimit } from '~/helpers/search-helper';
 import PlatformLayout from '~/layouts/platform';
-import { IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
-import { api } from '~/trpc/react';
 import { FaFacebookSquare, FaYoutube, FaInstagramSquare } from 'react-icons/fa';
+import { type ReactElement } from 'react';
 
 export default function GroupOrganiser() {
 	const router = useRouter();
@@ -39,7 +33,6 @@ export default function GroupOrganiser() {
 					</div>
 					<div className="p-5 col-span-5 flex flex-col justify-center">
 						<div className="text-3xl">GO Name</div>
-						{/* <br /> */}
 						<div className="flex">
 							<FaFacebookSquare size={40} className="m-2" />
 							<FaYoutube size={40} className="m-2" />
@@ -66,13 +59,13 @@ export default function GroupOrganiser() {
 				</div>
 				<div className="col-span-3 row-span-2 overflow-y-auto">
 					<div className="text-3xl mx-2">All GO Groups</div>
-					<GroupList isHomeScreen={false} creatorKey={query.creatorHash} />
+					<GroupList isHomeScreen={false} />
 				</div>
 			</div>
 		</>
 	);
 }
 
-GroupOrganiser.getLayout = function getLayout(page) {
+GroupOrganiser.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

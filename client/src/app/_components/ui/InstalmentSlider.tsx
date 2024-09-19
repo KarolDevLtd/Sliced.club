@@ -1,18 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import React from 'react';
 import BasicSlider from './BasicSlider';
 
 type InstalmentSliderProps = {
 	participants: number;
 	duration: number;
-	onSlide: (number) => void;
+	onSlide: (value: number) => void;
 };
 
 const InstalmentSlider = ({ participants, duration, onSlide }: InstalmentSliderProps) => {
-	const handleRangeChange = (event) => {
-		const value = parseInt(event.target.value);
+	const handleRangeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const value = parseInt(event.target.value, 10);
 		onSlide(value);
 	};
 

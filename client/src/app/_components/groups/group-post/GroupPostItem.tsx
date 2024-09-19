@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import React, { useCallback, useEffect, useState } from 'react';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
@@ -12,7 +7,7 @@ import { type IPFSPostModel } from '~/models/ipfs/ipfs-post-model';
 import { api } from '~/trpc/react';
 import BasicButton from '../../ui/BasicButton';
 import { FaRegCommentDots } from 'react-icons/fa6';
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import PostComment from './group-post-comment/PostComment';
 import PostCommentList from './group-post-comment/PostCommentList';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected, sliceWalletAddress } from '~/helpers/user-helper';

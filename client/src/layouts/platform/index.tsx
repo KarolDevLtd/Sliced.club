@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-
 import PlatformSidebar from '~/app/_components/global/platform-sidebar/PlatformSidebar';
 import { UserStoreStatus } from '~/app/_components/temp-user-store-status';
 import Providers from '~/providers';
 import RootLayout from '..';
-
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { IoIosClose } from 'react-icons/io';
 
@@ -31,7 +29,7 @@ const PlatformLayout = ({ children }: { children: React.ReactNode }) => {
 						)}
 					</div>
 					<PlatformSidebar hidden={!showNav} />
-					<main className="p-6 ms-0 w-full sm:ms-auto sm:w-3/4 md:w-4/5 lg:w-5/6 flex flex-col gap-4 min-h-full max-h-full">
+					<main className="p-6 ms-0 w-full sm:ms-auto sm:w-3/4 md:w-4/5 lg:w-5/6 flex flex-col gap-4 min-h-full max-h-full font-thin">
 						{children}
 					</main>
 				</div>

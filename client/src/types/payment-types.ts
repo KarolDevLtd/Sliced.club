@@ -1,5 +1,3 @@
-import { type Product } from './product-types';
-
 export type Payment = {
 	amountDue: number;
 	nextPaymentDue: string; // that should be date of that payment

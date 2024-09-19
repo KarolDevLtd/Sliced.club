@@ -1,68 +1,52 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { useEffect, useState } from 'react';
-import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import GroupItem from './GroupItem';
 import { type IPFSSearchModel } from '~/models/ipfs/ipfs-search-model';
-import { defaultPageLimit } from '~/helpers/search-helper';
+import { defaultPageLimit, maxRecordNumber } from '~/helpers/search-helper';
 import { useInView } from 'react-intersection-observer';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
+import { type PinataGroupsDataType } from '@/models/ipfs/ipfs-group-model';
+import Search from '../ui/Search';
 
 type GroupListProps = {
 	heading?: string;
-	searchValue: string | null;
 	isHomeScreen: boolean;
-	searchCategory: string | null;
-	searchMaxPrice: string | null;
-	searchMinPrice: string | null;
-	// products: Product[];
 };
 
-const GroupList = ({
-	heading,
-	isHomeScreen,
-	searchValue,
-	searchCategory,
-	searchMaxPrice,
-	searchMinPrice,
-}: GroupListProps) => {
-	const { isConnected, walletAddress } = useWallet();
+const GroupList = ({ heading, isHomeScreen }: GroupListProps) => {
 	const [groups, setGroups] = useState<IPFSSearchModel[]>([]);
 	const [groupCount, setGroupCount] = useState<number>(0);
 	const [displayGroupCount, setDisplayGroupCount] = useState(defaultPageLimit);
+	const [searchValue, setSearchValue] = useState<string>('');
+	const [category, setCategory] = useState<string>('');
+	const [minValue, setMinValue] = useState<string>('');
+	const [maxValue, setMaxValue] = useState<string>('');
 
 	const { ref, inView } = useInView();
+
+	// Construct the input object based on the available properties
+	const queryInput = {
+		groupCount: displayGroupCount,
+		searchValue: searchValue,
+		maxPrice: maxValue != '' ? parseInt(maxValue) : null,
+		minPrice: minValue != '' ? parseInt(minValue) : null,
+		// category: category,
+	};
 
 	const {
 		data: groupData,
 		error,
 		refetch,
 		isLoading,
-	} = api.PinataGroup.getGroups.useQuery({
-		// creatorKey: walletAddress?.toString(),
-		groupCount: displayGroupCount,
-		searchValue: searchValue,
-		searchCategory: searchCategory,
-		searchMinPrice: searchMinPrice,
-		searchMaxPrice: searchMaxPrice,
-	});
+	} = api.PinataGroup.getGroups.useQuery<PinataGroupsDataType>(queryInput);
 
 	useEffect(() => {
 		if (groupData) {
-			setGroups(groupData.groups == null ? [] : groupData.groups.rows);
-			setGroupCount(groupData.groups == null ? 0 : groupData.groups.count);
+			setGroups(groupData == null ? [] : groupData.rows);
+			setGroupCount(groupData == null ? 0 : groupData.count);
 		}
 	}, [groupData]);
-
-	useEffect(() => {
-		if (error) {
-			console.error('Error fetching groups:', error);
-		}
-	}, [error]);
 
 	useEffect(() => {
 		if (inView) {
@@ -71,18 +55,25 @@ const GroupList = ({
 	}, [inView]);
 
 	return (
-		<div className="flex flex-col gap-2 py-4">
-			{heading ? <h2 className="text-2xl">{heading}</h2> : null}
+		//TODO: bug here with multiple isHomeScreens. Reduce to one.
+		<div className={`flex flex-col gap-2 overflow-y-scroll ${isHomeScreen ? ' h-80' : 'm-1 h-fit'}`}>
+			<div className="flex justify-center align-center items-center justify-between">
+				<h2 className="text-2xl font-normal">{heading}</h2>
+				<Search
+					searchValue={searchValue}
+					setSearchValue={setSearchValue}
+					searchCategory={category}
+					setSearchCategory={setCategory}
+					searchMinPrice={minValue}
+					setSearchMinPrice={setMinValue}
+					searchMaxPrice={maxValue}
+					setSearchMaxPrice={setMaxValue}
+				/>
+			</div>
 			{isLoading && groups.length == 0 ? (
 				<Skeleton count={isHomeScreen ? 3 : 6} />
 			) : groups && groups.length > 0 ? (
-				<div
-					className={
-						isHomeScreen
-							? 'overflow-y-scroll flex flex-col h-80'
-							: 'overflow-y-scroll flex flex-col m-4 h-fit'
-					}
-				>
+				<div className={`overflow-y-scroll flex flex-col  ${isHomeScreen ? 'h-80' : 'm-4 h-fit'}`}>
 					{groups.map((group, index) => (
 						<GroupItem
 							key={index}
@@ -90,7 +81,11 @@ const GroupList = ({
 							productHash={group.metadata.keyvalues.productHash}
 						/>
 					))}
-					{groupCount > displayGroupCount ? <div ref={ref} /> : 'No more products to display...'}
+					{groupCount < maxRecordNumber ? (
+						<div ref={ref} />
+					) : (
+						<div className="flex w-full justify-center">No more groups to display...</div>
+					)}
 					{isLoading ? <Spinner /> : null}
 				</div>
 			) : (
@@ -99,4 +94,5 @@ const GroupList = ({
 		</div>
 	);
 };
+
 export default GroupList;

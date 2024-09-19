@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import React from 'react';
 
 type SelectOptionProps = {
@@ -29,6 +26,7 @@ type SelectOptionProps = {
 	register?: any;
 	errors?: any;
 	displayKey?: 'value' | 'name' | 'symbol'; // Allow 'value', 'name', or 'symbol'
+	width?: string | null;
 };
 
 const SelectOption = ({
@@ -51,6 +49,7 @@ const SelectOption = ({
 	validationSchema,
 	register = () => [],
 	errors,
+	width,
 }: SelectOptionProps) => {
 	const colourMap = {
 		primary: 'select-primary',
@@ -94,7 +93,7 @@ const SelectOption = ({
 					</div>
 				) : null}
 				<select
-					className={`select select-bordered ${type && colourMap[type]} ${size && sizeMap[size]}  ${errors && 'select-error'}`}
+					className={`select select-bordered ${type && colourMap[type]} ${size && sizeMap[size]}  ${errors && 'select-error'} ${width ?? ''}`}
 					id={id}
 					name={name}
 					disabled={disabled}
@@ -103,7 +102,7 @@ const SelectOption = ({
 					onChange={onChange}
 					{...register(name, {
 						...validationSchema,
-						onChange: (e) => {
+						onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
 							handleChange(e);
 						},
 					})}

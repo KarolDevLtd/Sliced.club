@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import React, { type Dispatch } from 'react';
 import Image from 'next/image';
 import Zoom from 'react-medium-image-zoom';
@@ -11,7 +8,7 @@ import { IoClose } from 'react-icons/io5';
 
 type ImageUploadProps = {
 	images: File[];
-	setImages: Dispatch<File[]>;
+	setImages: Dispatch<React.SetStateAction<File[]>>;
 	includeButton: boolean;
 };
 
@@ -31,18 +28,20 @@ const ImageUpload = ({ images, setImages, includeButton }: ImageUploadProps) => 
 		}
 	};
 
-	const handleSetImages = async (images: File[], removing: boolean) => {
+	const handleSetImages = async (newImages: File[], removing: boolean) => {
 		try {
-			//on removing from previw no need to compress
+			// On removing from preview, no need to compress
 			if (!removing) {
 				const compressedImages = await Promise.all(
-					images.map(async (file) => {
+					newImages.map(async (file) => {
 						return await compressImage(file);
 					})
 				);
 				// Update images state with the compressed images
 				setImages((prevImages) => [...prevImages, ...compressedImages]);
-			} else setImages(images);
+			} else {
+				setImages(newImages);
+			}
 		} catch (err) {
 			console.log(err);
 			toast.error('Could not upload one or more of your images');

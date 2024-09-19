@@ -5,12 +5,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // providers/walletprovider.tsx
 'use client';
-import MinaProvider, { ChainInfoArgs, ProviderError } from '@aurowallet/mina-provider';
-import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { sliceWalletAddress } from '~/helpers/user-helper';
 
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
-import { useMinaProvider } from '../minaprovider';
+import { useMinaProvider } from '../MinaProvider/minaProvider';
 import { useStartUpProvider } from '../start-up-provider';
 
 // Define the type for the context value
@@ -48,16 +47,11 @@ export const useWallet = (): WalletContextType => {
 	}
 };
 
-// Define props interface for WalletProvider component
-interface WalletProviderProps {
-	children: ReactNode;
-}
-
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const LOCAL_STORAGE_KEY = 'MINA';
 
 	const { setUserWalletAddress } = useUserStore((state) => state);
-	const { startingUp, hasCompletedStartUp, setStartingUp } = useStartUpProvider();
+	const { startingUp, setStartingUp } = useStartUpProvider();
 	const { spinUp } = useMinaProvider();
 
 	const [isConnected, setIsConnected] = useState(false);
@@ -81,8 +75,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
 	const tryChainChange = async (chain: string) => {
 		try {
-			const switchResult = await window?.mina?.switchChain({ chainId: chain }).catch((err) => {
-				throw err;
+			const switchResult = await window.mina?.switchChain({
+				networkID: chain,
 			});
 			if (switchResult && 'message' in switchResult) {
 				console.log(switchResult);
@@ -96,9 +90,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
 	const getCurrentChainType = async () => {
 		try {
-			const chain = await window.mina?.requestNetwork().catch((err) => {
-				throw err;
-			});
+			const chain = await window.mina?.requestNetwork();
 			setChainType(chain.chainId);
 		} catch (err) {
 			console.log(err);

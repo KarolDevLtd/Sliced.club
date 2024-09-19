@@ -14,13 +14,13 @@ const SidebarItem = ({ text, href, icon }: SidebarItemProps) => {
 	const activeLink = router.pathname.split('/')[1] === href.split('/')[1];
 
 	return (
-		<Link className={`${activeLink ? 'active border-r-2 border-bigred' : ''} `} href={href}>
+		<Link className={`${activeLink ? ' border-r-2 border-bigred text-bigred' : ''} `} href={href}>
 			<span
 				className={`${activeLink ? 'bg-bigred border-bigred text-base-100' : 'bg-itemfade border-accent '} p-3 border rounded-xl text-xl `}
 			>
 				{icon}
 			</span>
-			<span>{text}</span>
+			<span className={`${activeLink ? 'text-bigred font-normal' : ''}`}>{text}</span>
 		</Link>
 	);
 };

@@ -1,18 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import ImageCarousel from '@/app/_components/ui/ImageCarousel';
+import { type AttributeModel } from '@/models/attribute-model';
+import { defaultGroup, type PinataGroupDataType } from '@/models/ipfs/ipfs-group-model';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { type ReactElement, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import GroupNavigation from '~/app/_components/groups/GroupNavigation';
 import PageHeader from '~/app/_components/ui/PageHeader';
-import ZoomableImage from '~/app/_components/ui/ZoomableImage';
 import { fetchImageData } from '~/helpers/image-helper';
 import PlatformLayout from '~/layouts/platform';
-import { IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
+import { type PinataProductDataType, defaultProduct, type IPFSProductModel } from '~/models/ipfs/ipfs-product-model';
 import { api } from '~/trpc/react';
 
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 export default function GroupProductDetails() {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
@@ -25,15 +23,34 @@ export default function GroupProductDetails() {
 	const handleBackClick = () => {
 		router.back();
 	};
-	const { data: groupData } = api.PinataGroup.getGroup.useQuery({ hash: query.groupId });
-	const { data: productData } = api.PinataProduct.getProduct.useQuery({ hash: query.hash });
+
+	let groupId: string | null | undefined = null;
+	if (query.groupId) {
+		if (Array.isArray(query.groupId)) {
+			groupId = query.groupId[0];
+		} else {
+			groupId = query.groupId;
+		}
+	}
+
+	let hash: string | null | undefined = null;
+	if (query.hash) {
+		if (Array.isArray(query.hash)) {
+			hash = query.hash[0];
+		} else {
+			hash = query.hash;
+		}
+	}
+
+	const { data: groupData } = api.PinataGroup.getGroup.useQuery<PinataGroupDataType>({ hash: groupId });
+	const { data: productData } = api.PinataProduct.getProduct.useQuery<PinataProductDataType>({ hash: hash });
 	//Get data from Firebase
 	const fetchAndDisplayImages = useCallback(async () => {
 		setIsLoading(true);
 		try {
 			if (productData) {
-				const currProd = productData.product as IPFSProductModel;
-				setProduct(productData.product as IPFSProductModel);
+				const currProd = productData.product;
+				setProduct(productData.product);
 				await fetchImageData(currProd, setHasImage, setImageData, setImageError);
 			}
 		} catch (err) {
@@ -52,13 +69,7 @@ export default function GroupProductDetails() {
 	return (
 		<>
 			<div className="flex flex-col justify-between items-start">
-				<PageHeader
-					text={'Product Details'}
-					// text={groupData?.group?.name ?? 'Group Name'}
-					// subtext={groupData?.group?.groupOrganiser ?? 'Group Organiser'}
-					buttonText="Back"
-					onClick={handleBackClick}
-				/>
+				<PageHeader text={'Product Details'} buttonText="Back" onClick={handleBackClick} />
 			</div>
 			<div className="grid grid-cols-9 gap-8 w-full h-full rounded-xl border border-accent p-5">
 				<div className="grid gap-8 col-span-3">
@@ -66,7 +77,7 @@ export default function GroupProductDetails() {
 						<ImageCarousel images={imageData} />
 					</div>
 					<div className="row-span-4 px-8">
-						{productData?.product.productAttributes.map((key, i) =>
+						{productData?.product.productAttributes?.map((key: AttributeModel, i: number) =>
 							key.propertyName != null && key.propertyName != '' ? (
 								<div key={i} className="flex justify-between">
 									<div>{key.propertyName}</div>
@@ -82,13 +93,15 @@ export default function GroupProductDetails() {
 					<div>{groupData?.group.description}</div>
 				</div>
 			</div>
-			<GroupNavigation groupHash={query.groupId} group={groupData.group} product={productData.product} />
-
-			{/* <GroupNavigation/> */}
+			<GroupNavigation
+				groupHash={query.groupId?.toString() ?? ''}
+				group={groupData?.group ?? defaultGroup}
+				product={productData?.product ?? defaultProduct}
+			/>
 		</>
 	);
 }
 
-GroupProductDetails.getLayout = function getLayout(page) {
+GroupProductDetails.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

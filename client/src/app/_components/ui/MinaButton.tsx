@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import React, { type ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import BasicButton from './BasicButton';
@@ -7,7 +6,7 @@ import SelectOption from './SelectOption';
 import { FaWallet } from 'react-icons/fa';
 import { GoArrowSwitch } from 'react-icons/go';
 
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { MinaChainOptions } from '~/models/chain-options';
 
 type MinaButtonTypes = 'chain' | 'connect';
@@ -45,7 +44,7 @@ const MinaButton = ({ types, checkInstall = true, disabled }: MinaButtonProps) =
 	}, [checkInstall]);
 
 	useEffect(() => {
-		onClickConnect(true);
+		void onClickConnect(true);
 		setSelectedValue(chainType!);
 	}, [onClickConnect, chainType]);
 

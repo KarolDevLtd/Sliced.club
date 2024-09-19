@@ -1,10 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import React, { useEffect, useState } from 'react';
 import { BarChart, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { PaymentBarChartData } from '~/static-data';
+
+type ChartDataItem = {
+	name: string;
+	moneys: number; // assuming 'moneys' is a number
+};
 
 type BasicBarChartProps = {
-	chartData: [];
+	chartData: ChartDataItem[];
 };
 
 const BasicBarChart = ({ chartData }: BasicBarChartProps) => {
@@ -12,31 +15,28 @@ const BasicBarChart = ({ chartData }: BasicBarChartProps) => {
 	const [lowestPrice, setLowestPrice] = useState(0);
 
 	// Formatter function
-	const formatCurrency = (value) => {
+	const formatCurrency = (value: number) => {
 		return `$${(value / 1000).toFixed(0)}K`;
 	};
 
 	//Not used atm but nice to have incase
 	const getHighLowValues = () => {
-		let highestPricedItem;
-		let lowestPricedItem;
-
 		if (chartData.length > 0) {
-			highestPricedItem = chartData[0];
-			lowestPricedItem = chartData[0];
+			let highestPricedItem = chartData[0];
+			let lowestPricedItem = chartData[0];
 
 			for (const item of chartData) {
-				if (parseFloat(item.moneys) > parseFloat(highestPricedItem.moneys)) {
+				if (item.moneys > highestPricedItem.moneys) {
 					highestPricedItem = item;
 				}
-				if (parseFloat(item.moneys) < parseFloat(lowestPricedItem.moneys)) {
+				if (item.moneys < lowestPricedItem.moneys) {
 					lowestPricedItem = item;
 				}
 			}
-		}
 
-		setHighestPrice(highestPricedItem.moneys);
-		setLowestPrice(lowestPricedItem.moneys);
+			setHighestPrice(highestPricedItem.moneys);
+			setLowestPrice(lowestPricedItem.moneys);
+		}
 	};
 
 	useEffect(() => {
@@ -61,7 +61,7 @@ const BasicBarChart = ({ chartData }: BasicBarChartProps) => {
 					domain={['auto', 'auto']}
 				/>
 				<CartesianGrid vertical={false} stroke="#666666" />
-				<Tooltip formatter={(value) => formatCurrency(value)} />
+				<Tooltip formatter={(value: number) => formatCurrency(value)} />
 				<Bar dataKey="moneys" fill="url(#colorHigh)" radius={2} />
 			</BarChart>
 		</ResponsiveContainer>

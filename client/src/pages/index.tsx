@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { type ReactElement, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import PlatformLayout from '~/layouts/platform';
@@ -33,66 +33,83 @@ export default function Dashboard() {
 	return (
 		<>
 			<DashboardHeader />
-			<div className="grid grid-rows-7 gap-4 h-full flex-1">
-				<div className="row-span-2 grid grid-cols-9">
-					<div className="p-2 col-span-6 mx-2">
-						<div className="border border-accent bg-backgroundfade rounded-xl p-3 flex flex-col justify-center">
-							<div className="text-xl">Notification Title</div>
-							<div className="text-sm">12.01.24</div>
-							<div className="text-sm">
-								Lorem ipsum dolor sit amet. Et mollitia aliquid ut accusantium atque ut consectetur
-								praesentium et nulla expedita non unde repudiandae sit veritatis deserunt qui quaerat
-								officia.
-							</div>
-							<div className="w-1/5 p-2">
-								<BasicButton size={'sm'} type={'secondary'}>
-									View details
-								</BasicButton>
+			<div className="grid grid-cols-6">
+				<div className="col-span-4 grid grid-row-5">
+					<div className="row-span-1">
+						<div className="p-2 mx-2">
+							<div className="border border-accent bg-backgroundfade rounded-xl p-3 flex flex-col justify-center">
+								<div className="text-xl font-normal">Notification Title</div>
+								<div className="text-sm">12.01.24</div>
+								<div className="text-sm">
+									Lorem ipsum dolor sit amet. Et mollitia aliquid ut accusantium atque ut consectetur
+									praesentium et nulla expedita non unde repudiandae sit veritatis deserunt qui
+									quaerat officia.
+								</div>
+								<div className="w-1/5 p-2">
+									<BasicButton size={'sm'} type={'secondary'}>
+										View details
+									</BasicButton>
+								</div>
 							</div>
 						</div>
 					</div>
-					<div className="h-full w-full flex col-span-3 justify-center">
-						<figure className="h-52 bg-accent w-80 col-span-1 flex">
-							<Carousel
-								slides={imageData.map((image) => ({
-									content: (
-										<div>
-											<ZoomableImage source={image.src} width={320} height={320} alt={'image'} />
-										</div>
-									),
-								}))}
-								options={{
-									visibleSlides: 1,
-								}}
-							/>
-						</figure>
+					<div className="row-span-2">
+						<div className="col-span-6 mx-4">
+							{walletConnected ? (
+								<ProductList heading="My Products" isHomeScreen={true} />
+							) : (
+								'Log in to see all your products'
+							)}
+						</div>
+					</div>
+					<div className="row-span-2">
+						<div className="col-span-6 mx-4">
+							{walletConnected ? (
+								<GroupList heading="Available Groups" isHomeScreen={true} />
+							) : (
+								'Log in to see all your groups'
+							)}
+						</div>
 					</div>
 				</div>
-				<div className="grid grid-rows-3 row-span-5">
+				<div className="grid col-span-2 grid-row-5">
 					<div className="row-span-1">
-						<div className="grid grid-cols-9">
-							<div className="col-span-6 mx-4">
-								{walletConnected ? (
-									<ProductList heading="My Products" isHomeScreen={true} />
-								) : (
-									'Log in to see all your products'
-								)}
-							</div>
-							<div className="col-span-3 mx-4 h-full">
-								<div className="flex flex-col gap-2 py-4 h-full">
-									<h2 className="text-2xl">Next Payment</h2>
-									<div className="h-full border border-accent rounded-xl flex grid grid-cols-5 w-full justify-around bg-itemfade py-2">
-										{/* <TiHome /> */}
-										<div className="col-span-1 w-full flex justify-center align-center items-center">
-											<div className="p-2 border border-accent rounded-xl bg-electricblue">
-												<TiHome size={30} />
+						<div className="w-full flex col-span-3 justify-center">
+							<figure className="h-52 bg-accent w-80 col-span-1 flex">
+								<Carousel
+									slides={imageData.map((image) => ({
+										content: (
+											<div>
+												<ZoomableImage
+													source={image.src}
+													width={320}
+													height={320}
+													alt={'image'}
+												/>
 											</div>
+										),
+									}))}
+									options={{
+										visibleSlides: 1,
+									}}
+								/>
+							</figure>
+						</div>
+					</div>
+					<div className="row-span-2">
+						<div className="col-span-3 mx-4 h-full">
+							<div className="flex flex-col gap-2 py-4 h-full">
+								<h2 className="text-2xl">Next Payment</h2>
+								<div className="h-full border border-accent rounded-xl flex grid grid-cols-5 w-full justify-around bg-itemfade py-2">
+									<div className="col-span-1 w-full flex justify-center align-center items-center">
+										<div className="p-2 border border-accent rounded-xl bg-electricblue">
+											<TiHome size={30} />
 										</div>
-										<div className="col-span-4 w-full flex align-center items-center">
-											<div className="grid grid-rows-2">
-												<strong>$ 225</strong>
-												<div>Group Name - Model 3</div>
-											</div>
+									</div>
+									<div className="col-span-4 w-full flex align-center items-center">
+										<div className="grid grid-rows-2">
+											<strong>$ 225</strong>
+											<div>Group Name - Model 3</div>
 										</div>
 									</div>
 								</div>
@@ -100,32 +117,16 @@ export default function Dashboard() {
 						</div>
 					</div>
 					<div className="row-span-2">
-						<div className="grid grid-cols-9">
-							<div className="col-span-6 mx-4">
-								{walletConnected ? (
-									<GroupList
-										heading="My Groups"
-										isHomeScreen={true}
-										searchValue={null}
-										searchCategory={null}
-										searchMaxPrice={null}
-										searchMinPrice={null}
-									/>
-								) : (
-									'Log in to see all your groups'
-								)}
-							</div>
-							<div className="h-full col-span-3 mx-4">
-								<div className="flex flex-col gap-2 py-4">
-									{<h2 className="text-2xl">{'Community'}</h2>}
-									<CommunityItem
-										id={''}
-										hash={'QmUAsmEKt2LN6m2UH3qtRoayKoDuin2uE7hAikCWd88r24'}
-										group={''}
-										posterKey={'B62qpw7xEDfEwt89VxtQJFEUGJ62LmoXum6xRmcnPAAyHst1nLgG8Aw'}
-										imageHash={null}
-									/>
-								</div>
+						<div className="col-span-3 mx-4">
+							<div className="flex flex-col gap-2 py-4">
+								{<h2 className="text-2xl">{'Community'}</h2>}
+								<CommunityItem
+									id={''}
+									hash={'QmUAsmEKt2LN6m2UH3qtRoayKoDuin2uE7hAikCWd88r24'}
+									group={''}
+									posterKey={'B62qpw7xEDfEwt89VxtQJFEUGJ62LmoXum6xRmcnPAAyHst1nLgG8Aw'}
+									imageHash={null}
+								/>
 							</div>
 						</div>
 					</div>
@@ -135,6 +136,6 @@ export default function Dashboard() {
 	);
 }
 
-Dashboard.getLayout = function getLayout(page) {
+Dashboard.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

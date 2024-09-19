@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// https:jujuontheweb.medium.com/how-to-use-react-hook-form-with-your-custom-form-components-a86a1a77cf3c
-
 import React, { type ReactElement } from 'react';
 
 type TextInputProps = {
@@ -14,10 +9,12 @@ type TextInputProps = {
 	autoComplete?: string;
 	placeholder?: string;
 	icon?: ReactElement | null;
-	onChange?: (e: any) => void;
+	iconClick?: () => void;
+	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	disabled?: boolean;
 	required?: boolean;
 	value?: string;
+	width?: string | null;
 
 	// React Hook Form Props
 	validationSchema?: {
@@ -55,10 +52,12 @@ const TextInput = ({
 	autoComplete,
 	placeholder,
 	icon,
+	iconClick,
 	onChange,
 	disabled,
 	required = false,
 	value,
+	width = null,
 	validationSchema,
 	register = () => [],
 	errors,
@@ -70,7 +69,7 @@ const TextInput = ({
 	};
 
 	return (
-		<div>
+		<>
 			<label htmlFor={id} className="input input-bordered flex items-center gap-2">
 				{label && `${label}:`}
 				<input
@@ -86,14 +85,14 @@ const TextInput = ({
 					// React Hook Form
 					{...register(name, {
 						...validationSchema,
-						onChange: (e) => {
+						onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
 							handleChange(e);
 						},
 					})}
-					className="grow"
+					className={`grow ${width ?? ''}`}
 				/>
 				{required && <span className="badge badge-info">Required</span>}
-				{icon ? <span>{icon}</span> : null}
+				{icon ? <span onClick={iconClick}>{icon}</span> : null}
 			</label>
 			{/* React Hook Form Errors */}
 			{errors && errors[name]?.type === 'required' && (
@@ -111,7 +110,7 @@ const TextInput = ({
 			{errors && errors[name]?.type === 'max' && (
 				<p className="mt-1 text-xs text-red-error">{errors[name]?.message}</p>
 			)}
-		</div>
+		</>
 	);
 };
 

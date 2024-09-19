@@ -1,28 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-
 import { toast } from 'react-toastify';
-
 import TextArea from '../../../ui/TextArea';
 import BasicButton from '../../../ui/BasicButton';
-import { useWallet } from '~/providers/WalletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { IoIosSend } from 'react-icons/io';
 import { preventActionNotLoggedIn, preventActionWalletNotConnected } from '~/helpers/user-helper';
 import Spinner from '../../../ui/Spinner';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 
 type PostCommentProps = {
 	postId: string;
 	refetchComments: () => void;
+};
+
+type FormValuesType = {
+	'comment-content': string;
 };
 
 const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
@@ -40,26 +37,23 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 		handleSubmit,
 		reset,
 		formState: { errors },
-	} = useForm({
+	} = useForm<FormValuesType>({
 		mode: 'onSubmit',
 		reValidateMode: 'onSubmit',
-		// Resolver for using Zod validation library schema
-		// https://react-hook-form.com/docs/useform#resolver
-		// resolver: {}
 	});
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const onSubmit = async (data: any) => {
+
+	const onSubmit: SubmitHandler<FormValuesType> = async (data) => {
 		if (preventActionNotLoggedIn(isLoggedIn, 'Log in to post a comment')) return;
 		if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post a comment')) return;
 		try {
 			setIsLoading(true);
-			await saveComment(data['comment-content']);
+			await saveComment(data['comment-content'] ?? '');
 			reset();
 			refetchComments();
 			toast.success('Comment posted successfully');
 		} catch (err) {
 			console.log(err);
-			toast.error('Error submitting commment');
+			toast.error('Error submitting comment');
 		} finally {
 			setIsLoading(false);
 		}
@@ -69,24 +63,18 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 		try {
 			setIsLoading(true);
 			if (!isConnected || !walletAddress) {
-				//TODO add error message
 				console.log('Wallet not connected');
 				return;
 			}
-			//DO WE WANT CONTENT CHECK HERE?
-			// Save to IPFS
-			await commentToIPFS
-				.mutateAsync({
-					content: content,
-				})
-				.then(async (response) => {
-					await commentToFirebase.mutateAsync({
-						posterKey: walletAddress.toString(),
-						parentMessageId: postId,
-						commentContent: response.data.IpfsHash,
-						dateTime: DateTime.now().toString(),
-					});
+			const response = await commentToIPFS.mutateAsync({ content });
+			if (response.data != null) {
+				await commentToFirebase.mutateAsync({
+					posterKey: walletAddress.toString(),
+					parentMessageId: postId,
+					commentContent: response.data.IpfsHash,
+					dateTime: DateTime.now().toString(),
 				});
+			}
 		} catch (err) {
 			console.log(err);
 			toast.error('Error making comment - please try again');
@@ -106,7 +94,6 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 						placeholder="Leave your comment..."
 						errors={errors}
 						register={register}
-						// autoResize={true}
 						validationSchema={{
 							required: 'Comment content is required',
 							minLength: {
@@ -115,7 +102,7 @@ const PostComment = ({ postId, refetchComments }: PostCommentProps) => {
 							},
 							maxLength: {
 								value: 250,
-								message: 'Comment must be at less than 250 characters',
+								message: 'Comment must be less than 250 characters',
 							},
 						}}
 					/>

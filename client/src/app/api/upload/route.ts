@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { NextResponse } from 'next/server';
 
 //Choice for using request over next request: https://www.reddit.com/r/nextjs/comments/12i224x/request_vs_nextrequest_vs_nextapirequest_and/
@@ -45,7 +43,10 @@ export async function POST(req: Request) {
 			},
 			body: formData,
 		});
-		const data = await res.json();
+
+		console.log(res);
+
+		const data = (await res.json()) as JSON;
 		return new Response(
 			JSON.stringify({
 				data,

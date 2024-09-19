@@ -1,6 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
-
 import { FaBell } from 'react-icons/fa';
 import { FaCaretDown } from 'react-icons/fa';
 import BasicButton from './BasicButton';
@@ -20,7 +18,7 @@ const PageHeader = ({ text, subtext, hideQuickLinks = false, buttonText, onClick
 		<div className="flex justify-between items-center min-h-[56px] min-w-full">
 			<div className="flex items-center">
 				<div>
-					<h1 className="text-4xl">{text}</h1>
+					<h1 className="text-4xl font-normal">{text}</h1>
 					<div className="min-h-[16px]">
 						{subtext ? <p className="text-xs text-dark-grey">{subtext}</p> : null}
 					</div>

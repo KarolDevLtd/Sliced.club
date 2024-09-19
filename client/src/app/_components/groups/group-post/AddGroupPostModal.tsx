@@ -1,28 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { preventActionWalletNotConnected, sliceWalletAddress } from '~/helpers/user-helper';
-
 import useStore from '~/stores/utils/useStore';
 import { useUserStore } from '~/providers/store-providers/userStoreProvider';
 import { type UserState } from '~/stores/userStore';
-
 import BasicButton from '../../ui/BasicButton';
-import TextInput from '../../ui/TextInput';
 import Spinner from '../../ui/Spinner';
 import { closeModal } from '~/helpers/modal-helper';
 import TextArea from '../../ui/TextArea';
 import BasicModal from '../../ui/BasicModal';
 import DragDrop from '../../ui/ImageUpload';
-
 import { saveImages } from '~/helpers/image-helper';
-import { useWallet } from '~/providers/WalletProvider';
+import { useWallet } from '@/providers/WalletProvider/walletProvider';
 import { api } from '~/trpc/react';
 import { DateTime } from 'luxon';
 import { FaImage } from 'react-icons/fa6';
@@ -33,18 +23,23 @@ type AddGroupPostModalProps = {
 	refetchPosts: () => void;
 };
 
+type FormValuesType = {
+	'post-text': string;
+};
+
+type IPFSResponseType = {
+	data: {
+		IpfsHash: string;
+	};
+};
+
 const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [images, setImages] = useState<File[]>([]);
-	const [refreshPosts, setRefreshPosts] = useState(false);
 	const [showAttachments, setShowAttachments] = useState(false);
-
 	const { walletDisplayAddress, walletAddress } = useWallet();
-
 	const postToIPFS = api.PinataPost.postMessage.useMutation();
 	const postToFirebase = api.FirebasePost.postToCollection.useMutation();
-
-	const isLoggedIn = useStore(useUserStore, (state: UserState) => state.isLoggedIn);
 	const walletConnected = useStore(useUserStore, (state: UserState) => state.walletConnected);
 
 	const {
@@ -53,20 +48,19 @@ const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) =>
 		handleSubmit,
 		reset,
 		formState: { errors },
-	} = useForm({
+	} = useForm<FormValuesType>({
 		mode: 'onSubmit',
 		reValidateMode: 'onSubmit',
 		// Resolver for using Zod validation library schema
 		// https://react-hook-form.com/docs/useform#resolver
 		// resolver: {}
 	});
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const onSubmit = async (data: any) => {
+
+	const onSubmit: SubmitHandler<FormValuesType> = async (data) => {
 		try {
 			setIsLoading(true);
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			await savePost('', data['post-text']);
-			console.log(JSON.stringify(data));
 			reset();
 			hidePostInput();
 			// refetchPosts();
@@ -82,17 +76,18 @@ const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) =>
 	const savePost = async (title: string, content: string) => {
 		try {
 			setIsLoading(true);
-			let postImgsIPFS;
-			let imageHashes;
+			let imageHashes = [] as string[];
 			if (preventActionWalletNotConnected(walletConnected, 'Connect a wallet to post')) return;
 			if (images) {
-				postImgsIPFS = await saveImages(images);
-				//map ipfsHashes of all uploaded images to array
-				imageHashes = postImgsIPFS.map(function (item) {
-					return item.data.IpfsHash;
-				});
+				try {
+					const postImgsIPFS: IPFSResponseType[] = await saveImages(images);
+					imageHashes = postImgsIPFS.map((item: IPFSResponseType) => {
+						return item.data.IpfsHash;
+					});
+				} catch (error) {
+					console.error('Error saving images:', error);
+				}
 			}
-			//DO WE WANT CONTENT CHECK HERE?
 			// Save to IPFS
 			const postMsgIPFS = await postToIPFS.mutateAsync({
 				title: title,
@@ -101,7 +96,7 @@ const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) =>
 			await postToFirebase.mutateAsync({
 				posterKey: walletAddress!.toString(),
 				groupId: groupId,
-				messageHash: postMsgIPFS.data.IpfsHash,
+				messageHash: postMsgIPFS.data!.IpfsHash,
 				imageHash: imageHashes,
 				dateTime: DateTime.now().toString(),
 			});
@@ -117,14 +112,14 @@ const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) =>
 
 	const hidePostInput = () => {
 		// Clears form validation errors when closing modal
-		unregister(['post-title', 'post-text']);
+		unregister(['post-text']);
 		closeModal('add-post');
 		refetchPosts();
 	};
 
 	const clearForm = () => {
 		reset();
-		unregister(['post-title', 'post-text']);
+		unregister(['post-text']);
 	};
 
 	return (
@@ -134,23 +129,6 @@ const AddGroupPostModal = ({ groupId, refetchPosts }: AddGroupPostModalProps) =>
 			header="New Post"
 			content={
 				<form className="flex flex-col justify-center gap-3" onSubmit={handleSubmit(onSubmit)}>
-					{/* <TextInput
-						id="post-title"
-						name="post-title"
-						type="text"
-						label="Post Title"
-						required={true}
-						errors={errors}
-						register={register}
-						validationSchema={{
-							required: 'Post Title is required',
-							minLength: {
-								value: 10,
-								message: 'Post Title must be at least 10 characters',
-							},
-						}}
-					/> */}
-
 					<div className="flex items-center gap-2">
 						<UserAvatar />
 						<span>{sliceWalletAddress(walletDisplayAddress)}</span>

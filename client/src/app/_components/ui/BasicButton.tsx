@@ -2,7 +2,6 @@ import React, { type ReactElement } from 'react';
 
 type BasicButtonProps = {
 	children: React.ReactNode;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	onClick?: (e: any) => any;
 	type: 'primary' | 'secondary' | 'accent' | 'neutral' | 'ghost';
 	size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -41,7 +40,7 @@ const BasicButton = ({
 
 	return (
 		<button
-			className={`btn ${colourMap[type]} ${sizeMap[size]} ${disabled ? 'btn-disabled' : ''} ${active ? 'btn-active no-animation' : ''} gap-0`}
+			className={`btn ${colourMap[type]} ${sizeMap[size]} ${disabled ? 'btn-disabled' : ''} ${active ? 'btn-active no-animation' : ''} gap-0 text-brightwhite font-light`}
 			onClick={onClick}
 			disabled={disabled}
 			type={submitForm ? 'submit' : 'button'}

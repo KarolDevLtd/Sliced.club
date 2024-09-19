@@ -2,6 +2,7 @@ import { useRouter } from 'next/router';
 import PageHeader from '~/app/_components/ui/PageHeader';
 import InlineLink from '~/app/_components/ui/InlineLink';
 import PlatformLayout from '~/layouts/platform';
+import { type ReactElement } from 'react';
 
 export default function Profile() {
 	const router = useRouter();
@@ -25,6 +26,6 @@ export default function Profile() {
 	);
 }
 
-Profile.getLayout = function getLayout(page) {
+Profile.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };

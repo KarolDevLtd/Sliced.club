@@ -2,8 +2,8 @@ import BasicButton from '@/app/_components/ui/BasicButton';
 import Spinner from '@/app/_components/ui/Spinner';
 import TextInput from '@/app/_components/ui/TextInput';
 import PlatformLayout from '@/layouts/platform';
-import { useMinaProvider } from '@/providers/minaprovider';
-import { useState } from 'react';
+import { useMinaProvider } from '@/providers/MinaProvider/minaProvider';
+import { type ReactElement, useState } from 'react';
 
 export default function Admin() {
 	const [pubKey, setPubKey] = useState('');
@@ -55,6 +55,6 @@ export default function Admin() {
 	);
 }
 
-Admin.getLayout = function getLayout(page) {
+Admin.getLayout = function getLayout(page: ReactElement) {
 	return <PlatformLayout>{page}</PlatformLayout>;
 };
