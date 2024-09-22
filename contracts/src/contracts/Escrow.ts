@@ -13,7 +13,7 @@ import {
   Provable,
 } from 'o1js';
 
-import { FungibleToken } from './token/FungibleToken';
+import { FungibleToken } from '../token/FungibleToken';
 import { GroupBasic } from './GroupBasic';
 
 export class Escrow extends SmartContract {

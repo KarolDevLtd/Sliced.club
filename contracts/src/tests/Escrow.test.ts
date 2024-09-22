@@ -8,8 +8,8 @@ import {
   Bool,
 } from 'o1js';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
-import { FungibleToken } from './token/FungibleToken';
-import { Escrow } from './Escrow';
+import { FungibleToken } from '../token/FungibleToken';
+import { Escrow } from '../contracts/Escrow';
 
 describe('Escrow', () => {
   let deployer: TestPublicKey, admin: TestPublicKey, group: TestPublicKey;

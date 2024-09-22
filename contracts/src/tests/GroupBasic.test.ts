@@ -1,5 +1,5 @@
-import { FungibleToken } from './token/FungibleToken';
-import { GroupBasic, GroupSettings, Payments, Entry } from './GroupBasic';
+import { FungibleToken } from '../token/FungibleToken';
+import { GroupBasic } from '../contracts/GroupBasic';
 import {
   Cache,
   Field,
@@ -15,8 +15,8 @@ import {
   Bool,
 } from 'o1js';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
-import { GroupUserStorage } from './GroupUserStorage';
-import { Escrow } from './Escrow';
+import { GroupUserStorage, GroupSettings, Payments, Entry } from '../types';
+import { Escrow } from '../contracts/Escrow';
 
 let proofsEnabled = false;
 const fee = 1e8;

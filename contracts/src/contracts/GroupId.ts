@@ -7,7 +7,7 @@ import {
   method,
   UInt32,
   VerificationKey,
-  TokenContract,
+  TokenContractV2,
   Struct,
   Signature,
   Permissions,
@@ -24,9 +24,8 @@ import {
   provable,
   assert,
 } from 'o1js';
-import { FungibleToken } from './token/FungibleToken';
-import { GroupUserStorage } from './GroupUserStorage';
-import { PackedBoolFactory } from './lib/packed-types/PackedBool';
+import { FungibleToken } from '../token/FungibleToken';
+import { GroupUserStorage, Entry, Payments, GroupSettings } from '../types';
 
 import {
   ProofOfAgeProof,
@@ -35,98 +34,11 @@ import {
   ProofOfNationalityProof,
 } from 'idmask-zk-programs';
 
-export class Payments extends PackedBoolFactory(251) {}
-type CipherText = {
-  publicKey: Group;
-  cipherText: Field[];
-};
-export class Entry extends Struct({
-  publicKey: PublicKey,
-  // message: { //TODO
-  //   publicKey: Group,
-  //   cipherText: Field[],
-  // },
-  message: UInt64,
-  paymentRound: UInt64,
-  /** It's auction if false */
-  isLottery: Bool,
-  /** Set to true if user up to date on payments */
-  lotteryElligible: Bool,
-}) {
-  constructor(
-    publicKey: PublicKey,
-    message: UInt64,
-    paymentRound: UInt64,
-    isLottery: Bool,
-    lotteryElligible: Bool
-  ) {
-    super({
-      publicKey,
-      message,
-      paymentRound,
-      isLottery,
-      lotteryElligible,
-    });
-  }
-  hash(): Field {
-    return Poseidon.hash(Entry.toFields(this));
-  }
-  toFields(): Field[] {
-    return Entry.toFields(this);
-  }
-}
-export class GroupSettings extends Struct({
-  members: UInt32,
-  itemPrice: UInt32,
-  /** In payment rounds */
-  groupDuration: UInt32,
-  /** Stablecoin token */
-  tokenAddress: PublicKey,
-  /** Number of payments that can be missed */
-  missable: UInt32,
-  /** Duration of each payment round in seconds */
-  payemntDuration: UInt64,
-}) {
-  constructor(
-    members: UInt32,
-    itemPrice: UInt32,
-    groupDuration: UInt32,
-    tokenAddress: PublicKey,
-    missable: UInt32,
-    payemntDuration: UInt64
-  ) {
-    super({
-      members,
-      itemPrice,
-      groupDuration,
-      tokenAddress,
-      missable,
-      payemntDuration,
-    });
-  }
-  hash(): Field {
-    return Poseidon.hash(GroupSettings.toFields(this));
-  }
-  toFields(): Field[] {
-    return GroupSettings.toFields(this);
-  }
-  static empty<T extends new (...args: any) => any>(): InstanceType<T> {
-    return new GroupSettings(
-      new UInt32(0),
-      new UInt32(0),
-      new UInt32(0),
-      PublicKey.empty(),
-      new UInt32(0),
-      new UInt64(0)
-    ) as any;
-  }
-}
-
 // Max payments capped by the proof size
 const MAX_PAYMENTS = 200;
 const MAX_UPDATES_WITH_ACTIONS = 20;
 const MAX_ACTIONS_PER_UPDATE = 2;
-export class GroupId extends TokenContract {
+export class GroupId extends TokenContractV2 {
   /** Settings specified by the organiser. */
   @state(Field) groupSettingsHash = State<Field>();
   /** Also organiser. */
@@ -173,7 +85,7 @@ export class GroupId extends TokenContract {
 
   @method
   async organiserWithdraw(_groupSettings: GroupSettings, withdraw: UInt32) {
-    let organiser = this.sender.getAndRequireSignature();
+    let organiser = this.sender.getAndRequireSignatureV2();
     // Assert organsier is calling
     this.admin.getAndRequireEquals().assertEquals(organiser);
 
@@ -190,7 +102,7 @@ export class GroupId extends TokenContract {
 
   @method
   async userClaim() {
-    let senderAddr = this.sender.getAndRequireSignature();
+    let senderAddr = this.sender.getAndRequireSignatureV2();
     let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());
 
     // Assert they can claim
@@ -222,7 +134,7 @@ export class GroupId extends TokenContract {
     // Check if caller is the admin
     let adminCaller: Bool = this.admin
       .getAndRequireEquals()
-      .equals(this.sender.getAndRequireSignature());
+      .equals(this.sender.getAndRequireSignatureV2());
 
     // Check for correct settings given
     await this.assertGroupHash(_groupSettings);
@@ -269,7 +181,7 @@ export class GroupId extends TokenContract {
     amountOfBids: UInt64, // Can be zero
     amountOfPayments: UInt32 // Needs to cover this, and past ones
   ) {
-    let senderAddr = this.sender.getAndRequireSignature();
+    let senderAddr = this.sender.getAndRequireSignatureV2();
     await this.assertGroupHash(_groupSettings);
 
     let userStorage = new GroupUserStorage(senderAddr, this.deriveTokenId());

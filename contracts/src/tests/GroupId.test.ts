@@ -1,5 +1,5 @@
-import { FungibleToken } from './token/FungibleToken';
-import { GroupId, GroupSettings, Payments, Entry } from './GroupId';
+import { FungibleToken } from '../token/FungibleToken';
+import { GroupId } from '../contracts/GroupId';
 import {
   Cache,
   Field,
@@ -16,7 +16,7 @@ import {
 } from 'o1js';
 import fs from 'fs';
 import { TestPublicKey } from 'o1js/dist/node/lib/mina/local-blockchain';
-import { GroupUserStorage } from './GroupUserStorage';
+import { GroupUserStorage, GroupSettings, Payments, Entry } from '../types';
 
 import {
   proofOfAge,

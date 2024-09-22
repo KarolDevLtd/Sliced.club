@@ -1,4 +1,4 @@
-import { FungibleToken } from './token/FungibleToken';
+import { FungibleToken } from '../token/FungibleToken';
 
 import fs from 'fs/promises';
 import {
